@@ -1,23 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.ChatController">
-    <center>
-        <TextArea fx:id="chatArea" editable="false" wrapText="true" BorderPane.alignment="CENTER" />
-    </center>
-    <bottom>
-        <HBox spacing="10" alignment="CENTER_LEFT" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10" />
-            </padding>
-            <TextField fx:id="messageField" HBox.hgrow="ALWAYS" onAction="#onSendMessage" promptText="Type your message..."/>
-            <Button fx:id="sendButton" text="Send" onAction="#onSendMessage"/>
-        </HBox>
-    </bottom>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.ChatController">
+   <center>
+      <SplitPane dividerPositions="0.25" BorderPane.alignment="CENTER">
+        <items>
+            <VBox>
+                <children>
+                    <Label text="Contacts">
+                        <font>
+                            <Font name="System Bold" size="18.0" />
+                        </font>
+                        <padding>
+                            <Insets bottom="5.0" left="10.0" top="5.0" />
+                        </padding>
+                    </Label>
+                    <ListView fx:id="contactsListView" VBox.vgrow="ALWAYS" />
+                </children>
+            </VBox>
+
+            <BorderPane>
+                <top>
+                    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #F0F0F0; -fx-border-color: #CCCCCC; -fx-border-width: 0 0 1 0;">
+                        <padding>
+                            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                        </padding>
+                        <children>
+                            <Label fx:id="chatPartnerNameLabel" text="Select a chat" HBox.hgrow="ALWAYS">
+                                <font>
+                                    <Font name="System Bold" size="16.0" />
+                                </font>
+                            </Label>
+                        </children>
+                    </HBox>
+                </top>
+                <center>
+                    <TextArea fx:id="chatArea" editable="false" wrapText="true" BorderPane.alignment="CENTER" />
+                </center>
+                <bottom>
+                    <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                        <padding>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                        </padding>
+                        <children>
+                            <TextField fx:id="messageField" onAction="#onSendMessage" promptText="Type a message..." HBox.hgrow="ALWAYS" />
+                            <Button fx:id="sendButton" onAction="#onSendMessage" text="Send" />
+                        </children>
+                    </HBox>
+                </bottom>
+            </BorderPane>
+        </items>
+      </SplitPane>
+   </center>
 </BorderPane>

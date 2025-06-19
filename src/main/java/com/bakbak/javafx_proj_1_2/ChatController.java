@@ -48,15 +48,18 @@ public class ChatController {
     }
 
     @FXML
-    protected void onSendMessage() {
-        String messageText = messageField.getText();
-        if (messageText != null && !messageText.trim().isEmpty()) {
-            // Prepend username to the message
-            String fullMessage = username + ": " + messageText;
-            networkService.sendMessage(fullMessage);
-            messageField.clear();
-        }
+protected void onSendMessage() {
+    String messageText = messageField.getText();
+    if (messageText != null && !messageText.trim().isEmpty()) {
+        String fullMessage = username + ": " + messageText;
+
+        // --- DEBUG LINE ---
+        System.out.println("DEBUG: Attempting to send message: '" + fullMessage + "'");
+
+        networkService.sendMessage(fullMessage);
+        messageField.clear();
     }
+}
 
     // Method to be called to cleanly shut down the network listener
     public void shutdown() {
