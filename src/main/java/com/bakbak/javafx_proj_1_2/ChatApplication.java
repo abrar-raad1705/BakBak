@@ -24,7 +24,7 @@ public class ChatApplication extends Application {
         // Use the calculated dimensions for the scene
         Scene scene = new Scene(fxmlLoader.load(), sceneWidth, sceneHeight);
 
-        stage.setTitle("LAN Messenger");
+        stage.setTitle("BakBak");
         stage.setScene(scene);
 
         // Ensure the network service is shut down when the app closes
