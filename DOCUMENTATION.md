@@ -108,7 +108,7 @@ JavaFX Project 1-2/
 #### ChatServer.java
 - **Purpose**: Main server application entry point
 - **Responsibilities**: 
-  - Accepts client connections on port 8080
+  - Accepts client connections on port 22222
   - Creates ClientHandler threads for each connection
   - Manages server lifecycle
 
@@ -404,7 +404,7 @@ mvn javafx:run
 ```
 
 ### Configuration
-- **Server Port**: Default port 8080 (configurable in ChatServer.java)
+- **Server Port**: Default port 22222 (configurable in ChatServer.java)
 - **Data Directory**: `chat_data/` (auto-created in project root)
 - **Max Connections**: 100 concurrent clients (configurable)
 
@@ -545,7 +545,7 @@ username|password
 **Problem**: Client cannot connect to server
 **Solutions**:
 1. Ensure server is running first
-2. Check if port 8080 is available
+2. Check if port 22222 is available
 3. Verify firewall settings
 4. Check server startup logs for errors
 

@@ -27,8 +27,8 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            Message message = (Message) ois.readObject();
-            while (message != null) {
+            Message message;
+            while ((message = (Message) ois.readObject()) != null) {
                 handleMessage(message);
             }
         } catch (IOException | ClassNotFoundException e) {
