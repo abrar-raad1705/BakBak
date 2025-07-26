@@ -11,7 +11,7 @@ public class MessageStore {
     private static MessageStore instance;
     private final String DATA_DIR = "chat_data";
     private final String MESSAGES_DIR = DATA_DIR + "/messages";
-    private final String USERS_FILE = DATA_DIR + "/users.txt";
+    // private final String USERS_FILE = DATA_DIR + "/users.txt";
     private final String OFFLINE_QUEUE_DIR = DATA_DIR + "/offline_queue";
     
     private Map<String, List<Message>> userMessageHistory;
@@ -220,8 +220,8 @@ public class MessageStore {
                 message.getContent() != null ? message.getContent() : "",
                 message.getGroupId() != null ? message.getGroupId() : "",
                 message.getTimestamp().format(formatter),
-                String.valueOf(message.isSuccess()),
-                message.getErrorMessage() != null ? message.getErrorMessage() : ""
+                String.valueOf(message.isSuccess())
+/*                 message.getErrorMessage() != null ? message.getErrorMessage() : "" */
         );
     }
     
@@ -238,7 +238,7 @@ public class MessageStore {
                 message.setTimestamp(LocalDateTime.parse(parts[5], formatter));
                 message.setSuccess(Boolean.parseBoolean(parts[6]));
                 
-                if (!parts[7].isEmpty()) message.setErrorMessage(parts[7]);
+                // if (!parts[7].isEmpty()) message.setErrorMessage(parts[7]);
                 
                 return message;
             }

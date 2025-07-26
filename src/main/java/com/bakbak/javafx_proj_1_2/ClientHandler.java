@@ -12,16 +12,11 @@ public class ClientHandler implements Runnable {
     private String username;
     private boolean isLoggedIn;
 
-    public ClientHandler(Socket clientSocket) {
+    public ClientHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
+        oos = new ObjectOutputStream(clientSocket.getOutputStream());
+        ois = new ObjectInputStream(clientSocket.getInputStream());
         isLoggedIn = false;
-
-        try {
-            oos = new ObjectOutputStream(clientSocket.getOutputStream());
-            ois = new ObjectInputStream(clientSocket.getInputStream());
-        } catch (IOException e) {
-            System.err.println("Error creating streams: " + e.getMessage());
-        }
     }
 
     @Override
@@ -77,11 +72,6 @@ public class ClientHandler implements Runnable {
             case GROUP_LIST:
                 handleGroupList(message, groupManager);
                 break;
-            case SYNC_HISTORY:
-                handleSyncHistory(message, messageStore);
-                break;
-            default:
-                sendErrorMessage("Unknown message type");
         }
     }
 
@@ -131,20 +121,16 @@ public class ClientHandler implements Runnable {
         if (!offlineMessages.isEmpty()) {
             System.out.println("Delivering " + offlineMessages.size() + " offline messages to " + username);
 
-            // Send each offline message
             for (Message offlineMessage : offlineMessages) {
                 sendMessage(offlineMessage);
             }
 
-            // Send notification about offline messages delivered
-            Message notification = new Message(Message.MessageType.OFFLINE_MESSAGES, "SERVER");
-            notification.setContent("Delivered " + offlineMessages.size() + " offline messages");
-            sendMessage(notification);
+            System.out.println("Delivered " + offlineMessages.size() + " offline messages");
         }
     }
 
     private void handleLogout(Message message, UserManager userManager) {
-        if(isLoggedIn) {
+        if (isLoggedIn) {
             userManager.logoutUser(username);
             isLoggedIn = false;
             System.out.println("User " + username + " logged out");
@@ -153,81 +139,67 @@ public class ClientHandler implements Runnable {
     }
 
     private void handlePrivateMessage(Message message, UserManager userManager, MessageStore messageStore) {
-        if (!isLoggedIn) {
-            sendErrorMessage("Please login first");
-            return;
-        }
-
         String recipient = message.getRecipient();
-
-        // Always store the message first
         messageStore.storeMessage(message);
 
-        // Check if recipient is online
         if (userManager.isUserOnline(recipient)) {
-            // Deliver immediately if online
             ClientHandler recipientHandler = userManager.getClientHandler(recipient);
             if (recipientHandler != null) {
                 recipientHandler.sendMessage(message);
             }
 
-            // Send acknowledgment to sender
-            Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
-            ack.setSuccess(true);
-            ack.setContent("Message delivered to " + recipient);
-            sendMessage(ack);
+            //! Send 'delivered' ack to sender
+            // Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+            // ack.setSuccess(true);
+            // ack.setContent("Message delivered to " + recipient);
+            // sendMessage(ack);
         } else {
-            // Queue for offline delivery if recipient is offline
             messageStore.queueOfflineMessage(recipient, message);
 
-            // Send acknowledgment to sender
-            Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
-            ack.setSuccess(true);
-            ack.setContent("Message queued for " + recipient + " (offline)");
-            sendMessage(ack);
+            //! Send 'sent' ack to sender
+            // Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+            // ack.setSuccess(true);
+            // ack.setContent("Message queued for " + recipient + " (offline)");
+            // sendMessage(ack);
         }
     }
 
     private void handleGroupMessage(Message message, GroupManager groupManager) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         String groupId = message.getGroupId();
 
-        if (!groupManager.isGroupMember(groupId, username)) {
+        /* if (!groupManager.isGroupMember(groupId, username)) {
             sendErrorMessage("You are not a member of this group");
             return;
-        }
+        } */
 
         Set<String> members = groupManager.getGroupMembers(groupId);
         UserManager userManager = UserManager.getInstance();
 
-        int deliveredCount = 0;
         for (String member : members) {
             if (!member.equals(username) && userManager.isUserOnline(member)) {
                 ClientHandler memberHandler = userManager.getClientHandler(member);
                 if (memberHandler != null) {
                     memberHandler.sendMessage(message);
-                    deliveredCount++;
                 }
             }
         }
 
-        // Send acknowledgment to sender
-        Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+        //! Send sent to sender
+        /* Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
         ack.setSuccess(true);
         ack.setContent("Message delivered to " + deliveredCount + " group members");
-        sendMessage(ack);
+        sendMessage(ack); */
     }
 
     private void handleCreateGroup(Message message, GroupManager groupManager) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         String groupName = message.getContent();
         String groupId = groupManager.createGroup(groupName, username);
 
@@ -239,11 +211,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleJoinGroup(Message message, GroupManager groupManager) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         String groupId = message.getGroupId();
         boolean success = groupManager.joinGroup(groupId, username);
 
@@ -254,11 +225,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleLeaveGroup(Message message, GroupManager groupManager) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         String groupId = message.getGroupId();
         boolean success = groupManager.leaveGroup(groupId, username);
 
@@ -269,11 +239,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleUserList(Message message, UserManager userManager) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         Set<String> onlineUsers = userManager.getOnlineUsers();
         StringBuilder userList = new StringBuilder("Online users: ");
         for (String user : onlineUsers) {
@@ -288,11 +257,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleUserSearch(Message message, UserManager userManager) {
-        if (!isLoggedIn) {
+        /* if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
+        } */
         String searchQuery = message.getContent().toLowerCase();
         Set<String> allUsers = userManager.getAllUsers();
         StringBuilder searchResults = new StringBuilder();
@@ -310,11 +278,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleGroupList(Message message, GroupManager groupManager) {
-        if (!isLoggedIn) {
-            sendErrorMessage("Please login first");
-            return;
-        }
-
+        // if (!isLoggedIn) {
+        //     sendErrorMessage("Please login first");
+        //     return;
+        // }
         Set<String> userGroups = groupManager.getUserGroups(username);
         StringBuilder groupList = new StringBuilder("Your groups: ");
         for (String groupId : userGroups) {
@@ -330,30 +297,27 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleSyncHistory(Message message, MessageStore messageStore) {
-        if (!isLoggedIn) {
+/*         if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
-        }
-
-        String withUser = message.getContent(); // The user to sync conversation history with
+        } */
+        String withUser = message.getContent();
 
         if (withUser != null && !withUser.isEmpty()) {
             List<Message> conversationHistory = messageStore.getConversationHistory(username, withUser);
 
-            // Send the conversation history
             for (Message historyMessage : conversationHistory) {
-                Message historyResponse = new Message(Message.MessageType.MESSAGE_HISTORY, "SERVER");
-                historyResponse.setContent(serializeMessage(historyMessage));
-                sendMessage(historyResponse);
+               /*  Message historyResponse = new Message(Message.MessageType.MESSAGE_HISTORY, "SERVER");
+                historyResponse.setContent(serializeMessage(historyMessage)); */
+                sendMessage(historyMessage);
             }
         }
     }
 
-    private String serializeMessage(Message message) {
-        // Simple serialization for message history
+    /* private String serializeMessage(Message message) {
         return message.getSender() + "|" + message.getRecipient() + "|" +
                 message.getContent() + "|" + message.getTimestamp().toString();
-    }
+    } */
 
     public void sendMessage(Message message) {
         try {
@@ -364,12 +328,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void sendErrorMessage(String errorMessage) {
+    /* private void sendErrorMessage(String errorMessage) {
         Message error = new Message(Message.MessageType.ERROR, "SERVER");
         error.setSuccess(false);
         error.setErrorMessage(errorMessage);
         sendMessage(error);
-    }
+    } */
 
     private void disconnect() {
         try {

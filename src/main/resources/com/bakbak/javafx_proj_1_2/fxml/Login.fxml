@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.bakbak.javafx_proj_1_2.controller.LoginController">
+   
+   <!-- Header with back button -->
+   <top>
+      <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 20 10 20;">
+         <Button fx:id="backButton" text="← Back" onAction="#handleBack" 
+                 style="-fx-font-size: 13px;" />
+         <Region HBox.hgrow="ALWAYS" />
+         <Label text="Connected to Server" style="-fx-font-size: 12px; -fx-opacity: 0.7;" />
+      </HBox>
+   </top>
+   
+   <!-- Main login form -->
+   <center>
+      <VBox spacing="25" alignment="CENTER" maxWidth="400" style="-fx-padding: 40;">
+         
+         <!-- Header -->
+         <VBox alignment="CENTER" spacing="8">
+            <Label text="Welcome" style="-fx-font-size: 32px; -fx-font-weight: bold;">
+               <font>
+                  <Font name="System Bold" size="32.0" />
+               </font>
+            </Label>
+            <Label text="Sign in to your account or create a new one" 
+                   style="-fx-font-size: 14px; -fx-opacity: 0.8;" textAlignment="CENTER" />
+         </VBox>
+         
+         <!-- Login Form -->
+         <VBox spacing="20" alignment="CENTER" style="-fx-padding: 30 40 30 40; -fx-background-radius: 12;" 
+               maxWidth="350">
+            
+            <!-- Input Fields -->
+            <VBox spacing="15" alignment="CENTER" fillWidth="true">
+               <TextField fx:id="usernameField" promptText="Username" 
+                          prefHeight="45" prefWidth="280"
+                          style="-fx-font-size: 14px;" />
+               
+               <PasswordField fx:id="passwordField" promptText="Password" 
+                              prefHeight="45" prefWidth="280"
+                              style="-fx-font-size: 14px;" />
+            </VBox>
+            
+            <!-- Status Label -->
+            <Label fx:id="statusLabel" text="Enter your credentials" 
+                   style="-fx-font-size: 12px;" textAlignment="CENTER" wrapText="true" />
+            
+            <!-- Action Buttons -->
+            <VBox spacing="10" alignment="CENTER" fillWidth="true">
+               <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
+                       prefWidth="280" prefHeight="45" 
+                       style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+               
+               <Button fx:id="registerButton" text="Create Account" onAction="#handleRegister"
+                       prefWidth="280" prefHeight="40" 
+                       style="-fx-font-size: 13px;" />
+            </VBox>
+            
+         </VBox>
+         
+         <!-- Help Text -->
+         <VBox alignment="CENTER" spacing="5">
+            <Label text="First time? Create an account to get started" 
+                   style="-fx-font-size: 11px; -fx-opacity: 0.6;" />
+            <Label text="Your credentials will be saved on the server" 
+                   style="-fx-font-size: 10px; -fx-opacity: 0.5;" />
+         </VBox>
+         
+      </VBox>
+   </center>
+   
+</BorderPane>

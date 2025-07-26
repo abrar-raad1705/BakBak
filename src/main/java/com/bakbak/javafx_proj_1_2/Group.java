@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Group implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
     private String groupId;
     private String groupName;
     private String creator;
@@ -20,12 +18,10 @@ public class Group implements Serializable {
         this.members = new HashSet<>();
         this.admins = new HashSet<>();
         
-        // Creator is automatically a member and admin
         this.members.add(creator);
         this.admins.add(creator);
     }
     
-    // Getters and Setters
     public String getGroupId() { return groupId; }
     public void setGroupId(String groupId) { this.groupId = groupId; }
     
@@ -47,7 +43,7 @@ public class Group implements Serializable {
     
     public void removeMember(String username) {
         this.members.remove(username);
-        this.admins.remove(username); // Remove from admins too if they were admin
+        this.admins.remove(username);
     }
     
     public void addAdmin(String username) {
@@ -57,7 +53,6 @@ public class Group implements Serializable {
     }
     
     public void removeAdmin(String username) {
-        // Creator cannot be removed as admin
         if (!username.equals(creator)) {
             this.admins.remove(username);
         }

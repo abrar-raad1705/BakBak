@@ -79,15 +79,15 @@ public class UserManager {
         users.put(username, newUser);
         saveUsers();
         System.out.println("User " + username + " registered and saved to file");
-        return true;    
+        return true;  
     }
     
     public boolean loginUser(String username, String password, ClientHandler clientHandler) {
         System.out.println("Login attempt for user: " + username);
-        System.out.println("Users loaded: " + users.keySet());
         
         User user = users.get(username);
         if (user == null) {
+            System.out.println("Users loaded: " + users.keySet());
             System.out.println("User not found: " + username);
             return false;
         }
