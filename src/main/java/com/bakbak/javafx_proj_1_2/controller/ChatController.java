@@ -19,6 +19,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -32,6 +34,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +55,8 @@ public class ChatController implements Initializable {
     @FXML private TextField messageInput;
     @FXML private Button sendButton;
     @FXML private Button chatMenuButton;
+    @FXML private VBox chatHeader;
+    @FXML private HBox messageInputArea;
 
     private ChatClient chatClient;
     private String currentUsername;
@@ -61,6 +66,11 @@ public class ChatController implements Initializable {
     private Map<String, ChatItem> allChatItems = new HashMap<>();
     private CompletableFuture<Message> pendingResponse;
     private Timeline lastSeenUpdateTimer;
+    private String lastMessageSender = null; // Track last sender for message grouping
+    
+    // Store the selection listener to enable/disable it
+    private javafx.beans.value.ChangeListener<ChatItem> chatSelectionListener;
+    private boolean isSelectingChat = false; // Prevent multiple rapid selections
     
     // Image-based emoji system
     private static final String EMOJI_RESOURCES_PATH = "/com/bakbak/javafx_proj_1_2/emojis/";
@@ -164,11 +174,12 @@ public class ChatController implements Initializable {
         messageInput1.textProperty().addListener((observable, oldValue, newValue) -> filterChatList(newValue));
         
         // Setup chat list selection
-        userListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        chatSelectionListener = (observable, oldValue, newValue) -> {
             if (newValue != null) {
                 selectChat(newValue);
             }
-        });
+        };
+        userListView.getSelectionModel().selectedItemProperty().addListener(chatSelectionListener);
 
         // Setup send message functionality
         sendButton.setOnAction(e -> handleSendMessage());
@@ -231,7 +242,9 @@ public class ChatController implements Initializable {
         allChatItems.clear();
         Set<String> contacts = new HashSet<>();
         Map<String, String> lastMessages = new HashMap<>();
-        Map<String, String> lastMessageTimes = new HashMap<>();
+        Map<String, LocalDateTime> lastMessageDateTimes = new HashMap<>();
+        Map<String, String> groupLastMessages = new HashMap<>(); // groupId -> lastMessage
+        Map<String, LocalDateTime> groupLastMessageDateTimes = new HashMap<>(); // groupId -> lastMessageDateTime
         
         // Read message history file for current user
         String messagesFile = "chat_data/messages/" + currentUsername + ".txt";
@@ -242,42 +255,65 @@ public class ChatController implements Initializable {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("\\|");
                 if (parts.length >= 6) {
+                    String messageType = parts[0];
                     String sender = parts[1];
                     String recipient = parts[2];
                     String messageContent = parts[3];
+                    String groupId = parts[4];
                     String timestamp = parts[5];
                     
-                    // Add contact if they're not the current user
-                    String contactName = null;
-                    if (!sender.equals(currentUsername)) {
-                        contacts.add(sender);
-                        contactName = sender;
-                    }
-                    if (!recipient.equals(currentUsername)) {
-                        contacts.add(recipient);
-                        contactName = recipient;
-                    }
-                    
-                    // Track last message for this contact (most recent one wins due to file order)
-                    if (contactName != null) {
-                        // Format message with sender info
+                    if ("GROUP_MESSAGE".equals(messageType) && groupId != null && !groupId.isEmpty()) {
+                        // Handle group message
                         String displayMessage;
                         String processedContent = convertEmojiPlaceholdersToDisplay(messageContent);
                         if (sender.equals(currentUsername)) {
                             displayMessage = "You: " + processedContent;
                         } else {
-                            displayMessage = processedContent;
+                            displayMessage = sender + ": " + processedContent;
                         }
                         
-                        lastMessages.put(contactName, displayMessage);
+                        groupLastMessages.put(groupId, displayMessage);
                         
                         // Extract time from timestamp
                         try {
                             java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(timestamp, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            String timeStr = dateTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-                            lastMessageTimes.put(contactName, timeStr);
+                            groupLastMessageDateTimes.put(groupId, dateTime);
                         } catch (Exception e) {
-                            lastMessageTimes.put(contactName, "");
+                            // Ignore parse errors
+                        }
+                    } else {
+                        // Handle private message
+                        // Add contact if they're not the current user
+                        String contactName = null;
+                        if (!sender.equals(currentUsername)) {
+                            contacts.add(sender);
+                            contactName = sender;
+                        }
+                        if (!recipient.equals(currentUsername)) {
+                            contacts.add(recipient);
+                            contactName = recipient;
+                        }
+                        
+                        // Track last message for this contact (most recent one wins due to file order)
+                        if (contactName != null) {
+                            // Format message with sender info
+                            String displayMessage;
+                            String processedContent = convertEmojiPlaceholdersToDisplay(messageContent);
+                            if (sender.equals(currentUsername)) {
+                                displayMessage = "You: " + processedContent;
+                            } else {
+                                displayMessage = sender + ": " + processedContent;
+                            }
+                            
+                            lastMessages.put(contactName, displayMessage);
+                            
+                            // Extract time from timestamp
+                            try {
+                                java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(timestamp, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                                lastMessageDateTimes.put(contactName, dateTime);
+                            } catch (Exception e) {
+                                // Ignore parse errors
+                            }
                         }
                     }
                 }
@@ -287,21 +323,34 @@ public class ChatController implements Initializable {
             // This is normal for new users
         }
         
-        // Create ChatItems for all contacts with their last messages
+        // Create ChatItem objects for private contacts
         for (String contact : contacts) {
             ChatItem contactItem = new ChatItem(contact, ChatItem.Type.USER, false);
             
             // Set last message and timestamp
             if (lastMessages.containsKey(contact)) {
-                contactItem.setLastMessage(lastMessages.get(contact));
-                contactItem.setLastMessageTimestamp(lastMessageTimes.get(contact));
+                contactItem.setLastMessage(lastMessages.get(contact), lastMessageDateTimes.get(contact));
             }
             
             allChatItems.put(contact, contactItem);
         }
         
+        // Update existing group items with last messages from history
+        for (Map.Entry<String, String> entry : groupLastMessages.entrySet()) {
+            String groupId = entry.getKey();
+            String lastMessage = entry.getValue();
+            
+            // Find existing group item by ID
+            for (ChatItem item : allChatItems.values()) {
+                if (item.getType() == ChatItem.Type.GROUP && groupId.equals(item.getGroupId())) {
+                    item.setLastMessage(lastMessage, groupLastMessageDateTimes.get(groupId));
+                    break;
+                }
+            }
+        }
+        
         updateChatList();
-        System.out.println("DEBUG: Loaded " + contacts.size() + " contacts from message history for " + currentUsername);
+        System.out.println("DEBUG: Loaded " + contacts.size() + " contacts and updated group messages from message history for " + currentUsername);
         if (!contacts.isEmpty()) {
             System.out.println("DEBUG: Contacts found: " + contacts);
         }
@@ -376,24 +425,52 @@ public class ChatController implements Initializable {
 
     private void handleUserSearchResponse(Message message) {
         String response = message.getContent();
-        if (!response.isEmpty()) {
+        if (response.isEmpty()) {
+            return;
+        }
+
+        String currentSearchText = messageInput1.getText().toLowerCase();
+        if (currentSearchText.isEmpty()) {
+            return; // Search was cleared, ignore late response
+        }
+
+        Platform.runLater(() -> {
+            Set<String> displayedUsernames = userListView.getItems().stream()
+                .map(ChatItem::getName)
+                .collect(Collectors.toSet());
+
             String[] users = response.split("\\|");
+            boolean listChanged = false;
             for (String userInfo : users) {
-                if (!userInfo.trim().isEmpty()) {
-                    String[] parts = userInfo.split(" \\(");
-                    if (parts.length > 0) {
-                        String username = parts[0].trim();
-                        boolean isOnline = userInfo.contains("(online)");
+                if (userInfo.trim().isEmpty()) continue;
+
+                String[] parts = userInfo.split(" \\(");
+                if (parts.length > 0) {
+                    String username = parts[0].trim();
+
+                    // Check if the result is relevant to the current search and not already displayed
+                    if (!username.equals(currentUsername) &&
+                        username.toLowerCase().contains(currentSearchText) &&
+                        !displayedUsernames.contains(username)) {
                         
-                        if (!username.equals(currentUsername)) {
-                            ChatItem userItem = new ChatItem(username, ChatItem.Type.USER, isOnline);
-                            allChatItems.put(username, userItem);
-                        }
+                        boolean isOnline = userInfo.contains("(online)");
+                        ChatItem userItem = new ChatItem(username, ChatItem.Type.USER, isOnline);
+                        userListView.getItems().add(userItem);
+                        listChanged = true;
                     }
                 }
             }
-            updateChatList();
-        }
+            
+            if (listChanged) {
+                // Re-sort the list with the new items
+                userListView.getItems().sort((a, b) -> {
+                    if (a.getType() != b.getType()) {
+                        return a.getType() == ChatItem.Type.GROUP ? -1 : 1;
+                    }
+                    return a.getName().compareToIgnoreCase(b.getName());
+                });
+            }
+        });
     }
 
     private void handleGroupListResponse(Message message) {
@@ -402,6 +479,11 @@ public class ChatController implements Initializable {
         // Handle group notifications (when added to a group)
         if (response.startsWith("GROUP_ADDED:")) {
             handleGroupAddedNotification(response);
+            return;
+        }
+        
+        if(response.startsWith("REMOVED_FROM_GROUP:")){
+            handleGroupRemovedNotification(response);
             return;
         }
         
@@ -433,7 +515,73 @@ public class ChatController implements Initializable {
                     }
                 }
             }
+            updateGroupLastMessagesFromHistory();
+        }
+    }
+    
+    private void updateGroupLastMessagesFromHistory() {
+        Map<String, String> groupLastMessages = new HashMap<>();
+        Map<String, LocalDateTime> groupLastMessageDateTimes = new HashMap<>();
+        String messagesFile = "chat_data/messages/" + currentUsername + ".txt";
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(messagesFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length >= 6 && "GROUP_MESSAGE".equals(parts[0])) {
+                    String sender = parts[1];
+                    String messageContent = parts[3];
+                    String groupId = parts[4];
+                    String timestamp = parts[5];
+                    
+                    String processedContent = convertEmojiPlaceholdersToDisplay(messageContent);
+                    String displayMessage = sender.equals(currentUsername) ? "You: " + processedContent : sender + ": " + processedContent;
+                    
+                    groupLastMessages.put(groupId, displayMessage);
+                    try {
+                        groupLastMessageDateTimes.put(groupId, LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    } catch (Exception e) { /* ignore */ }
+                }
+            }
+        } catch (IOException e) { /* ignore */ }
+
+        for (Map.Entry<String, String> entry : groupLastMessages.entrySet()) {
+            String groupId = entry.getKey();
+            for (ChatItem item : allChatItems.values()) {
+                if (item.getType() == ChatItem.Type.GROUP && groupId.equals(item.getGroupId())) {
+                    item.setLastMessage(entry.getValue(), groupLastMessageDateTimes.get(groupId));
+                    break;
+                }
+            }
+        }
+        
+        updateChatList();
+    }
+    
+    private void handleGroupRemovedNotification(String response) {
+        // Format: REMOVED_FROM_GROUP:groupName|groupId
+        String[] parts = response.substring("REMOVED_FROM_GROUP:".length()).split("\\|");
+        if (parts.length >= 2) {
+            String groupName = parts[0];
+            String groupId = parts[1];
+
+            // Remove the group from the local list
+            allChatItems.remove(groupName);
+            userGroups.remove(groupId);
+
+            // If the removed group was selected, clear the chat view
+            if (selectedChat != null && groupId.equals(selectedChat.getGroupId())) {
+                selectedChat = null;
+                userListView.getSelectionModel().clearSelection();
+                showSelectChatMessage();
+                messageInput.setDisable(true);
+                sendButton.setDisable(true);
+                chatNameLabel.setText("Chat");
+                chatStatusLabel.setText("");
+            }
+
             updateChatList();
+            showAlert("Removed from Group", "You have been removed from the group: " + groupName);
         }
     }
     
@@ -444,21 +592,41 @@ public class ChatController implements Initializable {
             String groupName = parts[0];
             String groupId = parts[1];
             String creator = parts[2];
-            
+
             System.out.println("DEBUG: Added to group: " + groupName + " (ID: " + groupId + ") by " + creator);
-            
+
+            // Remove any previous group name entry for this groupId
+            String oldGroupName = null;
+            for (Map.Entry<String, ChatItem> entry : allChatItems.entrySet()) {
+                ChatItem item = entry.getValue();
+                if (item.getType() == ChatItem.Type.GROUP && groupId.equals(item.getGroupId()) && !item.getName().equals(groupName)) {
+                    oldGroupName = item.getName();
+                    break;
+                }
+            }
+            if (oldGroupName != null) {
+                allChatItems.remove(oldGroupName);
+            }
+            // Remove old group name from userGroups if present
+            for (Iterator<Map.Entry<String, String>> it = userGroups.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, String> entry = it.next();
+                if (entry.getKey().equals(groupId) && !entry.getValue().equals(groupName)) {
+                    it.remove();
+                }
+            }
+
             // Add to user groups
             userGroups.put(groupId, groupName);
-            
+
             // Create ChatItem for the group
             ChatItem groupItem = new ChatItem(groupName, ChatItem.Type.GROUP, true);
             groupItem.setGroupId(groupId);
             groupItem.setGroupCreator(creator);
             allChatItems.put(groupName, groupItem);
-            
+
             // Request detailed group information
             requestDetailedGroupInfo(groupId);
-            
+
             updateChatList();
         }
     }
@@ -555,27 +723,26 @@ public class ChatController implements Initializable {
         userListView.getItems().clear();
         userListView.getItems().addAll(allChatItems.values());
         
-        // Sort by unread status first, then by last message time, then by type and name
+        // Sort by unread status first, then by last message time
         userListView.getItems().sort((a, b) -> {
             // Unread messages first
             if (a.hasUnreadMessages() != b.hasUnreadMessages()) {
                 return a.hasUnreadMessages() ? -1 : 1;
             }
-            
-            // Then by type (groups first)
-            if (a.getType() != b.getType()) {
-                return a.getType() == ChatItem.Type.GROUP ? -1 : 1;
+
+            // Then by last message time (most recent first)
+            LocalDateTime timeA = a.getLastMessageDateTime();
+            LocalDateTime timeB = b.getLastMessageDateTime();
+
+            if (timeA != null && timeB != null) {
+                return timeB.compareTo(timeA); // Descending order
+            } else if (timeA != null) {
+                return -1; // a has a time, b doesn't, so a comes first
+            } else if (timeB != null) {
+                return 1;  // b has a time, a doesn't, so b comes first
             }
-            
-            // Then by whether they have messages
-            boolean aHasMessage = a.getLastMessage() != null && !a.getLastMessage().trim().isEmpty();
-            boolean bHasMessage = b.getLastMessage() != null && !b.getLastMessage().trim().isEmpty();
-            
-            if (aHasMessage != bHasMessage) {
-                return aHasMessage ? -1 : 1;
-            }
-            
-            // Finally by name
+
+            // Finally by name for those without messages
             return a.getName().compareToIgnoreCase(b.getName());
         });
         
@@ -588,9 +755,23 @@ public class ChatController implements Initializable {
             updateChatList();
             return;
         }
-        
+
+        // Filter local results and display them
+        String searchLower = searchText.toLowerCase();
+        List<ChatItem> filteredContacts = allChatItems.values().stream()
+                .filter(item -> item.getName().toLowerCase().contains(searchLower))
+                .sorted((a, b) -> {
+                    if (a.getType() != b.getType()) {
+                        return a.getType() == ChatItem.Type.GROUP ? -1 : 1;
+                    }
+                    return a.getName().compareToIgnoreCase(b.getName());
+                })
+                .collect(Collectors.toList());
+        userListView.getItems().setAll(filteredContacts);
+
         // If searching, also request search from server
-        if (searchText.length() >= 2) {
+        // Using length >= 1 to allow searching single characters
+        if (searchText.length() >= 1) {
             try {
                 Message searchMessage = new Message(Message.MessageType.USER_SEARCH, currentUsername);
                 searchMessage.setContent(searchText.toLowerCase());
@@ -599,27 +780,21 @@ public class ChatController implements Initializable {
                 System.err.println("Failed to search users: " + e.getMessage());
             }
         }
-        
-        // Filter local results
-        String searchLower = searchText.toLowerCase();
-        userListView.getItems().clear();
-        allChatItems.values().stream()
-                .filter(item -> item.getName().toLowerCase().contains(searchLower))
-                .sorted((a, b) -> {
-                    if (a.getType() != b.getType()) {
-                        return a.getType() == ChatItem.Type.GROUP ? -1 : 1;
-                    }
-                    return a.getName().compareToIgnoreCase(b.getName());
-                })
-                .forEach(item -> userListView.getItems().add(item));
     }
 
     private void selectChat(ChatItem chatItem) {
         selectedChat = chatItem;
         
+        // Make chat header and input visible
+        chatHeader.setVisible(true);
+        messageInputArea.setVisible(true);
+
+        // Reset last message sender for proper grouping in new chat
+        lastMessageSender = null;
+        
         // Mark as read
         chatItem.setHasUnreadMessages(false);
-        updateChatList();
+        Platform.runLater(this::updateChatList);
         
         // Update header
         chatNameLabel.setText(chatItem.getName());
@@ -632,6 +807,11 @@ public class ChatController implements Initializable {
             // Make the status label interactive for hover effects
             chatStatusLabel.setOnMouseEntered(e -> showGroupMemberPopup(chatItem, e));
             chatStatusLabel.setOnMouseExited(e -> hideGroupMemberPopup());
+            chatStatusLabel.setOnMouseClicked(e -> {
+                if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                    showGroupManagementWindow(chatItem);
+                }
+            });
             
             // Style the status label to indicate it's interactive
             chatStatusLabel.setStyle("-fx-text-fill: #007bff; -fx-cursor: hand;");
@@ -647,6 +827,7 @@ public class ChatController implements Initializable {
             // Remove group-specific interactions
             chatStatusLabel.setOnMouseEntered(null);
             chatStatusLabel.setOnMouseExited(null);
+            chatStatusLabel.setOnMouseClicked(null);
             chatStatusLabel.setStyle("-fx-text-fill: #666666;");
         }
         
@@ -693,17 +874,24 @@ public class ChatController implements Initializable {
         
         for (String member : groupItem.getGroupMembers()) {
             HBox memberBox = new HBox();
-            memberBox.setSpacing(8);
+            memberBox.setSpacing(5);
             memberBox.setAlignment(Pos.CENTER_LEFT);
             memberBox.setPadding(new Insets(3, 5, 3, 5));
-            
-            // Online indicator
-            Label onlineIndicator = new Label(groupItem.getOnlineMembers().contains(member) ? "🟢" : "🔴");
-            onlineIndicator.setStyle("-fx-font-size: 8px;");
             
             // Member name
             Label memberName = new Label(member);
             memberName.setStyle("-fx-font-size: 12px;");
+            
+            memberBox.getChildren().add(memberName);
+
+            // Online indicator - only shown if online, and to the right of the name
+            if (groupItem.getOnlineMembers().contains(member)) {
+                Circle onlineIndicator = new Circle(4, Color.LIMEGREEN);
+                memberBox.getChildren().add(onlineIndicator);
+            }
+            
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
             
             // Role indicator
             Label roleLabel = new Label();
@@ -715,10 +903,7 @@ public class ChatController implements Initializable {
                 roleLabel.setStyle("-fx-text-fill: #4ecdc4; -fx-font-size: 10px; -fx-font-weight: bold;");
             }
             
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            
-            memberBox.getChildren().addAll(onlineIndicator, memberName, spacer, roleLabel);
+            memberBox.getChildren().addAll(spacer, roleLabel);
             
             // Add right-click context menu for member management (only for admins/owner)
             if (groupItem.isGroupAdmin(currentUsername) || groupItem.isGroupCreator(currentUsername)) {
@@ -844,6 +1029,7 @@ public class ChatController implements Initializable {
             } else {
                 syncMessage.setGroupId(chatItem.getGroupId());
             }
+            
             chatClient.sendMessage(syncMessage);
         } catch (IOException e) {
             System.err.println("Failed to request conversation history: " + e.getMessage());
@@ -852,6 +1038,10 @@ public class ChatController implements Initializable {
 
     private void showSelectChatMessage() {
         messagesContainer.getChildren().clear();
+        
+        // Hide chat-specific controls
+        chatHeader.setVisible(false);
+        messageInputArea.setVisible(false);
         
         Label selectLabel = new Label("Select a chat to start messaging");
         selectLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 16px;");
@@ -892,11 +1082,16 @@ public class ChatController implements Initializable {
         String messageText = messageInput.getText().trim();
         if (messageText.isEmpty() || selectedChat == null) return;
         
+        // When sending a message to a user from search results, add them to contacts
+        if (selectedChat.getType() == ChatItem.Type.USER && !allChatItems.containsKey(selectedChat.getName())) {
+            allChatItems.put(selectedChat.getName(), selectedChat);
+        }
+        
         try {
             Message message;
             if (selectedChat.getType() == ChatItem.Type.GROUP) {
                 message = new Message(Message.MessageType.GROUP_MESSAGE, currentUsername);
-                message.setGroupId(selectedChat.getName());
+                message.setGroupId(selectedChat.getGroupId()); // Use groupId instead of name
             } else {
                 message = new Message(Message.MessageType.PRIVATE_MESSAGE, currentUsername);
                 message.setRecipient(selectedChat.getName());
@@ -960,9 +1155,28 @@ public class ChatController implements Initializable {
     }
 
     private void addMessageToUI(Message message, boolean isSentByMe) {
+        VBox fullMessageContainer = new VBox();
+        fullMessageContainer.setSpacing(2);
+        fullMessageContainer.setPadding(new Insets(2, 10, 2, 10));
+        
+        // Determine if we should show sender name for group chats
+        boolean showSenderName = false;
+        if (selectedChat != null && selectedChat.getType() == ChatItem.Type.GROUP && !isSentByMe) {
+            // Show sender name if it's a different sender than the last message
+            showSenderName = !message.getSender().equals(lastMessageSender);
+        }
+        
+        // Add sender name label for group chats (if needed)
+        if (showSenderName) {
+            Label senderLabel = new Label(message.getSender());
+            senderLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 0 0 2 15;");
+            fullMessageContainer.getChildren().add(senderLabel);
+        }
+        
+        // Create the message bubble
         HBox messageBox = new HBox();
         messageBox.setSpacing(10);
-        messageBox.setPadding(new Insets(5, 10, 5, 10));
+        messageBox.setPadding(new Insets(3, 0, 3, 0));
         
         VBox messageContent = new VBox();
         messageContent.setSpacing(2);
@@ -988,13 +1202,19 @@ public class ChatController implements Initializable {
             messageBox.setAlignment(Pos.CENTER_RIGHT);
             messageContent.setStyle("-fx-background-color: #DCF8C6; -fx-background-radius: 18; -fx-padding: 12;");
         } else {
-            // Received messages - align left, no sender name
+            // Received messages - align left
             messageBox.setAlignment(Pos.CENTER_LEFT);
             messageContent.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 18; -fx-padding: 12; -fx-border-color: #E0E0E0; -fx-border-radius: 18; -fx-border-width: 1;");
         }
         
         messageBox.getChildren().add(messageContent);
-        messagesContainer.getChildren().add(messageBox);
+        fullMessageContainer.getChildren().add(messageBox);
+        
+        // Add the complete message container to the messages container
+        messagesContainer.getChildren().add(fullMessageContainer);
+        
+        // Update last message sender for grouping
+        lastMessageSender = message.getSender();
         
         // Auto-scroll to bottom
         Platform.runLater(() -> chatScrollPane.setVvalue(1.0));
@@ -1091,7 +1311,7 @@ public class ChatController implements Initializable {
         if (allChatItems.containsKey(contactName)) {
             ChatItem contact = allChatItems.get(contactName);
             String displayMessage = convertEmojiPlaceholdersToDisplay(message.getContent());
-            contact.setLastMessage(displayMessage); // Don't prefix with sender name for incoming
+            contact.setLastMessage(contactName + ": " + displayMessage, message.getTimestamp());
             
             // Mark as unread if not currently in this chat
             if (selectedChat == null || !selectedChat.getName().equals(contactName)) {
@@ -1111,6 +1331,32 @@ public class ChatController implements Initializable {
     }
 
     private void handleIncomingGroupMessage(Message message) {
+        String groupId = message.getGroupId();
+        ChatItem groupItem = null;
+        for (ChatItem item : allChatItems.values()) {
+            if (item.getType() == ChatItem.Type.GROUP && groupId.equals(item.getGroupId())) {
+                groupItem = item;
+                break;
+            }
+        }
+
+        if (groupItem != null) {
+            String sender = message.getSender();
+            String processedContent = convertEmojiPlaceholdersToDisplay(message.getContent());
+            String displayMessage;
+            if (sender.equals(currentUsername)) {
+                displayMessage = "You: " + processedContent;
+            } else {
+                displayMessage = sender + ": " + processedContent;
+            }
+            groupItem.setLastMessage(displayMessage, message.getTimestamp());
+
+            if (selectedChat == null || !selectedChat.getGroupId().equals(groupId)) {
+                groupItem.setHasUnreadMessages(true);
+            }
+            updateChatList();
+        }
+
         // Add to UI if it's for the current conversation
         if (selectedChat != null && 
             selectedChat.getType() == ChatItem.Type.GROUP &&
@@ -1200,13 +1446,26 @@ public class ChatController implements Initializable {
         ListView<CheckBox> contactListView = new ListView<>();
         contactListView.setPrefHeight(350);
         
-        // Load contacts into the list
+        // Load contacts into the list, excluding existing group members
+        Set<String> existingMembers = new HashSet<>();
+        if (isAddingMembers && existingGroupId != null) {
+            for (ChatItem item : allChatItems.values()) {
+                if (item.getType() == ChatItem.Type.GROUP && existingGroupId.equals(item.getGroupId())) {
+                    existingMembers.addAll(item.getGroupMembers());
+                    break;
+                }
+            }
+        }
+        
         ObservableList<CheckBox> contactCheckBoxes = FXCollections.observableArrayList();
-        for (String contactName : allChatItems.keySet()) {
-            if (!contactName.equals(currentUsername)) { // Don't show current user
-                CheckBox contactCheckBox = new CheckBox(contactName);
-                contactCheckBox.setStyle("-fx-font-size: 14px;");
-                contactCheckBoxes.add(contactCheckBox);
+        for (ChatItem item : allChatItems.values()) {
+            if (item.getType() == ChatItem.Type.USER) {
+                String contactName = item.getName();
+                if (!contactName.equals(currentUsername) && !existingMembers.contains(contactName)) {
+                    CheckBox contactCheckBox = new CheckBox(contactName);
+                    contactCheckBox.setStyle("-fx-font-size: 14px;");
+                    contactCheckBoxes.add(contactCheckBox);
+                }
             }
         }
         contactListView.setItems(contactCheckBoxes);
@@ -1362,6 +1621,7 @@ public class ChatController implements Initializable {
         private String groupId;
         private String lastMessage;
         private String lastMessageTimestamp;
+        private LocalDateTime lastMessageDateTime;
         private boolean hasUnreadMessages;
         private String lastSeenStatus;
         
@@ -1403,11 +1663,21 @@ public class ChatController implements Initializable {
         public void setGroupId(String groupId) { this.groupId = groupId; }
         public String getLastMessage() { return lastMessage; }
         public void setLastMessage(String lastMessage) { 
+            setLastMessage(lastMessage, LocalDateTime.now());
+        }
+        public void setLastMessage(String lastMessage, LocalDateTime timestamp) {
             this.lastMessage = lastMessage;
-            this.lastMessageTimestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+            this.lastMessageDateTime = timestamp;
+            if (timestamp != null) {
+                this.lastMessageTimestamp = timestamp.format(DateTimeFormatter.ofPattern("HH:mm"));
+            } else {
+                this.lastMessageTimestamp = "";
+            }
         }
         public String getLastMessageTimestamp() { return lastMessageTimestamp; }
         public void setLastMessageTimestamp(String timestamp) { this.lastMessageTimestamp = timestamp; }
+        public LocalDateTime getLastMessageDateTime() { return lastMessageDateTime; }
+        public void setLastMessageDateTime(LocalDateTime dateTime) { this.lastMessageDateTime = dateTime; }
         public boolean hasUnreadMessages() { return hasUnreadMessages; }
         public void setHasUnreadMessages(boolean hasUnread) { this.hasUnreadMessages = hasUnread; }
         public String getLastSeenStatus() { return lastSeenStatus; }
@@ -1435,13 +1705,14 @@ public class ChatController implements Initializable {
         }
     }
 
-    private static class ChatItemCell extends ListCell<ChatItem> {
+    private class ChatItemCell extends ListCell<ChatItem> {
         @Override
         protected void updateItem(ChatItem item, boolean empty) {
             super.updateItem(item, empty);
             
             if (empty || item == null) {
                 setGraphic(null);
+                setContextMenu(null);
             } else {
                 VBox content = new VBox();
                 content.setSpacing(3);
@@ -1464,9 +1735,11 @@ public class ChatController implements Initializable {
                     Label groupIcon = new Label("👥");
                     nameBox.getChildren().addAll(groupIcon, nameLabel);
                 } else {
-                    Label statusIcon = new Label(item.isOnline() ? "🟢" :"");
-                    statusIcon.setStyle("-fx-font-size: 8px;");
-                    nameBox.getChildren().addAll(nameLabel, statusIcon);
+                    nameBox.getChildren().add(nameLabel);
+                    if (item.isOnline()) {
+                        Circle statusCircle = new Circle(4, Color.LIMEGREEN);
+                        nameBox.getChildren().add(statusCircle);
+                    }
                 }
                 
                 content.getChildren().add(nameBox);
@@ -1507,6 +1780,13 @@ public class ChatController implements Initializable {
                 }
                 
                 setGraphic(content);
+
+                // Add context menu for deleting chat
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem deleteMenuItem = new MenuItem("Delete chat");
+                deleteMenuItem.setOnAction(e -> promptToDeleteChat(item));
+                contextMenu.getItems().add(deleteMenuItem);
+                setContextMenu(contextMenu);
             }
         }
     }
@@ -1755,16 +2035,14 @@ public class ChatController implements Initializable {
             // Group-specific options
             MenuItem addMembersItem = new MenuItem("Add members");
             addMembersItem.setOnAction(e -> showMemberSelectionPopup("", true, selectedChat.getGroupId()));
-            
-            MenuItem changeNameItem = new MenuItem("Change group name");
-            changeNameItem.setOnAction(e -> showChangeGroupNameDialog());
-            
-            // Only show these options to admins and owner
+            chatMenu.getItems().add(addMembersItem); // <-- Always add for group members
+
+            // Only show 'Change group name' to admins and owner
             if (selectedChat.isGroupAdmin(currentUsername) || selectedChat.isGroupCreator(currentUsername)) {
-                chatMenu.getItems().addAll(addMembersItem, changeNameItem);
+                MenuItem changeNameItem = new MenuItem("Change group name");
+                changeNameItem.setOnAction(e -> showChangeGroupNameDialog());
+                chatMenu.getItems().add(changeNameItem);
                 System.out.println("DEBUG: Added admin/owner menu items");
-            } else {
-                System.out.println("DEBUG: User is not admin/owner, not showing admin menu items");
             }
             
             // Leave group option (everyone except owner)
@@ -1780,8 +2058,8 @@ public class ChatController implements Initializable {
         } else {
             // User-specific options
             MenuItem blockUserItem = new MenuItem("Block user");
-            MenuItem clearChatItem = new MenuItem("Clear chat");
-            chatMenu.getItems().addAll(blockUserItem, clearChatItem);
+            // MenuItem clearChatItem = new MenuItem("Clear chat"); // Removed as per new implementation
+            chatMenu.getItems().addAll(blockUserItem);
         }
         
         if (!chatMenu.getItems().isEmpty()) {
@@ -1864,5 +2142,192 @@ public class ChatController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void promptToDeleteChat(ChatItem item) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Chat");
+        alert.setHeaderText("Delete chat with " + item.getName());
+        alert.setContentText("Are you sure you want to delete this chat history? This action cannot be undone.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            deleteChatHistory(item);
+        }
+    }
+
+    private void deleteChatHistory(ChatItem item) {
+        String messagesFilePath = "chat_data/messages/" + currentUsername + ".txt";
+        File messagesFile = new File(messagesFilePath);
+        if (!messagesFile.exists()) {
+            return; // Nothing to delete
+        }
+
+        List<String> linesToKeep = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(messagesFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length < 6) {
+                    linesToKeep.add(line); // Keep malformed lines
+                    continue;
+                }
+
+                boolean keepLine = true;
+                if (item.getType() == ChatItem.Type.USER) {
+                    String messageType = parts[0];
+                    if ("PRIVATE_MESSAGE".equals(messageType)) {
+                        String sender = parts[1];
+                        String recipient = parts[2];
+                        if ((sender.equals(currentUsername) && recipient.equals(item.getName())) ||
+                            (sender.equals(item.getName()) && recipient.equals(currentUsername))) {
+                            keepLine = false;
+                        }
+                    }
+                } else if (item.getType() == ChatItem.Type.GROUP) {
+                    String messageType = parts[0];
+                    if ("GROUP_MESSAGE".equals(messageType)) {
+                        String groupId = parts[4];
+                        if (item.getGroupId().equals(groupId)) {
+                            keepLine = false;
+                        }
+                    }
+                }
+
+                if (keepLine) {
+                    linesToKeep.add(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not read chat history to delete messages.");
+            return;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(messagesFile, false))) { // false to overwrite
+            for (String line : linesToKeep) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not update chat history.");
+            return;
+        }
+
+        // Refresh UI
+        if (selectedChat != null && selectedChat.getName().equals(item.getName())) {
+            selectedChat = null;
+            userListView.getSelectionModel().clearSelection();
+            showSelectChatMessage();
+            messageInput.setDisable(true);
+            sendButton.setDisable(true);
+            chatNameLabel.setText("Chat");
+            chatStatusLabel.setText("");
+        }
+        
+        // Send a message to the server to delete the history there as well
+        try {
+            Message deleteHistoryMessage = new Message(Message.MessageType.DELETE_HISTORY, currentUsername);
+            if (item.getType() == ChatItem.Type.USER) {
+                deleteHistoryMessage.setRecipient(item.getName());
+            } else if (item.getType() == ChatItem.Type.GROUP) {
+                deleteHistoryMessage.setGroupId(item.getGroupId());
+            }
+            chatClient.sendMessage(deleteHistoryMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not send delete request to the server.");
+        }
+
+        loadContacts();
+    }
+
+    private Stage managementStage;
+
+    private boolean isManagementWindowOpen() {
+        return managementStage != null && managementStage.isShowing();
+    }
+    
+    private void showGroupManagementWindow(ChatItem groupItem) {
+        if (isManagementWindowOpen()) {
+            managementStage.toFront();
+            return;
+        }
+
+        managementStage = new Stage();
+        managementStage.initModality(Modality.WINDOW_MODAL);
+        managementStage.initOwner(chatStatusLabel.getScene().getWindow());
+        managementStage.setTitle("Manage Group: " + groupItem.getName());
+        
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(15));
+        layout.setPrefSize(450, 600);
+        
+        Label title = new Label("Members (" + groupItem.getMemberCount() + ")");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        
+        ListView<HBox> memberListView = new ListView<>();
+        refreshManagementWindow(memberListView, groupItem);
+
+        Button addMemberButton = new Button("Add Member");
+        addMemberButton.setOnAction(e -> showMemberSelectionPopup("Add Member", true, groupItem.getGroupId()));
+
+        HBox bottomBar = new HBox(addMemberButton);
+        bottomBar.setAlignment(Pos.CENTER_RIGHT);
+        
+        layout.getChildren().addAll(title, memberListView, bottomBar);
+        
+        Scene scene = new Scene(layout);
+        managementStage.setScene(scene);
+        managementStage.show();
+    }
+    
+    private void refreshManagementWindow(ListView<HBox> memberListView, ChatItem groupItem) {
+        memberListView.getItems().clear();
+        boolean isCurrentUserAdmin = groupItem.isGroupAdmin(currentUsername) || groupItem.isGroupCreator(currentUsername);
+
+        for (String member : groupItem.getGroupMembers()) {
+            HBox memberRow = new HBox(10);
+            memberRow.setAlignment(Pos.CENTER_LEFT);
+            memberRow.setPadding(new Insets(5));
+
+            Label nameLabel = new Label(member);
+            Label roleLabel = new Label();
+            if (groupItem.isGroupCreator(member)) {
+                roleLabel.setText("(Owner)");
+                roleLabel.setStyle("-fx-text-fill: #d9534f;");
+            } else if (groupItem.isGroupAdmin(member)) {
+                roleLabel.setText("(Admin)");
+                roleLabel.setStyle("-fx-text-fill: #5cb85c;");
+            }
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            memberRow.getChildren().addAll(nameLabel, roleLabel, spacer);
+
+            if (isCurrentUserAdmin && !member.equals(currentUsername)) {
+                // Add management buttons for admins
+                if (groupItem.isGroupCreator(currentUsername) && !groupItem.isGroupCreator(member)) {
+                    if (groupItem.isGroupAdmin(member)) {
+                        Button demoteButton = new Button("Demote");
+                        demoteButton.setOnAction(e -> removeAdmin(groupItem.getGroupId(), member));
+                        memberRow.getChildren().add(demoteButton);
+                    } else {
+                        Button promoteButton = new Button("Promote");
+                        promoteButton.setOnAction(e -> promoteToAdmin(groupItem.getGroupId(), member));
+                        memberRow.getChildren().add(promoteButton);
+                    }
+                }
+
+                if (!groupItem.isGroupCreator(member)) {
+                    Button removeButton = new Button("Remove");
+                    removeButton.setOnAction(e -> removeMemberFromGroup(groupItem.getGroupId(), member));
+                    memberRow.getChildren().add(removeButton);
+                }
+            }
+            memberListView.getItems().add(memberRow);
+        }
     }
 }

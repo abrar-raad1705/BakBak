@@ -16,7 +16,7 @@
 <SplitPane dividerPositions="0.37415881561238223" orientation="HORIZONTAL" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.controller.ChatController">
 
    <!-- Left Sidebar -->
-   <VBox maxWidth="400" minWidth="150" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);">
+   <VBox maxWidth="400" minWidth="300" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);">
 
       <!-- Header -->
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;">
@@ -46,19 +46,21 @@
    <BorderPane>
       <!-- Chat Header -->
       <top>
-         <HBox alignment="CENTER_LEFT" prefHeight="60" spacing="15" style="-fx-padding: 15 20 15 20; -fx-border-width: 0 0 1 0; -fx-border-color: rgba(255,255,255,0.1);">
+         <VBox fx:id="chatHeader" alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" prefHeight="60" spacing="15" style="-fx-padding: 15 20 15 20; -fx-border-width: 0 0 1 0; -fx-border-color: rgba(255,255,255,0.1);">
 
-            <VBox spacing="2" HBox.hgrow="ALWAYS">
-               <Label fx:id="chatNameLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Name" />
-               <Label fx:id="chatStatusLabel" style="-fx-font-size: 12px; -fx-opacity: 0.7;" text="Last Seen" />
-            </VBox>
+               <VBox spacing="2" HBox.hgrow="ALWAYS">
+                  <Label fx:id="chatNameLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Name" />
+                  <Label fx:id="chatStatusLabel" style="-fx-font-size: 12px; -fx-opacity: 0.7;" text="Last Seen" />
+               </VBox>
 
-            <HBox spacing="5">
-               <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📞" />
-               <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📹" />
-               <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="⋮" />
+               <HBox spacing="5">
+                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📞" />
+                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📹" />
+                  <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="⋮" />
+               </HBox>
             </HBox>
-         </HBox>
+         </VBox>
       </top>
 
       <!-- Messages Area -->
@@ -72,15 +74,17 @@
 
       <!-- Message Input -->
       <bottom>
-         <VBox style="-fx-padding: 15 20 20 20; -fx-border-width: 1 0 0 0; -fx-border-color: rgba(255,255,255,0.1);">
-            <HBox alignment="CENTER" spacing="12">
-               <Button minHeight="40" minWidth="40" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📎" />
-               <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." style="-fx-font-size: 14px; -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" HBox.hgrow="ALWAYS" />
-               <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="😊" />
-               <Button minHeight="40" minWidth="40.0" prefWidth="31.0" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="🎙" />
-               <Button fx:id="sendButton" minHeight="40" minWidth="40" onAction="#handleSendMessage" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-font-size: 16px; -fx-font-weight: bold;" text="➤" />
-            </HBox>
-         </VBox>
+         <HBox fx:id="messageInputArea" alignment="CENTER">
+            <VBox style="-fx-padding: 15 20 20 20; -fx-border-width: 1 0 0 0; -fx-border-color: rgba(255,255,255,0.1);" HBox.hgrow="ALWAYS">
+               <HBox alignment="CENTER" spacing="12">
+                  <Button minHeight="40" minWidth="40" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="📎" />
+                  <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." style="-fx-font-size: 14px; -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="😊" />
+                  <Button minHeight="40" minWidth="40.0" prefWidth="31.0" style="-fx-background-color: transparent; -fx-font-size: 16px;" text="🎙" />
+                  <Button fx:id="sendButton" minHeight="40" minWidth="40" onAction="#handleSendMessage" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-font-size: 16px; -fx-font-weight: bold;" text="➤" />
+               </HBox>
+            </VBox>
+         </HBox>
       </bottom>
    </BorderPane>
 </SplitPane>

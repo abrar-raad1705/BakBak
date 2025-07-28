@@ -66,6 +66,10 @@ public class Group implements Serializable {
         return this.admins.contains(username);
     }
     
+    public boolean isCreator(String username) {
+        return this.creator.equals(username);
+    }
+    
     @Override
     public String toString() {
         return "Group{" +

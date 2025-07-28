@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -63,6 +64,38 @@ public class UserManager {
                             }
                         }
                         
+                        // Load groups if available
+                        if (parts.length >= 4 && !parts[3].isEmpty() && !parts[3].equals("GROUPS:")) {
+                            String groupsStr = parts[3];
+                            if (groupsStr.startsWith("GROUPS:")) {
+                                groupsStr = groupsStr.substring(7); // Remove "GROUPS:"
+                                if (!groupsStr.trim().isEmpty()) {
+                                    String[] groupArray = groupsStr.split(",");
+                                    for (String groupId : groupArray) {
+                                        if (!groupId.trim().isEmpty()) {
+                                            user.joinGroup(groupId.trim());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Load contacts if available
+                        if (parts.length >= 5 && !parts[4].isEmpty() && !parts[4].equals("CONTACTS:")) {
+                            String contactsStr = parts[4];
+                            if (contactsStr.startsWith("CONTACTS:")) {
+                                contactsStr = contactsStr.substring(9); // Remove "CONTACTS:"
+                                if (!contactsStr.trim().isEmpty()) {
+                                    String[] contactArray = contactsStr.split(",");
+                                    for (String contact : contactArray) {
+                                        if (!contact.trim().isEmpty()) {
+                                            user.addContact(contact.trim());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
                         users.put(username, user);
                     }
                 }
@@ -78,11 +111,32 @@ public class UserManager {
             Path usersPath = Paths.get(USERS_FILE);
             try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(usersPath))) {
                 for (User user : users.values()) {
+                    StringBuilder userLine = new StringBuilder();
+                    userLine.append(user.getUsername()).append("|");
+                    userLine.append(user.getPassword()).append("|");
+                    
+                    // Last seen timestamp
                     String lastSeenStr = user.getLastSeenTimestamp() != null ? 
                         user.getLastSeenTimestamp().format(formatter) : "";
-                    writer.println(user.getUsername() + "|" + user.getPassword() + "|" + lastSeenStr);
+                    userLine.append(lastSeenStr).append("|");
+                    
+                    // Groups
+                    userLine.append("GROUPS:");
+                    for (String groupId : user.getGroups()) {
+                        userLine.append(groupId).append(",");
+                    }
+                    userLine.append("|");
+                    
+                    // Contacts
+                    userLine.append("CONTACTS:");
+                    for (String contact : user.getContacts()) {
+                        userLine.append(contact).append(",");
+                    }
+                    
+                    writer.println(userLine.toString());
                 }
             }
+            System.out.println("DEBUG: Saved " + users.size() + " users to file with group memberships");
         } catch (IOException e) {
             System.err.println("Error saving users: " + e.getMessage());
         }
@@ -160,8 +214,69 @@ public class UserManager {
             }
         }
         
+        // Also broadcast group status updates for all groups this user belongs to
+        broadcastGroupStatusUpdates(username);
+        
         System.out.println("DEBUG: Broadcasted status update for " + username + " (online: " + isOnline + ") to " + 
                           (onlineUsers.size() - (isOnline ? 1 : 0)) + " clients");
+    }
+    
+    private void broadcastGroupStatusUpdates(String username) {
+        GroupManager groupManager = GroupManager.getInstance();
+        Set<String> userGroups = groupManager.getUserGroups(username);
+        
+        for (String groupId : userGroups) {
+            Group group = groupManager.getGroup(groupId);
+            if (group != null) {
+                // Send updated group info to all online group members
+                for (String member : group.getMembers()) {
+                    if (isUserOnline(member)) {
+                        ClientHandler memberHandler = getClientHandler(member);
+                        if (memberHandler != null) {
+                            sendDetailedGroupInfo(group, memberHandler);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private void sendDetailedGroupInfo(Group group, ClientHandler clientHandler) {
+        // Collect detailed group information
+        StringBuilder groupInfo = new StringBuilder();
+        groupInfo.append("GROUP_DETAILS:");
+        groupInfo.append(group.getGroupName()).append("|");
+        groupInfo.append(group.getGroupId()).append("|");
+        groupInfo.append(group.getCreator()).append("|");
+        
+        // Add members list
+        Set<String> members = group.getMembers();
+        groupInfo.append("MEMBERS:");
+        for (String member : members) {
+            groupInfo.append(member).append(",");
+        }
+        groupInfo.append("|");
+        
+        // Add admins list
+        Set<String> admins = group.getAdmins();
+        groupInfo.append("ADMINS:");
+        for (String admin : admins) {
+            groupInfo.append(admin).append(",");
+        }
+        groupInfo.append("|");
+        
+        // Add online members list
+        groupInfo.append("ONLINE:");
+        for (String member : members) {
+            if (isUserOnline(member)) {
+                groupInfo.append(member).append(",");
+            }
+        }
+        
+        Message response = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+        response.setContent(groupInfo.toString());
+        response.setGroupId(group.getGroupId());
+        clientHandler.sendMessage(response);
     }
     
     public boolean isUserOnline(String username) {

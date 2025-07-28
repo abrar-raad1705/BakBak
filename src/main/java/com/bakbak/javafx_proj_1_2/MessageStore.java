@@ -68,6 +68,26 @@ public class MessageStore {
         }
     }
     
+    public synchronized void storeGroupMessage(Message message, Set<String> groupMembers) {
+        // Store group message for all group members
+        String sender = message.getSender();
+        String groupId = message.getGroupId();
+        
+        System.out.println("DEBUG: Storing group message from " + sender + " to group " + groupId + ": " + message.getContent());
+        
+        if (sender != null && groupId != null && groupMembers != null) {
+            for (String member : groupMembers) {
+                // Add to each member's history (including sender)
+                addMessageToUserHistory(member, message);
+                
+                // Save to files
+                saveUserMessages(member);
+            }
+            
+            System.out.println("DEBUG: Stored group message for " + groupMembers.size() + " members");
+        }
+    }
+    
     private void addMessageToUserHistory(String username, Message message) {
         userMessageHistory.computeIfAbsent(username, k -> new ArrayList<>()).add(message);
     }
@@ -101,8 +121,18 @@ public class MessageStore {
     public synchronized List<Message> getConversationHistory(String user1, String user2) {
         List<Message> user1Messages = getUserMessageHistory(user1);
         return user1Messages.stream()
-                .filter(msg -> (msg.getSender().equals(user1) && msg.getRecipient().equals(user2)) ||
-                              (msg.getSender().equals(user2) && msg.getRecipient().equals(user1)))
+                .filter(msg -> msg.getType() == Message.MessageType.PRIVATE_MESSAGE &&
+                              ((msg.getSender().equals(user1) && msg.getRecipient().equals(user2)) ||
+                               (msg.getSender().equals(user2) && msg.getRecipient().equals(user1))))
+                .sorted((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()))
+                .toList();
+    }
+    
+    public synchronized List<Message> getGroupConversationHistory(String username, String groupId) {
+        List<Message> userMessages = getUserMessageHistory(username);
+        return userMessages.stream()
+                .filter(msg -> msg.getType() == Message.MessageType.GROUP_MESSAGE && 
+                              groupId.equals(msg.getGroupId()))
                 .sorted((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()))
                 .toList();
     }
@@ -295,5 +325,39 @@ public class MessageStore {
     public synchronized int getOfflineMessageCount(String username) {
         Queue<Message> queue = offlineMessageQueue.get(username);
         return queue != null ? queue.size() : 0;
+    }
+    
+    public synchronized void deletePrivateChatHistory(String user1, String user2) {
+        // This will delete the conversation from both users' history files
+        removeMessagesFromUser(user1, msg -> 
+            msg.getType() == Message.MessageType.PRIVATE_MESSAGE &&
+            ((msg.getSender().equals(user1) && msg.getRecipient().equals(user2)) ||
+             (msg.getSender().equals(user2) && msg.getRecipient().equals(user1)))
+        );
+        removeMessagesFromUser(user2, msg -> 
+            msg.getType() == Message.MessageType.PRIVATE_MESSAGE &&
+            ((msg.getSender().equals(user1) && msg.getRecipient().equals(user2)) ||
+             (msg.getSender().equals(user2) && msg.getRecipient().equals(user1)))
+        );
+        System.out.println("DEBUG: Deleted private chat history between " + user1 + " and " + user2);
+    }
+
+    public synchronized void deleteGroupChatHistoryForUser(String username, String groupId) {
+        // This only removes group messages from a specific user's history file
+        removeMessagesFromUser(username, msg ->
+            msg.getType() == Message.MessageType.GROUP_MESSAGE &&
+            groupId.equals(msg.getGroupId())
+        );
+        System.out.println("DEBUG: Deleted group chat history for user " + username + " in group " + groupId);
+    }
+
+    private synchronized void removeMessagesFromUser(String username, java.util.function.Predicate<Message> filter) {
+        if (userMessageHistory.containsKey(username)) {
+            List<Message> userMessages = userMessageHistory.get(username);
+            userMessages.removeIf(filter);
+            
+            // After removing from memory, save the updated list to the file
+            saveUserMessages(username);
+        }
     }
 } 

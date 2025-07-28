@@ -75,6 +75,9 @@ public class ClientHandler implements Runnable {
             case SYNC_HISTORY:
                 handleSyncHistory(message, messageStore);
                 break;
+            case DELETE_HISTORY:
+                handleDeleteHistory(message, messageStore);
+                break;
             case USER_STATUS_UPDATE:
                 // This message type is only sent from server to clients
                 // No handling needed in server-side ClientHandler
@@ -172,25 +175,59 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleGroupMessage(Message message, GroupManager groupManager) {
-/*         if (!isLoggedIn) {
+        String groupId = message.getGroupId();
+        String content = message.getContent();
+        Set<String> members = groupManager.getGroupMembers(groupId);
+        UserManager userManager = UserManager.getInstance();
+        MessageStore messageStore = MessageStore.getInstance();
+
+        // Handle group name change
+        if (content != null && content.startsWith("CHANGE_GROUP_NAME:")) {
+            String newGroupName = content.substring("CHANGE_GROUP_NAME:".length());
+            Group group = groupManager.getGroup(groupId);
+            if (group != null) {
+                group.setGroupName(newGroupName);
+                groupManager.saveGroups(); // Persist the change
+
+                // Notify all group members (online) about the new group name
+                for (String member : members) {
+                    if (userManager.isUserOnline(member)) {
+                        ClientHandler memberHandler = userManager.getClientHandler(member);
+                        if (memberHandler != null) {
+                            Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                            groupNotification.setContent("GROUP_ADDED:" + newGroupName + "|" + groupId + "|" + group.getCreator());
+                            memberHandler.sendMessage(groupNotification);
+                        }
+                    }
+                }
+            }
+            return; // Do not treat as a normal group message
+        }
+
+        /* if (!isLoggedIn) {
             sendErrorMessage("Please login first");
             return;
         } */
-        String groupId = message.getGroupId();
 
         /* if (!groupManager.isGroupMember(groupId, username)) {
             sendErrorMessage("You are not a member of this group");
             return;
         } */
 
-        Set<String> members = groupManager.getGroupMembers(groupId);
-        UserManager userManager = UserManager.getInstance();
+        // Store the group message for all members (including sender)
+        messageStore.storeGroupMessage(message, members);
 
+        // Send message to online members (excluding sender)
         for (String member : members) {
-            if (!member.equals(username) && userManager.isUserOnline(member)) {
-                ClientHandler memberHandler = userManager.getClientHandler(member);
-                if (memberHandler != null) {
-                    memberHandler.sendMessage(message);
+            if (!member.equals(username)) {
+                if (userManager.isUserOnline(member)) {
+                    ClientHandler memberHandler = userManager.getClientHandler(member);
+                    if (memberHandler != null) {
+                        memberHandler.sendMessage(message);
+                    }
+                } else {
+                    // Queue message for offline members
+                    messageStore.queueOfflineMessage(member, message);
                 }
             }
         }
@@ -257,6 +294,12 @@ public class ClientHandler implements Runnable {
         String targetUser = message.getRecipient(); // User to add to group (if specified)
         String userToAdd = (targetUser != null && !targetUser.trim().isEmpty()) ? targetUser.trim() : username;
         
+        // Handle admin promotion
+        if ("PROMOTE_ADMIN".equals(message.getContent())) {
+            handlePromoteAdmin(message, groupManager);
+            return;
+        }
+
         // Check if this is an admin adding another user
         if (!userToAdd.equals(username)) {
             Group group = groupManager.getGroup(groupId);
@@ -303,12 +346,88 @@ public class ClientHandler implements Runnable {
             return;
         } */
         String groupId = message.getGroupId();
+        String targetUser = message.getRecipient(); // User to be removed by an admin
+        String specialContent = message.getContent();
+
+        // Handle admin demotion
+        if ("REMOVE_ADMIN".equals(specialContent)) {
+            handleDemoteAdmin(message, groupManager);
+            return;
+        }
+
+        // Handle member removal by admin
+        if ("REMOVE_MEMBER".equals(specialContent)) {
+            handleRemoveMember(message, groupManager);
+            return;
+        }
+
+        // Regular user leaving the group
         boolean success = groupManager.leaveGroup(groupId, username);
 
         Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
         response.setSuccess(success);
         response.setContent(success ? "Left group successfully" : "Failed to leave group");
         sendMessage(response);
+    }
+    
+    private void handlePromoteAdmin(Message message, GroupManager groupManager) {
+        String groupId = message.getGroupId();
+        String requestingUser = message.getSender();
+        String targetUser = message.getRecipient();
+
+        boolean success = groupManager.promoteToAdmin(groupId, requestingUser, targetUser);
+        if (success) {
+            notifyGroupMembersOfChange(groupId, groupManager);
+        }
+    }
+
+    private void handleDemoteAdmin(Message message, GroupManager groupManager) {
+        String groupId = message.getGroupId();
+        String requestingUser = message.getSender();
+        String targetUser = message.getRecipient();
+
+        boolean success = groupManager.demoteAdmin(groupId, requestingUser, targetUser);
+        if (success) {
+            notifyGroupMembersOfChange(groupId, groupManager);
+        }
+    }
+
+    private void handleRemoveMember(Message message, GroupManager groupManager) {
+        String groupId = message.getGroupId();
+        String requestingUser = message.getSender();
+        String targetUser = message.getRecipient();
+
+        boolean success = groupManager.removeMember(groupId, requestingUser, targetUser);
+        if (success) {
+            notifyGroupMembersOfChange(groupId, groupManager);
+            
+            // Also notify the removed user that they've been removed
+            UserManager userManager = UserManager.getInstance();
+            if (userManager.isUserOnline(targetUser)) {
+                ClientHandler removedUserHandler = userManager.getClientHandler(targetUser);
+                if (removedUserHandler != null) {
+                    Group group = groupManager.getGroup(groupId);
+                    Message removalNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                    removalNotification.setContent("REMOVED_FROM_GROUP:" + group.getGroupName() + "|" + groupId);
+                    removedUserHandler.sendMessage(removalNotification);
+                }
+            }
+        }
+    }
+    
+    private void notifyGroupMembersOfChange(String groupId, GroupManager groupManager) {
+        Group group = groupManager.getGroup(groupId);
+        if (group != null) {
+            UserManager userManager = UserManager.getInstance();
+            for (String member : group.getMembers()) {
+                if (userManager.isUserOnline(member)) {
+                    ClientHandler memberHandler = userManager.getClientHandler(member);
+                    if (memberHandler != null) {
+                        sendDetailedGroupInfo(group, groupManager);
+                    }
+                }
+            }
+        }
     }
 
     private void handleUserList(Message message, UserManager userManager) {
@@ -423,20 +542,52 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleSyncHistory(Message message, MessageStore messageStore) {
-/*         if (!isLoggedIn) {
-            sendErrorMessage("Please login first");
-            return;
-        } */
         String withUser = message.getContent();
+        String groupId = message.getGroupId();
 
-        if (withUser != null && !withUser.isEmpty()) {
+        if (groupId != null && !groupId.isEmpty()) {
+            // Sync group chat history
+            List<Message> groupHistory = messageStore.getGroupConversationHistory(username, groupId);
+            sendMessagesWithDelay(groupHistory);
+        } else if (withUser != null && !withUser.isEmpty()) {
+            // Sync private chat history
             List<Message> conversationHistory = messageStore.getConversationHistory(username, withUser);
+            sendMessagesWithDelay(conversationHistory);
+        }
+    }
+    
+    private void handleDeleteHistory(Message message, MessageStore messageStore) {
+        String requestingUser = message.getSender();
+        String targetUser = message.getRecipient();
+        String groupId = message.getGroupId();
 
-            for (Message historyMessage : conversationHistory) {
-               /*  Message historyResponse = new Message(Message.MessageType.MESSAGE_HISTORY, "SERVER");
-                historyResponse.setContent(serializeMessage(historyMessage)); */
-                sendMessage(historyMessage);
-            }
+        if (targetUser != null && !targetUser.isEmpty()) {
+            // It's a private chat history deletion
+            messageStore.deletePrivateChatHistory(requestingUser, targetUser);
+            System.out.println("Deleted chat history between " + requestingUser + " and " + targetUser);
+        } else if (groupId != null && !groupId.isEmpty()) {
+            // It's a group chat history deletion for a single user
+            // Note: This only removes it from the requesting user's view in a shared file scenario
+            // A more robust implementation might have per-user group message files.
+            messageStore.deleteGroupChatHistoryForUser(requestingUser, groupId);
+            System.out.println("Deleted group chat history for user " + requestingUser + " in group " + groupId);
+        }
+
+        // No response is sent back to the client, as it's a fire-and-forget action
+    }
+
+    private void sendMessagesWithDelay(List<Message> messages) {
+        // Limit to last 50 messages to prevent overwhelming the connection
+        final List<Message> messagesToSend;
+        if (messages.size() > 50) {
+            messagesToSend = messages.subList(messages.size() - 50, messages.size());
+        } else {
+            messagesToSend = messages;
+        }
+        
+        // Send messages directly
+        for (Message historyMessage : messagesToSend) {
+            sendMessage(historyMessage);
         }
     }
 
@@ -445,7 +596,7 @@ public class ClientHandler implements Runnable {
                 message.getContent() + "|" + message.getTimestamp().toString();
     } */
 
-    public void sendMessage(Message message) {
+    public synchronized void sendMessage(Message message) {
         try {
             oos.writeObject(message);
             oos.flush();

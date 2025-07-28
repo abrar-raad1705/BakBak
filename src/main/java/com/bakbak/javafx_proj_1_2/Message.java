@@ -1,9 +1,12 @@
 package com.bakbak.javafx_proj_1_2;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class Message implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public enum MessageType {
         LOGIN,
         LOGOUT,
@@ -19,6 +22,7 @@ public class Message implements Serializable {
         SYNC_HISTORY,
         OFFLINE_MESSAGES,
         USER_STATUS_UPDATE,
+        DELETE_HISTORY,
         ACKNOWLEDGMENT,
         /* ERROR */
     }

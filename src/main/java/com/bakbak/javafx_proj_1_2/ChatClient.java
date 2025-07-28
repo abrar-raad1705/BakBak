@@ -38,7 +38,7 @@ public class ChatClient {
                 while (isConnected && !socket.isClosed()) {
                     try {
                         Message msgFromServer = (Message) ois.readObject();
-                        if (messageHandler != null) {
+                        if (msgFromServer != null && messageHandler != null) {
                             messageHandler.accept(msgFromServer);
                         }
                     } catch (IOException | ClassNotFoundException e) {
@@ -58,10 +58,12 @@ public class ChatClient {
     }
 
     public void sendMessage(Message message) throws IOException {
-        if (oos != null && isConnected) {
-            oos.writeObject(message);
-            oos.flush();
+        if (!isConnected || socket == null || socket.isClosed() || oos == null) {
+            throw new IOException("Client is not connected to server");
         }
+        
+        oos.writeObject(message);
+        oos.flush();
     }
 
     public void disconnect() {
