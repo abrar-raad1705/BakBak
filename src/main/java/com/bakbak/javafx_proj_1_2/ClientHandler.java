@@ -72,6 +72,13 @@ public class ClientHandler implements Runnable {
             case GROUP_LIST:
                 handleGroupList(message, groupManager);
                 break;
+            case SYNC_HISTORY:
+                handleSyncHistory(message, messageStore);
+                break;
+            case USER_STATUS_UPDATE:
+                // This message type is only sent from server to clients
+                // No handling needed in server-side ClientHandler
+                break;
         }
     }
 
@@ -202,12 +209,43 @@ public class ClientHandler implements Runnable {
         } */
         String groupName = message.getContent();
         String groupId = groupManager.createGroup(groupName, username);
+        
+        // Process selected members if provided
+        String selectedMembersString = message.getRecipient();
+        if (selectedMembersString != null && !selectedMembersString.trim().isEmpty()) {
+            String[] selectedMembers = selectedMembersString.split(",");
+            for (String member : selectedMembers) {
+                String memberName = member.trim();
+                if (!memberName.isEmpty() && !memberName.equals(username)) {
+                    groupManager.joinGroup(groupId, memberName);
+                    System.out.println("Added " + memberName + " to group " + groupName);
+                }
+            }
+        }
 
+        // Send acknowledgment to group creator
         Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
         response.setSuccess(true);
         response.setContent("Group created successfully");
         response.setGroupId(groupId);
         sendMessage(response);
+        
+        // Notify all group members (including creator) about the new group
+        Group group = groupManager.getGroup(groupId);
+        if (group != null) {
+            UserManager userManager = UserManager.getInstance();
+            for (String member : group.getMembers()) {
+                if (userManager.isUserOnline(member)) {
+                    ClientHandler memberHandler = userManager.getClientHandler(member);
+                    if (memberHandler != null) {
+                        // Send group notification to member
+                        Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                        groupNotification.setContent("GROUP_ADDED:" + groupName + "|" + groupId + "|" + group.getCreator());
+                        memberHandler.sendMessage(groupNotification);
+                    }
+                }
+            }
+        }
     }
 
     private void handleJoinGroup(Message message, GroupManager groupManager) {
@@ -216,12 +254,47 @@ public class ClientHandler implements Runnable {
             return;
         } */
         String groupId = message.getGroupId();
-        boolean success = groupManager.joinGroup(groupId, username);
+        String targetUser = message.getRecipient(); // User to add to group (if specified)
+        String userToAdd = (targetUser != null && !targetUser.trim().isEmpty()) ? targetUser.trim() : username;
+        
+        // Check if this is an admin adding another user
+        if (!userToAdd.equals(username)) {
+            Group group = groupManager.getGroup(groupId);
+            if (group != null && !group.isAdmin(username)) {
+                // Only admins can add other users
+                Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+                response.setSuccess(false);
+                response.setContent("Only admins can add members to the group");
+                sendMessage(response);
+                return;
+            }
+        }
+        
+        boolean success = groupManager.joinGroup(groupId, userToAdd);
 
         Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
         response.setSuccess(success);
-        response.setContent(success ? "Joined group successfully" : "Failed to join group");
+        response.setContent(success ? 
+            (userToAdd.equals(username) ? "Joined group successfully" : "Member added successfully") : 
+            "Failed to add member to group");
         sendMessage(response);
+        
+        // If successful and adding another user, notify that user about the new group
+        if (success && !userToAdd.equals(username)) {
+            Group group = groupManager.getGroup(groupId);
+            if (group != null) {
+                UserManager userManager = UserManager.getInstance();
+                if (userManager.isUserOnline(userToAdd)) {
+                    ClientHandler memberHandler = userManager.getClientHandler(userToAdd);
+                    if (memberHandler != null) {
+                        // Send group notification to the newly added member
+                        Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                        groupNotification.setContent("GROUP_ADDED:" + group.getGroupName() + "|" + groupId + "|" + group.getCreator());
+                        memberHandler.sendMessage(groupNotification);
+                    }
+                }
+            }
+        }
     }
 
     private void handleLeaveGroup(Message message, GroupManager groupManager) {
@@ -282,6 +355,19 @@ public class ClientHandler implements Runnable {
         //     sendErrorMessage("Please login first");
         //     return;
         // }
+        
+        // Check if this is a request for specific group info
+        String requestedGroupId = message.getGroupId();
+        if (requestedGroupId != null && !requestedGroupId.trim().isEmpty()) {
+            // Send detailed info for specific group
+            Group group = groupManager.getGroup(requestedGroupId);
+            if (group != null && group.isMember(username)) {
+                sendDetailedGroupInfo(group, groupManager);
+            }
+            return;
+        }
+        
+        // Send list of all user's groups with basic info
         Set<String> userGroups = groupManager.getUserGroups(username);
         StringBuilder groupList = new StringBuilder("Your groups: ");
         for (String groupId : userGroups) {
@@ -293,6 +379,46 @@ public class ClientHandler implements Runnable {
 
         Message response = new Message(Message.MessageType.GROUP_LIST, "SERVER");
         response.setContent(groupList.toString());
+        sendMessage(response);
+    }
+    
+    private void sendDetailedGroupInfo(Group group, GroupManager groupManager) {
+        UserManager userManager = UserManager.getInstance();
+        
+        // Collect detailed group information
+        StringBuilder groupInfo = new StringBuilder();
+        groupInfo.append("GROUP_DETAILS:");
+        groupInfo.append(group.getGroupName()).append("|");
+        groupInfo.append(group.getGroupId()).append("|");
+        groupInfo.append(group.getCreator()).append("|");
+        
+        // Add members list
+        Set<String> members = group.getMembers();
+        groupInfo.append("MEMBERS:");
+        for (String member : members) {
+            groupInfo.append(member).append(",");
+        }
+        groupInfo.append("|");
+        
+        // Add admins list
+        Set<String> admins = group.getAdmins();
+        groupInfo.append("ADMINS:");
+        for (String admin : admins) {
+            groupInfo.append(admin).append(",");
+        }
+        groupInfo.append("|");
+        
+        // Add online members list
+        groupInfo.append("ONLINE:");
+        for (String member : members) {
+            if (userManager.isUserOnline(member)) {
+                groupInfo.append(member).append(",");
+            }
+        }
+        
+        Message response = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+        response.setContent(groupInfo.toString());
+        response.setGroupId(group.getGroupId());
         sendMessage(response);
     }
 

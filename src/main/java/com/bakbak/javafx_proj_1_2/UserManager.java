@@ -2,6 +2,8 @@ package com.bakbak.javafx_proj_1_2;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +15,7 @@ public class UserManager {
     private Map<String, ClientHandler> onlineUsers;
     private final String DATA_DIR = "chat_data";
     private final String USERS_FILE = DATA_DIR + "/users.txt";
+    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
     private UserManager() {
         System.out.println("UserManager constructor called");
@@ -42,11 +45,24 @@ public class UserManager {
             Path usersPath = Paths.get(USERS_FILE);
             if (Files.exists(usersPath)) {
                 for (String line : Files.readAllLines(usersPath)) {
+                    if (line.trim().isEmpty()) continue;
+                    
                     String[] parts = line.split("\\|");
                     if (parts.length >= 2) {
                         String username = parts[0];
                         String password = parts[1];
                         User user = new User(username, password);
+                        
+                        // Load last seen timestamp if available
+                        if (parts.length >= 3 && !parts[2].isEmpty()) {
+                            try {
+                                LocalDateTime lastSeen = LocalDateTime.parse(parts[2], formatter);
+                                user.setLastSeenTimestamp(lastSeen);
+                            } catch (Exception e) {
+                                System.err.println("Error parsing last seen time for user " + username + ": " + e.getMessage());
+                            }
+                        }
+                        
                         users.put(username, user);
                     }
                 }
@@ -62,7 +78,9 @@ public class UserManager {
             Path usersPath = Paths.get(USERS_FILE);
             try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(usersPath))) {
                 for (User user : users.values()) {
-                    writer.println(user.getUsername() + "|" + user.getPassword());
+                    String lastSeenStr = user.getLastSeenTimestamp() != null ? 
+                        user.getLastSeenTimestamp().format(formatter) : "";
+                    writer.println(user.getUsername() + "|" + user.getPassword() + "|" + lastSeenStr);
                 }
             }
         } catch (IOException e) {
@@ -104,6 +122,12 @@ public class UserManager {
         
         user.setOnline(true);
         onlineUsers.put(username, clientHandler);
+        saveUsers();
+        
+        // Broadcast login status to all connected clients
+        broadcastUserStatusUpdate(username, true);
+        
+        System.out.println("User " + username + " logged in successfully");
         return true;
     }
     
@@ -111,20 +135,37 @@ public class UserManager {
         User user = users.get(username);
         if (user != null) {
             user.setOnline(false);
+            user.updateLastSeen(); // Update logout timestamp
             onlineUsers.remove(username);
+            saveUsers();
+            
+            // Broadcast logout status to all connected clients
+            broadcastUserStatusUpdate(username, false);
+            
+            System.out.println("User " + username + " logged out at " + user.getLastSeenTimestamp());
         }
+    }
+    
+    private void broadcastUserStatusUpdate(String username, boolean isOnline) {
+        User user = users.get(username);
+        if (user == null) return;
+        
+        Message statusUpdate = new Message(Message.MessageType.USER_STATUS_UPDATE, "SERVER");
+        statusUpdate.setContent(username + "|" + isOnline + "|" + user.getLastSeenStatus());
+        
+        // Send to all connected clients except the user who just logged in/out
+        for (Map.Entry<String, ClientHandler> entry : onlineUsers.entrySet()) {
+            if (!entry.getKey().equals(username)) {
+                entry.getValue().sendMessage(statusUpdate);
+            }
+        }
+        
+        System.out.println("DEBUG: Broadcasted status update for " + username + " (online: " + isOnline + ") to " + 
+                          (onlineUsers.size() - (isOnline ? 1 : 0)) + " clients");
     }
     
     public boolean isUserOnline(String username) {
         return onlineUsers.containsKey(username);
-    }
-    
-    public ClientHandler getClientHandler(String username) {
-        return onlineUsers.get(username);
-    }
-    
-    public User getUser(String username) {
-        return users.get(username);
     }
     
     public Set<String> getOnlineUsers() {
@@ -135,26 +176,16 @@ public class UserManager {
         return new HashSet<>(users.keySet());
     }
     
-    public boolean userExists(String username) {
-        return users.containsKey(username);
+    public User getUser(String username) {
+        return users.get(username);
     }
     
-    public void addContact(String username, String contactUsername) {
-        User user = users.get(username);
-        if (user != null && users.containsKey(contactUsername)) {
-            user.addContact(contactUsername);
-        }
+    public ClientHandler getClientHandler(String username) {
+        return onlineUsers.get(username);
     }
     
-    public void removeContact(String username, String contactUsername) {
+    public String getUserStatus(String username) {
         User user = users.get(username);
-        if (user != null) {
-            user.removeContact(contactUsername);
-        }
-    }
-    
-    public Set<String> getUserContacts(String username) {
-        User user = users.get(username);
-        return user != null ? user.getContacts() : new HashSet<>();
+        return user != null ? user.getLastSeenStatus() : "User not found";
     }
 } 

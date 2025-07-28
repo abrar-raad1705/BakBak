@@ -18,6 +18,7 @@ public class Message implements Serializable {
         GROUP_LIST,
         SYNC_HISTORY,
         OFFLINE_MESSAGES,
+        USER_STATUS_UPDATE,
         ACKNOWLEDGMENT,
         /* ERROR */
     }
