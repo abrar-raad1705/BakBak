@@ -1,6 +1,7 @@
 module com.bakbak.javafx_proj_1_2 {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.desktop;
 
     requires org.controlsfx.controls;
 

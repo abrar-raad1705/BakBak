@@ -18,10 +18,12 @@ public class ChatServer {
 
     private ServerSocket serverSocket;
     private ExecutorService clientThreadPool;
+    private ExecutorService fileThreadPool;
     private boolean isRunning;
 
     public ChatServer() {
         clientThreadPool = Executors.newFixedThreadPool(MAX_CLIENTS);
+        fileThreadPool = Executors.newFixedThreadPool(2); // Allow 2 concurrent file services
         isRunning = false;
     }
 
@@ -32,6 +34,16 @@ public class ChatServer {
         System.out.println("Chat Server started on port " + PORT);
         showAvailableIP();
         startUdpBroadcastListener();
+        
+        // Start FileReceiver
+        System.out.println("Starting FileReceiver service...");
+        fileThreadPool.submit(new FileReceiver("chat_data/shared_files"));
+        
+        // Start FileChunkReceiver
+        System.out.println("Starting FileChunkReceiver service...");
+        fileThreadPool.submit(new FileChunkReceiver("chat_data/shared_files"));
+        
+        System.out.println("All file services started successfully");
         System.out.println("Waiting for client connections...");
 
         while (isRunning) {
@@ -63,6 +75,10 @@ public class ChatServer {
 
         if (clientThreadPool != null) {
             clientThreadPool.shutdown();
+        }
+        
+        if (fileThreadPool != null) {
+            fileThreadPool.shutdown();
         }
 
         System.out.println("Chat Server stopped");

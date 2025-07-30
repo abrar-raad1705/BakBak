@@ -13,6 +13,7 @@ public class Message implements Serializable {
         REGISTER,
         PRIVATE_MESSAGE,
         GROUP_MESSAGE,
+        FILE_MESSAGE,
         JOIN_GROUP,
         LEAVE_GROUP,
         CREATE_GROUP,
@@ -35,12 +36,22 @@ public class Message implements Serializable {
     private LocalDateTime timestamp;
     private boolean isSuccess;
     private String errorMessage;
+    private FileMessageData fileMessageData;
 
     public Message(MessageType type, String sender) {
         this.type = type;
         this.sender = sender;
         timestamp = LocalDateTime.now();
         isSuccess = true;
+    }
+
+    public Message(MessageType type, String sender, FileMessageData fileMessageData) {
+        this.type = type;
+        this.sender = sender;
+        this.fileMessageData = fileMessageData;
+        this.content = fileMessageData.toString();
+        this.timestamp = LocalDateTime.now();
+        this.isSuccess = true;
     }
 
     public MessageType getType() {
@@ -73,6 +84,14 @@ public class Message implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public FileMessageData getFileMessageData() {
+        return fileMessageData;
+    }
+
+    public void setFileMessageData(FileMessageData fileMessageData) {
+        this.fileMessageData = fileMessageData;
     }
 
     public String getGroupId() {
@@ -118,6 +137,7 @@ public class Message implements Serializable {
                 ", timestamp=" + timestamp +
                 ", isSuccess=" + isSuccess +
                 ", errorMessage='" + errorMessage + '\'' +
+                ", fileMessageData=" + fileMessageData +
                 '}';
     }
 }

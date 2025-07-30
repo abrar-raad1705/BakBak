@@ -3,6 +3,10 @@ package com.bakbak.javafx_proj_1_2.controller;
 import com.bakbak.javafx_proj_1_2.ChatApplication;
 import com.bakbak.javafx_proj_1_2.ChatClient;
 import com.bakbak.javafx_proj_1_2.Message;
+import com.bakbak.javafx_proj_1_2.FileMessageData;
+import com.bakbak.javafx_proj_1_2.FileChunkSender;
+import com.bakbak.javafx_proj_1_2.FileChunkReceiver;
+import com.bakbak.javafx_proj_1_2.ProgressCallback;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
@@ -28,8 +32,13 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.Popup;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.Node;
 
+
+import java.awt.FileDialog;
+import java.awt.Frame;
 import java.io.*;
+import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +49,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.awt.Desktop;
 
 public class ChatController implements Initializable {
 
@@ -57,6 +67,7 @@ public class ChatController implements Initializable {
     @FXML private Button chatMenuButton;
     @FXML private VBox chatHeader;
     @FXML private HBox messageInputArea;
+    @FXML private Button fileButton;
 
     private ChatClient chatClient;
     private String currentUsername;
@@ -184,10 +195,15 @@ public class ChatController implements Initializable {
         // Setup send message functionality
         sendButton.setOnAction(e -> handleSendMessage());
         messageInput.setOnAction(e -> handleSendMessage());
+        fileButton.setOnAction(e -> handleSendFile());
         
         // Disable message input initially
         messageInput.setDisable(true);
         sendButton.setDisable(true);
+        fileButton.setDisable(true);
+        
+        // Setup unified progress bar below chat header
+        setupUnifiedProgressBar();
     }
 
     private void setupMessageHandler() {
@@ -205,6 +221,7 @@ public class ChatController implements Initializable {
                         pendingResponse = null;
                     }
                     break;
+                case FILE_MESSAGE:
                 case PRIVATE_MESSAGE:
                     handleIncomingPrivateMessage(message);
                     break;
@@ -576,6 +593,7 @@ public class ChatController implements Initializable {
                 showSelectChatMessage();
                 messageInput.setDisable(true);
                 sendButton.setDisable(true);
+                fileButton.setDisable(true);
                 chatNameLabel.setText("Chat");
                 chatStatusLabel.setText("");
             }
@@ -1051,12 +1069,14 @@ public class ChatController implements Initializable {
         centerBox.setPrefHeight(400);
         
         messagesContainer.getChildren().add(centerBox);
+        fileButton.setDisable(true);
     }
 
     private void showPrivateChat(String contactName) {
         // Enable message input
         messageInput.setDisable(false);
         sendButton.setDisable(false);
+        fileButton.setDisable(false);
         
         // Load conversation history for private chat
         loadConversationHistory(selectedChat);
@@ -1066,6 +1086,7 @@ public class ChatController implements Initializable {
         // Enable message input
         messageInput.setDisable(false);
         sendButton.setDisable(false);
+        fileButton.setDisable(false);
         
         // Load conversation history for group chat
         loadConversationHistory(selectedChat);
@@ -1118,6 +1139,10 @@ public class ChatController implements Initializable {
     }
     
     private String convertEmojiPlaceholdersToDisplay(String messageText) {
+        if (FileMessageData.isAFileReference(messageText)) {
+            FileMessageData fileData = FileMessageData.fromString(messageText);
+            return "File: " + fileData.getOriginalName();
+        }
         if (messageText == null || !messageText.contains("[EMOJI:")) {
             return messageText;
         }
@@ -1182,8 +1207,75 @@ public class ChatController implements Initializable {
         messageContent.setSpacing(2);
         messageContent.setMaxWidth(400);
         
-        // Create TextFlow with mixed text and emoji content
-        TextFlow textFlow = createTextFlowWithEmojis(message.getContent());
+        if (FileMessageData.isAFileReference(message.getContent())) {
+            message.setFileMessageData(FileMessageData.fromString(message.getContent()));
+        }
+
+        if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
+            FileMessageData fileData = message.getFileMessageData();
+            VBox fileBox = new VBox(8);
+            fileBox.setPadding(new Insets(12));
+            fileBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-border-color: #e9ecef; -fx-border-radius: 8; -fx-border-width: 1;");
+
+            HBox fileInfo = new HBox(12);
+            fileInfo.setAlignment(Pos.CENTER_LEFT);
+
+            // File icon with better styling
+            ImageView fileIcon = new ImageView(new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/file_icon.png")));
+            fileIcon.setFitWidth(32);
+            fileIcon.setFitHeight(32);
+            fileIcon.setStyle("-fx-opacity: 0.8;");
+
+            VBox fileDetails = new VBox(4);
+            
+            // File name with better styling
+            Label fileName = new Label(fileData.getOriginalName());
+            fileName.setFont(Font.font("System", FontWeight.BOLD, 13));
+            fileName.setStyle("-fx-text-fill: #2c3e50;");
+            fileName.setWrapText(true);
+            fileName.setMaxWidth(280);
+            
+            // File size and type
+            Label fileInfoLabel = new Label(fileData.getFormattedFileSize() + " • " + getFileTypeDisplay(fileData.getMimeType()));
+            fileInfoLabel.setFont(Font.font("System", 11));
+            fileInfoLabel.setStyle("-fx-text-fill: #6c757d;");
+            
+            fileDetails.getChildren().addAll(fileName, fileInfoLabel);
+
+            fileInfo.getChildren().addAll(fileIcon, fileDetails);
+
+            // Add media preview if supported
+            Node mediaPreview = createMediaPreview(fileData);
+            if (mediaPreview != null) {
+                fileBox.getChildren().add(mediaPreview);
+            }
+
+            // Download button with better styling
+            Button downloadButton = new Button("Download");
+            downloadButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;");
+            downloadButton.setOnMouseEntered(e -> downloadButton.setStyle("-fx-background-color: #0056b3; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;"));
+            downloadButton.setOnMouseExited(e -> downloadButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;"));
+            downloadButton.setOnAction(e -> downloadFile(fileData));
+
+            // Open button with better styling
+            Button openButton = new Button("Open");
+            openButton.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;");
+            openButton.setOnMouseEntered(e -> openButton.setStyle("-fx-background-color: #1e7e34; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;"));
+            openButton.setOnMouseExited(e -> openButton.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;"));
+            openButton.setOnAction(e -> openFile(fileData));
+
+            // Create HBox for buttons
+            HBox buttonContainer = new HBox(8);
+            buttonContainer.setAlignment(Pos.CENTER);
+            buttonContainer.getChildren().addAll(downloadButton, openButton);
+
+            fileBox.getChildren().addAll(fileInfo, buttonContainer);
+            messageContent.getChildren().add(fileBox);
+        } else {
+            // Create TextFlow with mixed text and emoji content
+            TextFlow textFlow = createTextFlowWithEmojis(message.getContent());
+            messageContent.getChildren().add(textFlow);
+        }
         
         // Timestamp in bottom right corner
         String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -1195,7 +1287,7 @@ public class ChatController implements Initializable {
         timestampBox.setAlignment(Pos.CENTER_RIGHT);
         timestampBox.getChildren().add(timeLabel);
         
-        messageContent.getChildren().addAll(textFlow, timestampBox);
+        messageContent.getChildren().addAll(timestampBox);
         
         if (isSentByMe) {
             // Sent messages - align right
@@ -1299,33 +1391,59 @@ public class ChatController implements Initializable {
     }
 
     private void handleIncomingPrivateMessage(Message message) {
-        // Automatically add sender to contacts if not already present
-        String contactName = message.getSender();
-        if (!contactName.equals(currentUsername) && !allChatItems.containsKey(contactName)) {
-            ChatItem newContact = new ChatItem(contactName, ChatItem.Type.USER, true); // Assume online since they just sent a message
-            allChatItems.put(contactName, newContact);
-            System.out.println("Added new contact from incoming message: " + contactName);
-        }
+        String sender = message.getSender();
+        String recipient = message.getRecipient();
+        String processedContent = convertEmojiPlaceholdersToDisplay(message.getContent());
+        String displayMessage;
         
-        // Update last message for the contact (always show the most recent message)
-        if (allChatItems.containsKey(contactName)) {
-            ChatItem contact = allChatItems.get(contactName);
-            String displayMessage = convertEmojiPlaceholdersToDisplay(message.getContent());
-            contact.setLastMessage(contactName + ": " + displayMessage, message.getTimestamp());
-            
-            // Mark as unread if not currently in this chat
-            if (selectedChat == null || !selectedChat.getName().equals(contactName)) {
-                contact.setHasUnreadMessages(true);
-            }
-            
-            updateChatList();
+        if (sender.equals(currentUsername)) {
+            displayMessage = "You: " + processedContent;
+        } else {
+            displayMessage = sender + ": " + processedContent;
         }
+
+        // Update chat item for the contact
+        ChatItem contactItem = null;
+        String contactName = sender.equals(currentUsername) ? recipient : sender;
+        
+        if (allChatItems.containsKey(contactName)) {
+            contactItem = allChatItems.get(contactName);
+            contactItem.setLastMessage(displayMessage, message.getTimestamp());
+        } else {
+            // Create new contact item if it doesn't exist
+            contactItem = new ChatItem(contactName, ChatItem.Type.USER, false);
+            contactItem.setLastMessage(displayMessage, message.getTimestamp());
+            allChatItems.put(contactName, contactItem);
+        }
+
+        if (selectedChat == null || !selectedChat.getName().equals(contactName)) {
+            contactItem.setHasUnreadMessages(true);
+        }
+        updateChatList();
         
         // Add to UI if it's for the current conversation
         if (selectedChat != null && 
             selectedChat.getType() == ChatItem.Type.USER &&
             (selectedChat.getName().equals(message.getSender()) || 
              selectedChat.getName().equals(message.getRecipient()))) {
+            
+            // Handle FILE_MESSAGE types - ensure FileMessageData is properly set
+            if (message.getType() == Message.MessageType.FILE_MESSAGE) {
+                System.out.println("DEBUG: Processing FILE_MESSAGE in handleIncomingPrivateMessage");
+                System.out.println("DEBUG: Message content: " + message.getContent());
+                
+                if (FileMessageData.isAFileReference(message.getContent())) {
+                    try {
+                        FileMessageData fileData = FileMessageData.fromString(message.getContent());
+                        message.setFileMessageData(fileData);
+                        System.out.println("DEBUG: Successfully parsed FileMessageData: " + fileData.getOriginalName());
+                    } catch (Exception e) {
+                        System.err.println("DEBUG: Error parsing FileMessageData: " + e.getMessage());
+                    }
+                } else {
+                    System.err.println("DEBUG: Message content is not a valid file reference");
+                }
+            }
             addMessageToUI(message, message.getSender().equals(currentUsername));
         }
     }
@@ -1361,6 +1479,24 @@ public class ChatController implements Initializable {
         if (selectedChat != null && 
             selectedChat.getType() == ChatItem.Type.GROUP &&
             selectedChat.getGroupId().equals(message.getGroupId())) {
+            
+            // Handle FILE_MESSAGE types - ensure FileMessageData is properly set
+            if (message.getType() == Message.MessageType.FILE_MESSAGE) {
+                System.out.println("DEBUG: Processing FILE_MESSAGE in handleIncomingGroupMessage");
+                System.out.println("DEBUG: Message content: " + message.getContent());
+                
+                if (FileMessageData.isAFileReference(message.getContent())) {
+                    try {
+                        FileMessageData fileData = FileMessageData.fromString(message.getContent());
+                        message.setFileMessageData(fileData);
+                        System.out.println("DEBUG: Successfully parsed FileMessageData: " + fileData.getOriginalName());
+                    } catch (Exception e) {
+                        System.err.println("DEBUG: Error parsing FileMessageData: " + e.getMessage());
+                    }
+                } else {
+                    System.err.println("DEBUG: Message content is not a valid file reference");
+                }
+            }
             addMessageToUI(message, message.getSender().equals(currentUsername));
         }
     }
@@ -2222,6 +2358,7 @@ public class ChatController implements Initializable {
             showSelectChatMessage();
             messageInput.setDisable(true);
             sendButton.setDisable(true);
+            fileButton.setDisable(true);
             chatNameLabel.setText("Chat");
             chatStatusLabel.setText("");
         }
@@ -2330,4 +2467,550 @@ public class ChatController implements Initializable {
             memberListView.getItems().add(memberRow);
         }
     }
+
+    @FXML
+    private void handleSendFile() {
+        if (selectedChat == null) {
+            return;
+        }
+
+        FileDialog fileDialog = new FileDialog((Frame) null, "Select File to Send");
+        fileDialog.setMode(FileDialog.LOAD);
+        fileDialog.setVisible(true);
+        String file = fileDialog.getFile();
+        String directory = fileDialog.getDirectory();
+
+        if (file != null && directory != null) {
+            File selectedFile = new File(directory, file);
+            if (selectedFile.exists()) {
+                sendFile(selectedFile);
+            }
+        }
+    }
+
+    private void sendFile(File file) {
+        new Thread(() -> {
+            try {
+                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                
+                // Check if it's a video file to show progress
+                String mimeType = null;
+                try {
+                    mimeType = Files.probeContentType(file.toPath());
+                    if (mimeType == null) {
+                        mimeType = "application/octet-stream";
+                    }
+                } catch (Exception e) {
+                    mimeType = "application/octet-stream";
+                }
+                
+                boolean isVideo = mimeType != null && mimeType.startsWith("video/");
+                ProgressCallback progressCallback = null;
+                
+                if (isVideo) {
+                    // Create progress callback for video files
+                    progressCallback = new ProgressCallback() {
+                        @Override
+                        public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed, long totalBytes) {
+                            double progress = (double) bytesProcessed / totalBytes;
+                            Platform.runLater(() -> {
+                                // Use unified progress bar
+                                showUnifiedProgress(progress, "Sending video... " + String.format("%d%%", (int)(progress * 100)));
+                            });
+                        }
+                        
+                        @Override
+                        public void onTransferComplete() {
+                            Platform.runLater(() -> {
+                                // Hide unified progress bar
+                                hideUnifiedProgress();
+                            });
+                        }
+                        
+                        @Override
+                        public void onTransferError(String error) {
+                            Platform.runLater(() -> {
+                                hideUnifiedProgress();
+                                showAlert("Upload Error", "Failed to upload video: " + error);
+                            });
+                        }
+                    };
+                }
+                
+                CompletableFuture<String> uploadFuture = chunkSender.sendFile(file, progressCallback);
+                String fileID = uploadFuture.get(); // Wait for completion
+
+                if (fileID == null) {
+                    Platform.runLater(() -> {
+                        resetSendButton();
+                        showAlert("Error", "Failed to upload file.");
+                    });
+                    return;
+                }
+
+                String originalName = file.getName();
+                String extension = "";
+                int i = originalName.lastIndexOf('.');
+                if (i > 0) {
+                    extension = originalName.substring(i);
+                }
+                String uuidName = fileID; // Use just the UUID without extension
+                long fileSize = file.length();
+                String finalMimeType = mimeType;
+                
+                FileMessageData fileMessageData = new FileMessageData(originalName, uuidName, fileSize, finalMimeType);
+                
+                // Create and send the file message
+                Message fileMessage = new Message(Message.MessageType.FILE_MESSAGE, currentUsername);
+                fileMessage.setRecipient(selectedChat.getName());
+                fileMessage.setFileMessageData(fileMessageData);
+                fileMessage.setContent(fileMessageData.toString()); // Set the content field for serialization
+                fileMessage.setTimestamp(LocalDateTime.now());
+                
+                chatClient.sendMessage(fileMessage);
+                
+                // Add to UI immediately
+                Platform.runLater(() -> {
+                    addMessageToUI(fileMessage, true);
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    resetSendButton();
+                    showAlert("Error", "Failed to send file: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private String getFileTypeDisplay(String mimeType) {
+        if (mimeType == null) return "Unknown";
+        
+        if (mimeType.startsWith("image/")) return "Image";
+        if (mimeType.startsWith("video/")) return "Video";
+        if (mimeType.startsWith("audio/")) return "Audio";
+        if (mimeType.startsWith("text/")) return "Text";
+        if (mimeType.equals("application/pdf")) return "PDF";
+        if (mimeType.startsWith("application/")) return "Document";
+        
+        return "File";
+    }
+
+    private Node createMediaPreview(FileMessageData fileData) {
+        String mimeType = fileData.getMimeType();
+        
+        if (mimeType == null) return null;
+        
+        if (mimeType.startsWith("image/")) {
+            return createImagePreview(fileData);
+        } else if (mimeType.startsWith("audio/")) {
+            return createAudioPreview(fileData);
+        } else if (mimeType.startsWith("video/")) {
+            return createVideoPreview(fileData);
+        }
+        
+        return null;
+    }
+
+    private Node createImagePreview(FileMessageData fileData) {
+        VBox imageContainer = new VBox(8);
+        imageContainer.setAlignment(Pos.CENTER);
+        
+        // Create a placeholder for the image
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(200);
+        imageView.setFitHeight(150);
+        imageView.setPreserveRatio(true);
+        imageView.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #ddd; -fx-border-width: 1; -fx-border-radius: 4;");
+        
+        // Add a placeholder text
+        Label placeholderLabel = new Label("Click to view image");
+        placeholderLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
+        
+        imageContainer.getChildren().addAll(imageView, placeholderLabel);
+        
+        // Add click handler to download and display image
+        imageContainer.setOnMouseClicked(e -> {
+            downloadAndDisplayImage(fileData, imageView, placeholderLabel);
+        });
+        imageContainer.setStyle("-fx-cursor: hand;");
+        
+        return imageContainer;
+    }
+
+    private Node createAudioPreview(FileMessageData fileData) {
+        // Return null to display audio files like regular files without media preview
+        // This removes the blue-bordered media preview area and shows only file info + download/open buttons
+        return null;
+    }
+
+    private Node createVideoPreview(FileMessageData fileData) {
+        // Return null to display video files like regular files without media preview
+        // This removes the red-bordered media preview area and shows only file info + download/open buttons
+        return null;
+    }
+
+    private void downloadAndDisplayImage(FileMessageData fileData, ImageView imageView, Label placeholderLabel) {
+        new Thread(() -> {
+            try {
+                // Download the image file
+                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(), fileData.getOriginalName());
+                File imageFile = downloadFuture.get();
+                
+                // Display the image
+                Platform.runLater(() -> {
+                    try {
+                        Image image = new Image(imageFile.toURI().toString());
+                        imageView.setImage(image);
+                        placeholderLabel.setText(fileData.getOriginalName());
+                    } catch (Exception e) {
+                        placeholderLabel.setText("Error loading image");
+                        System.err.println("Error loading image: " + e.getMessage());
+                    }
+                });
+                
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    placeholderLabel.setText("Error downloading image");
+                    System.err.println("Error downloading image: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void downloadAndPlayAudio(FileMessageData fileData, Button playButton, Button pauseButton) {
+        new Thread(() -> {
+            try {
+                // Download the audio file
+                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(), fileData.getOriginalName());
+                File audioFile = downloadFuture.get();
+                
+                // Show success message
+                Platform.runLater(() -> {
+                    showAlert("Audio Downloaded", "Audio file '" + fileData.getOriginalName() + "' has been downloaded.\nLocation: " + audioFile.getAbsolutePath());
+                    playButton.setDisable(true);
+                    pauseButton.setDisable(true);
+                });
+                
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    System.err.println("Error downloading audio: " + e.getMessage());
+                    showAlert("Download Error", "Failed to download audio file: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void downloadAndPlayVideo(FileMessageData fileData, Button playButton, Button pauseButton, VBox videoContainer) {
+        new Thread(() -> {
+            try {
+                // Download the video file
+                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(), fileData.getOriginalName());
+                File videoFile = downloadFuture.get();
+                
+                // Show success message
+                Platform.runLater(() -> {
+                    showAlert("Video Downloaded", "Video file '" + fileData.getOriginalName() + "' has been downloaded.\nLocation: " + videoFile.getAbsolutePath());
+                    playButton.setDisable(true);
+                    pauseButton.setDisable(true);
+                });
+                
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    System.err.println("Error downloading video: " + e.getMessage());
+                    showAlert("Download Error", "Failed to download video file: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void pauseAudio(Button pauseButton, Button playButton) {
+        // Simplified pause functionality - just show a message
+        showAlert("Audio Playback", "Audio playback controls are simplified.\nUse the Download button to save the file and play it with your system's media player.");
+    }
+
+    private void pauseVideo(Button pauseButton, Button playButton) {
+        // Simplified pause functionality - just show a message
+        showAlert("Video Playback", "Video playback controls are simplified.\nUse the Download button to save the file and play it with your system's media player.");
+    }
+
+    private void downloadFile(FileMessageData fileData) {
+        new Thread(() -> {
+            try {
+                // Check if file is already downloaded
+                if (isFileDownloaded(fileData.getUuidName())) {
+                    // File already downloaded, no popup needed
+                    return;
+                }
+
+                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                
+                // Check if it's a video file to show progress
+                boolean isVideo = fileData.getMimeType() != null && fileData.getMimeType().startsWith("video/");
+                ProgressCallback progressCallback = null;
+                
+                if (isVideo) {
+                    // Create progress callback for video files
+                    progressCallback = new ProgressCallback() {
+                        @Override
+                        public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed, long totalBytes) {
+                            double progress = (double) bytesProcessed / totalBytes;
+                            Platform.runLater(() -> {
+                                // Use unified progress bar
+                                showUnifiedProgress(progress, "Downloading video... " + String.format("%d%%", (int)(progress * 100)));
+                            });
+                        }
+                        
+                        @Override
+                        public void onTransferComplete() {
+                            Platform.runLater(() -> {
+                                hideUnifiedProgress();
+                            });
+                        }
+                        
+                        @Override
+                        public void onTransferError(String error) {
+                            Platform.runLater(() -> {
+                                hideUnifiedProgress();
+                                showAlert("Download Error", "Failed to download video: " + error);
+                            });
+                        }
+                    };
+                }
+                
+                CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(), fileData.getOriginalName(), progressCallback);
+                File downloadedFile = downloadFuture.get(); // Wait for completion
+
+                // Cache the downloaded file
+                cacheDownloadedFile(fileData.getUuidName(), downloadedFile);
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    hideUnifiedProgress();
+                    showAlert("Download Error", "Failed to download file: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void openFile(FileMessageData fileData) {
+        new Thread(() -> {
+            try {
+                File fileToOpen;
+                
+                // Check if file is already downloaded
+                if (isFileDownloaded(fileData.getUuidName())) {
+                    fileToOpen = getDownloadedFile(fileData.getUuidName());
+                    System.out.println("Using cached file: " + fileToOpen.getAbsolutePath());
+                } else {
+                    // File not cached, need to download
+                    FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                    
+                    // Check if it's a video file to show progress
+                    boolean isVideo = fileData.getMimeType() != null && fileData.getMimeType().startsWith("video/");
+                    ProgressCallback progressCallback = null;
+                    
+                    if (isVideo) {
+                        // Create progress callback for video files
+                        progressCallback = new ProgressCallback() {
+                            @Override
+                            public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed, long totalBytes) {
+                                double progress = (double) bytesProcessed / totalBytes;
+                                Platform.runLater(() -> {
+                                    // Use unified progress bar
+                                    showUnifiedProgress(progress, "Preparing video... " + String.format("%d%%", (int)(progress * 100)));
+                                });
+                            }
+                            
+                            @Override
+                            public void onTransferComplete() {
+                                Platform.runLater(() -> {
+                                    hideUnifiedProgress();
+                                });
+                            }
+                            
+                            @Override
+                            public void onTransferError(String error) {
+                                Platform.runLater(() -> {
+                                    hideUnifiedProgress();
+                                    showAlert("Download Error", "Failed to download video for opening: " + error);
+                                });
+                            }
+                        };
+                    }
+                    
+                    CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(), fileData.getOriginalName(), progressCallback);
+                    fileToOpen = downloadFuture.get(); // Wait for completion
+                    
+                    // Cache the downloaded file for future use
+                    cacheDownloadedFile(fileData.getUuidName(), fileToOpen);
+                }
+
+                // Open the file with system default application
+                Platform.runLater(() -> {
+                    try {
+                        if (Desktop.isDesktopSupported()) {
+                            Desktop desktop = Desktop.getDesktop();
+                            if (desktop.isSupported(Desktop.Action.OPEN)) {
+                                desktop.open(fileToOpen);
+                            } else {
+                                showAlert("Open Error", "Opening files is not supported on this system.");
+                            }
+                        } else {
+                            showAlert("Open Error", "Desktop operations are not supported on this system.");
+                        }
+                    } catch (Exception e) {
+                        showAlert("Open Error", "Failed to open file: " + e.getMessage());
+                    }
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    hideUnifiedProgress();
+                    showAlert("Download Error", "Failed to download file for opening: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    // Progress bar methods for video file transfers
+    private void updateSendButtonProgress(double progress, String text) {
+        if (sendButton != null) {
+            sendButton.setText(text);
+            sendButton.setDisable(true);
+            
+            // Create a simple progress bar effect by changing button style
+            String progressStyle = String.format(
+                "-fx-background-color: linear-gradient(to right, #007bff %.1f%%, #e9ecef %.1f%%); " +
+                "-fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;",
+                progress * 100, progress * 100
+            );
+            sendButton.setStyle(progressStyle);
+        }
+    }
+
+    private void resetSendButton() {
+        if (sendButton != null) {
+            sendButton.setText("Send");
+            sendButton.setDisable(false);
+            sendButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16;");
+        }
+    }
+
+    // Download progress methods
+    private ProgressBar downloadProgressBar;
+    private Label downloadProgressLabel;
+    private Stage downloadProgressStage;
+
+    private void showDownloadProgress(double progress, String text) {
+        if (downloadProgressStage == null) {
+            // Create progress dialog
+            downloadProgressStage = new Stage();
+            downloadProgressStage.setTitle("Download Progress");
+            downloadProgressStage.initModality(Modality.NONE);
+            downloadProgressStage.setResizable(false);
+            
+            VBox progressContainer = new VBox(10);
+            progressContainer.setPadding(new Insets(20));
+            progressContainer.setAlignment(Pos.CENTER);
+            
+            downloadProgressLabel = new Label(text);
+            downloadProgressLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            
+            downloadProgressBar = new ProgressBar(progress);
+            downloadProgressBar.setPrefWidth(300);
+            downloadProgressBar.setStyle("-fx-accent: #007bff;");
+            
+            progressContainer.getChildren().addAll(downloadProgressLabel, downloadProgressBar);
+            
+            Scene scene = new Scene(progressContainer);
+            downloadProgressStage.setScene(scene);
+            downloadProgressStage.show();
+        } else {
+            // Update existing progress
+            downloadProgressBar.setProgress(progress);
+            downloadProgressLabel.setText(text);
+        }
+    }
+
+    private void hideDownloadProgress() {
+        if (downloadProgressStage != null) {
+            downloadProgressStage.close();
+            downloadProgressStage = null;
+            downloadProgressBar = null;
+            downloadProgressLabel = null;
+        }
+    }
+
+    // Unified progress bar setup
+    private void setupUnifiedProgressBar() {
+        // Create unified progress bar container
+        unifiedProgressContainer = new HBox(10);
+        unifiedProgressContainer.setPadding(new Insets(5, 10, 5, 10));
+        unifiedProgressContainer.setAlignment(Pos.CENTER_LEFT);
+        unifiedProgressContainer.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #e9ecef; -fx-border-width: 0 0 1 0;");
+        unifiedProgressContainer.setVisible(false);
+        
+        // Create progress bar
+        unifiedProgressBar = new ProgressBar(0);
+        unifiedProgressBar.setPrefWidth(200);
+        unifiedProgressBar.setStyle("-fx-accent: #007bff;");
+        
+        // Create progress label
+        unifiedProgressLabel = new Label("");
+        unifiedProgressLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        
+        unifiedProgressContainer.getChildren().addAll(unifiedProgressBar, unifiedProgressLabel);
+        
+        // Add to chat header (assuming chatHeader is a VBox)
+        if (chatHeader != null) {
+            chatHeader.getChildren().add(unifiedProgressContainer);
+        }
+    }
+
+    // Smart file caching methods
+    private boolean isFileDownloaded(String fileID) {
+        return downloadedFilesCache.containsKey(fileID) && 
+               downloadedFilesCache.get(fileID).exists();
+    }
+
+    private File getDownloadedFile(String fileID) {
+        return downloadedFilesCache.get(fileID);
+    }
+
+    private void cacheDownloadedFile(String fileID, File file) {
+        downloadedFilesCache.put(fileID, file);
+    }
+
+    // Unified progress bar methods
+    private void showUnifiedProgress(double progress, String text) {
+        Platform.runLater(() -> {
+            if (unifiedProgressContainer != null) {
+                unifiedProgressBar.setProgress(progress);
+                unifiedProgressLabel.setText(text);
+                unifiedProgressContainer.setVisible(true);
+            }
+        });
+    }
+
+    private void hideUnifiedProgress() {
+        Platform.runLater(() -> {
+            if (unifiedProgressContainer != null) {
+                unifiedProgressContainer.setVisible(false);
+                unifiedProgressBar.setProgress(0);
+                unifiedProgressLabel.setText("");
+            }
+        });
+    }
+
+    // File cache to avoid redundant downloads
+    private Map<String, File> downloadedFilesCache = new HashMap<>();
+    
+    // Unified progress bar below title bar
+    private ProgressBar unifiedProgressBar;
+    private Label unifiedProgressLabel;
+    private HBox unifiedProgressContainer;
 }

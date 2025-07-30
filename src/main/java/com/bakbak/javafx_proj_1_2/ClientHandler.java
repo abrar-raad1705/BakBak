@@ -48,6 +48,7 @@ public class ClientHandler implements Runnable {
             case LOGOUT:
                 handleLogout(message, userManager);
                 break;
+            case FILE_MESSAGE:
             case PRIVATE_MESSAGE:
                 handlePrivateMessage(message, userManager, messageStore);
                 break;
@@ -175,6 +176,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleGroupMessage(Message message, GroupManager groupManager) {
+        if (message.getType() == Message.MessageType.FILE_MESSAGE) {
+            handleFileMessage(message);
+            return;
+        }
         String groupId = message.getGroupId();
         String content = message.getContent();
         Set<String> members = groupManager.getGroupMembers(groupId);
@@ -237,6 +242,34 @@ public class ClientHandler implements Runnable {
         ack.setSuccess(true);
         ack.setContent("Message delivered to " + deliveredCount + " group members");
         sendMessage(ack); */
+    }
+
+    private void handleFileMessage(Message message) {
+        MessageStore.getInstance().storeMessage(message);
+
+        if (message.getGroupId() != null && !message.getGroupId().isEmpty()) {
+            // Group file message
+            Set<String> members = GroupManager.getInstance().getGroupMembers(message.getGroupId());
+            for (String member : members) {
+                if (!member.equals(username)) {
+                    ClientHandler handler = UserManager.getInstance().getClientHandler(member);
+                    if (handler != null) {
+                        handler.sendMessage(message);
+                    } else {
+                        MessageStore.getInstance().queueOfflineMessage(member, message);
+                    }
+                }
+            }
+        } else {
+            // Private file message
+            String recipient = message.getRecipient();
+            ClientHandler handler = UserManager.getInstance().getClientHandler(recipient);
+            if (handler != null) {
+                handler.sendMessage(message);
+            } else {
+                MessageStore.getInstance().queueOfflineMessage(recipient, message);
+            }
+        }
     }
 
     private void handleCreateGroup(Message message, GroupManager groupManager) {

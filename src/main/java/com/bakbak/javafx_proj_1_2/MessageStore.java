@@ -38,6 +38,7 @@ public class MessageStore {
         try {
             Files.createDirectories(Paths.get(MESSAGES_DIR));
             Files.createDirectories(Paths.get(OFFLINE_QUEUE_DIR));
+            Files.createDirectories(Paths.get(DATA_DIR + "/shared_files"));
         } catch (IOException e) {
             System.err.println("Error creating data directories: " + e.getMessage());
         }
@@ -89,7 +90,13 @@ public class MessageStore {
     }
     
     private void addMessageToUserHistory(String username, Message message) {
+        if (message.getType() == Message.MessageType.FILE_MESSAGE && (message.getContent() == null || message.getContent().isEmpty())) {
+            System.err.println("WARNING: Attempting to save FILE_MESSAGE with empty content for user " + username);
+            return; // Skip saving corrupted file messages
+        }
+        
         userMessageHistory.computeIfAbsent(username, k -> new ArrayList<>()).add(message);
+        saveUserMessages(username);
     }
     
     public synchronized void queueOfflineMessage(String recipient, Message message) {
@@ -121,7 +128,8 @@ public class MessageStore {
     public synchronized List<Message> getConversationHistory(String user1, String user2) {
         List<Message> user1Messages = getUserMessageHistory(user1);
         return user1Messages.stream()
-                .filter(msg -> msg.getType() == Message.MessageType.PRIVATE_MESSAGE &&
+                .filter(msg -> (msg.getType() == Message.MessageType.PRIVATE_MESSAGE || 
+                               msg.getType() == Message.MessageType.FILE_MESSAGE) &&
                               ((msg.getSender().equals(user1) && msg.getRecipient().equals(user2)) ||
                                (msg.getSender().equals(user2) && msg.getRecipient().equals(user1))))
                 .sorted((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()))
@@ -131,7 +139,8 @@ public class MessageStore {
     public synchronized List<Message> getGroupConversationHistory(String username, String groupId) {
         List<Message> userMessages = getUserMessageHistory(username);
         return userMessages.stream()
-                .filter(msg -> msg.getType() == Message.MessageType.GROUP_MESSAGE && 
+                .filter(msg -> (msg.getType() == Message.MessageType.GROUP_MESSAGE || 
+                               msg.getType() == Message.MessageType.FILE_MESSAGE) && 
                               groupId.equals(msg.getGroupId()))
                 .sorted((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()))
                 .toList();
@@ -280,7 +289,8 @@ public class MessageStore {
     }
     
     private String messageToString(Message message) {
-        return String.join("|",
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.join("|",
                 message.getType().toString(),
                 message.getSender() != null ? message.getSender() : "",
                 message.getRecipient() != null ? message.getRecipient() : "",
@@ -288,8 +298,12 @@ public class MessageStore {
                 message.getGroupId() != null ? message.getGroupId() : "",
                 message.getTimestamp().format(formatter),
                 String.valueOf(message.isSuccess())
-/*                 message.getErrorMessage() != null ? message.getErrorMessage() : "" */
-        );
+        ));
+        
+        // For FILE_MESSAGE types, the FileMessageData is already in the content field
+        // No need to add it again as a separate field
+        
+        return sb.toString();
     }
     
     private Message stringToMessage(String line) {
@@ -305,7 +319,21 @@ public class MessageStore {
                 message.setTimestamp(LocalDateTime.parse(parts[5], formatter));
                 message.setSuccess(Boolean.parseBoolean(parts[6]));
                 
-                // if (parts.length > 7 && !parts[7].isEmpty()) message.setErrorMessage(parts[7]);
+                // Handle FILE_MESSAGE types - parse FileMessageData from content
+                if (message.getType() == Message.MessageType.FILE_MESSAGE && !parts[3].isEmpty()) {
+                    try {
+                        System.out.println("DEBUG: Parsing FILE_MESSAGE content: " + parts[3]);
+                        FileMessageData fileData = FileMessageData.fromString(parts[3]);
+                        message.setFileMessageData(fileData);
+                        System.out.println("DEBUG: Successfully parsed FileMessageData: " + fileData.getOriginalName());
+                    } catch (Exception e) {
+                        System.err.println("Error parsing FileMessageData from content: " + parts[3] + " - " + e.getMessage());
+                        return null; // Skip corrupted file messages
+                    }
+                } else if (message.getType() == Message.MessageType.FILE_MESSAGE && parts[3].isEmpty()) {
+                    System.err.println("ERROR: FILE_MESSAGE with empty content found: " + line);
+                    return null; // Skip corrupted file messages
+                }
                 
                 return message;
             } else {
