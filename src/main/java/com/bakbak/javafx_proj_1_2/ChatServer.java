@@ -23,7 +23,8 @@ public class ChatServer {
 
     public ChatServer() {
         clientThreadPool = Executors.newFixedThreadPool(MAX_CLIENTS);
-        fileThreadPool = Executors.newFixedThreadPool(2); // Allow 2 concurrent file services
+        // Optimized for LAN: Allow more concurrent file transfers
+        fileThreadPool = Executors.newFixedThreadPool(10); // Increased from 2 to 10 for better concurrency
         isRunning = false;
     }
 

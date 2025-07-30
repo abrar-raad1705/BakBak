@@ -35,8 +35,7 @@ import javafx.stage.Stage;
 import javafx.scene.Node;
 
 
-import java.awt.FileDialog;
-import java.awt.Frame;
+import javafx.stage.FileChooser;
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
@@ -2474,17 +2473,27 @@ public class ChatController implements Initializable {
             return;
         }
 
-        FileDialog fileDialog = new FileDialog((Frame) null, "Select File to Send");
-        fileDialog.setMode(FileDialog.LOAD);
-        fileDialog.setVisible(true);
-        String file = fileDialog.getFile();
-        String directory = fileDialog.getDirectory();
-
-        if (file != null && directory != null) {
-            File selectedFile = new File(directory, file);
-            if (selectedFile.exists()) {
-                sendFile(selectedFile);
-            }
+        // Use JavaFX FileChooser for better integration
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to Send");
+        
+        // Set initial directory to user's home directory
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        
+        // Add file filters for common file types
+        FileChooser.ExtensionFilter allFiles = new FileChooser.ExtensionFilter("All Files", "*.*");
+        FileChooser.ExtensionFilter imageFiles = new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp");
+        FileChooser.ExtensionFilter videoFiles = new FileChooser.ExtensionFilter("Video Files", "*.mp4", "*.avi", "*.mov", "*.mkv", "*.wmv");
+        FileChooser.ExtensionFilter audioFiles = new FileChooser.ExtensionFilter("Audio Files", "*.mp3", "*.wav", "*.flac", "*.aac", "*.ogg");
+        FileChooser.ExtensionFilter documentFiles = new FileChooser.ExtensionFilter("Document Files", "*.pdf", "*.doc", "*.docx", "*.txt", "*.rtf");
+        
+        fileChooser.getExtensionFilters().addAll(imageFiles, videoFiles, audioFiles, documentFiles, allFiles);
+        
+        // Show the file chooser dialog
+        File selectedFile = fileChooser.showOpenDialog(ChatApplication.getPrimaryStage());
+        
+        if (selectedFile != null && selectedFile.exists()) {
+            sendFile(selectedFile);
         }
     }
 

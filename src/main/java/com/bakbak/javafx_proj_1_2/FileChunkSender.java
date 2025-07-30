@@ -6,7 +6,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class FileChunkSender {
-    public static final int CHUNK_SIZE = 512 * 1024; // 512KB chunks
+    // Optimized for LAN: 5MB chunks (10x larger than before)
+    public static final int CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
     private final String serverHost;
     private final int serverPort;
 
@@ -22,59 +23,82 @@ public class FileChunkSender {
                 long fileSize = file.length();
                 int totalChunks = (int) Math.ceil((double) fileSize / CHUNK_SIZE);
 
-                System.out.println("Sending file: " + file.getName() + " (" + fileSize + " bytes) in " + totalChunks + " chunks");
-                System.out.println("Connecting to " + serverHost + ":" + serverPort + " for chunked transfer...");
+                System.out.println("Sending file: " + file.getName() + " (" + formatFileSize(fileSize) + ") in " + totalChunks + " chunks");
+                System.out.println("Connecting to " + serverHost + ":" + serverPort + " for optimized LAN transfer...");
 
-                try (Socket socket = new Socket(serverHost, serverPort);
-                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                     FileInputStream fis = new FileInputStream(file)) {
+                try (Socket socket = new Socket(serverHost, serverPort)) {
+                    // Optimize socket buffers for large files
+                    socket.setSendBufferSize(1024 * 1024); // 1MB send buffer
+                    socket.setReceiveBufferSize(1024 * 1024); // 1MB receive buffer
+                    socket.setTcpNoDelay(true); // Disable Nagle's algorithm for better performance
+                    socket.setSoTimeout(300000); // 5 minute timeout for large files
+                    
+                    try (BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream(), 64 * 1024);
+                         DataOutputStream dos = new DataOutputStream(bos);
+                         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file), 64 * 1024)) {
 
-                    System.out.println("Successfully connected to chunked transfer server");
-                    byte[] buffer = new byte[CHUNK_SIZE];
-                    int chunkNumber = 0;
-                    int bytesRead;
-                    long totalBytesProcessed = 0;
-
-                    while ((bytesRead = fis.read(buffer)) != -1) {
-                        chunkNumber++;
-                        boolean isLastChunk = (chunkNumber == totalChunks);
-
-                        // Create chunk with actual data size
-                        byte[] chunkData = new byte[bytesRead];
-                        System.arraycopy(buffer, 0, chunkData, 0, bytesRead);
-
-                        FileChunk chunk = new FileChunk(
-                            chunkData, chunkNumber, isLastChunk, fileID,
-                            file.getName(), fileSize, totalChunks
-                        );
-
-                        // Send chunk
-                        oos.writeObject(chunk);
-                        oos.flush();
-
-                        totalBytesProcessed += bytesRead;
+                        System.out.println("Successfully connected to optimized transfer server");
                         
-                        // Update progress
-                        if (progressCallback != null) {
-                            progressCallback.onProgressUpdate(chunkNumber, totalChunks, totalBytesProcessed, fileSize);
+                        // Send file metadata first
+                        dos.writeUTF("UPLOAD");
+                        dos.writeUTF(fileID);
+                        dos.writeUTF(file.getName());
+                        dos.writeLong(fileSize);
+                        dos.writeInt(totalChunks);
+                        dos.flush();
+
+                        byte[] buffer = new byte[CHUNK_SIZE];
+                        int chunkNumber = 0;
+                        int bytesRead;
+                        long totalBytesProcessed = 0;
+
+                        while ((bytesRead = bis.read(buffer)) != -1) {
+                            chunkNumber++;
+                            boolean isLastChunk = (chunkNumber == totalChunks);
+
+                            // Send chunk header
+                            dos.writeInt(chunkNumber);
+                            dos.writeInt(bytesRead);
+                            dos.writeBoolean(isLastChunk);
+                            
+                            // Send chunk data directly (no object serialization overhead)
+                            dos.write(buffer, 0, bytesRead);
+                            dos.flush();
+
+                            totalBytesProcessed += bytesRead;
+                            
+                            // Update progress
+                            if (progressCallback != null) {
+                                progressCallback.onProgressUpdate(chunkNumber, totalChunks, totalBytesProcessed, fileSize);
+                            }
+
+                            System.out.println("Sent chunk " + chunkNumber + "/" + totalChunks + " (" + bytesRead + " bytes)" +
+                                             " - Progress: " + String.format("%.1f%%", (double) totalBytesProcessed / fileSize * 100));
+                            
+                            // No artificial delays for LAN optimization
                         }
 
-                        System.out.println("Sent chunk " + chunkNumber + "/" + totalChunks + " (" + bytesRead + " bytes)");
+                        // Transfer complete
+                        if (progressCallback != null) {
+                            progressCallback.onTransferComplete();
+                        }
 
-                        // Small delay to prevent overwhelming the server
-                        Thread.sleep(10);
+                        System.out.println("File upload completed successfully");
+                        return fileID;
+
+                    } catch (Exception e) {
+                        String errorMsg = "Error sending file: " + e.getMessage();
+                        System.err.println(errorMsg);
+                        e.printStackTrace();
+                        
+                        if (progressCallback != null) {
+                            progressCallback.onTransferError(errorMsg);
+                        }
+                        
+                        return null;
                     }
-
-                    // Transfer complete
-                    if (progressCallback != null) {
-                        progressCallback.onTransferComplete();
-                    }
-
-                    System.out.println("File upload completed successfully");
-                    return fileID;
-
                 } catch (Exception e) {
-                    String errorMsg = "Error sending file: " + e.getMessage();
+                    String errorMsg = "Error connecting to server: " + e.getMessage();
                     System.err.println(errorMsg);
                     e.printStackTrace();
                     
@@ -97,8 +121,14 @@ public class FileChunkSender {
             }
         });
     }
+    
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        return String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+    }
 
-    // Overloaded method for backward compatibility
     public CompletableFuture<String> sendFile(File file) {
         return sendFile(file, null);
     }
@@ -107,76 +137,121 @@ public class FileChunkSender {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 System.out.println("Requesting download for file: " + originalFileName + " (ID: " + fileID + ")");
+                System.out.println("Connecting to " + serverHost + ":" + serverPort + " for optimized download...");
 
-                try (Socket socket = new Socket(serverHost, serverPort);
-                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                     ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
+                try (Socket socket = new Socket(serverHost, serverPort)) {
+                    // Optimize socket buffers for large files
+                    socket.setSendBufferSize(1024 * 1024); // 1MB send buffer
+                    socket.setReceiveBufferSize(1024 * 1024); // 1MB receive buffer
+                    socket.setTcpNoDelay(true); // Disable Nagle's algorithm for better performance
+                    socket.setSoTimeout(300000); // 5 minute timeout for large files
+                    
+                    try (BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream(), 64 * 1024);
+                         DataOutputStream dos = new DataOutputStream(bos);
+                         BufferedInputStream bis = new BufferedInputStream(socket.getInputStream(), 64 * 1024);
+                         DataInputStream dis = new DataInputStream(bis)) {
 
-                    // Send download request
-                    oos.writeObject("DOWNLOAD:" + fileID);
-                    oos.flush();
+                        System.out.println("Successfully connected for download");
+                        
+                        // Send download request
+                        dos.writeUTF("DOWNLOAD");
+                        dos.writeUTF(fileID);
+                        dos.flush();
 
-                    // Create downloads directory
-                    File downloadsDir = new File("downloads");
-                    if (!downloadsDir.exists()) {
-                        downloadsDir.mkdirs();
-                    }
+                        // Read file metadata
+                        String response = dis.readUTF();
+                        if (response.equals("ERROR")) {
+                            String errorMsg = dis.readUTF();
+                            throw new IOException("Server error: " + errorMsg);
+                        }
 
-                    File outputFile = new File(downloadsDir, originalFileName);
-                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                        long fileSize = dis.readLong();
+                        int totalChunks = dis.readInt();
+                        
+                        System.out.println("Downloading file: " + originalFileName + " (" + formatFileSize(fileSize) + ") in " + totalChunks + " chunks");
 
-                        long totalBytesProcessed = 0;
-                        long totalFileSize = 0;
-                        int totalChunks = 0;
+                        // Create downloads directory if it doesn't exist
+                        File downloadsDir = new File("downloads");
+                        if (!downloadsDir.exists()) {
+                            downloadsDir.mkdirs();
+                        }
 
-                        // Receive chunks
-                        while (true) {
-                            Object obj = ois.readObject();
-                            if (obj instanceof FileChunk) {
-                                FileChunk chunk = (FileChunk) obj;
+                        // Check available disk space
+                        long availableSpace = downloadsDir.getFreeSpace();
+                        if (availableSpace < fileSize) {
+                            throw new IOException("Insufficient disk space. Available: " + formatFileSize(availableSpace) + ", Required: " + formatFileSize(fileSize));
+                        }
+
+                        File outputFile = new File(downloadsDir, originalFileName);
+                        
+                        try (BufferedOutputStream fileBos = new BufferedOutputStream(new FileOutputStream(outputFile), 64 * 1024)) {
+                            byte[] buffer = new byte[CHUNK_SIZE];
+                            int chunkNumber = 0;
+                            long totalBytesReceived = 0;
+
+                            while (chunkNumber < totalChunks) {
+                                // Read chunk header
+                                int receivedChunkNumber = dis.readInt();
+                                int chunkSize = dis.readInt();
+                                boolean isLastChunk = dis.readBoolean();
                                 
-                                // Get file size and total chunks from first chunk
-                                if (chunk.getChunkNumber() == 1) {
-                                    totalFileSize = chunk.getTotalFileSize();
-                                    totalChunks = chunk.getTotalChunks();
+                                // Read chunk data
+                                int bytesRead = 0;
+                                int totalBytesRead = 0;
+                                while (totalBytesRead < chunkSize) {
+                                    bytesRead = dis.read(buffer, totalBytesRead, chunkSize - totalBytesRead);
+                                    if (bytesRead == -1) {
+                                        throw new IOException("Unexpected end of stream at chunk " + receivedChunkNumber);
+                                    }
+                                    totalBytesRead += bytesRead;
                                 }
-                                
-                                // Write chunk data to file
-                                fos.write(chunk.getData());
-                                fos.flush();
 
-                                totalBytesProcessed += chunk.getData().length;
+                                // Write to file
+                                fileBos.write(buffer, 0, totalBytesRead);
+                                fileBos.flush();
+
+                                chunkNumber = receivedChunkNumber;
+                                totalBytesReceived += totalBytesRead;
                                 
                                 // Update progress
                                 if (progressCallback != null) {
-                                    progressCallback.onProgressUpdate(chunk.getChunkNumber(), totalChunks, totalBytesProcessed, totalFileSize);
+                                    progressCallback.onProgressUpdate(chunkNumber, totalChunks, totalBytesReceived, fileSize);
                                 }
 
-                                System.out.println("Received chunk " + chunk.getChunkNumber() + "/" + chunk.getTotalChunks());
+                                System.out.println("Received chunk " + chunkNumber + "/" + totalChunks + " (" + totalBytesRead + " bytes)" +
+                                                 " - Progress: " + String.format("%.1f%%", (double) totalBytesReceived / fileSize * 100));
 
-                                if (chunk.isLastChunk()) {
-                                    break;
-                                }
-                            } else if (obj instanceof String && ((String) obj).startsWith("ERROR:")) {
-                                String errorMsg = "Server error: " + obj;
-                                if (progressCallback != null) {
-                                    progressCallback.onTransferError(errorMsg);
-                                }
-                                throw new IOException(errorMsg);
+                                if (isLastChunk) break;
                             }
                         }
+
+                        // Verify file size
+                        if (outputFile.length() != fileSize) {
+                            outputFile.delete(); // Clean up incomplete file
+                            throw new IOException("File size mismatch. Expected: " + fileSize + ", Actual: " + outputFile.length());
+                        }
+
+                        // Download complete
+                        if (progressCallback != null) {
+                            progressCallback.onTransferComplete();
+                        }
+
+                        System.out.println("File download completed successfully");
+                        return outputFile;
+
+                    } catch (Exception e) {
+                        String errorMsg = "Error downloading file: " + e.getMessage();
+                        System.err.println(errorMsg);
+                        e.printStackTrace();
+                        
+                        if (progressCallback != null) {
+                            progressCallback.onTransferError(errorMsg);
+                        }
+                        
+                        throw new RuntimeException("Download failed", e);
                     }
-
-                    // Transfer complete
-                    if (progressCallback != null) {
-                        progressCallback.onTransferComplete();
-                    }
-
-                    System.out.println("File download completed: " + outputFile.getAbsolutePath());
-                    return outputFile;
-
                 } catch (Exception e) {
-                    String errorMsg = "Error downloading file: " + e.getMessage();
+                    String errorMsg = "Error connecting for download: " + e.getMessage();
                     System.err.println(errorMsg);
                     e.printStackTrace();
                     
@@ -184,7 +259,7 @@ public class FileChunkSender {
                         progressCallback.onTransferError(errorMsg);
                     }
                     
-                    throw new RuntimeException("Download failed", e);
+                    throw new RuntimeException("Download connection failed", e);
                 }
             } catch (Exception e) {
                 String errorMsg = "Error preparing download: " + e.getMessage();
@@ -200,7 +275,6 @@ public class FileChunkSender {
         });
     }
 
-    // Overloaded method for backward compatibility
     public CompletableFuture<File> downloadFile(String fileID, String originalFileName) {
         return downloadFile(fileID, originalFileName, null);
     }

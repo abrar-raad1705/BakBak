@@ -94,4 +94,8 @@ public class ChatApplication extends Application
 	public static ChatClient getChatClient() {
 		return chatClient;
 	}
+
+	public static Stage getPrimaryStage() {
+		return primaryStage;
+	}
 }
