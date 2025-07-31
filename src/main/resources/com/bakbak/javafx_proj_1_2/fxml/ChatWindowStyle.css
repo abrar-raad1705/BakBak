@@ -30,6 +30,8 @@
 
 }
 
+
+
 .textBox{
     -fx-background-color: #eceff4;
     -fx-background-radius: 10;
@@ -62,45 +64,9 @@
     -fx-translate-y: -3;
 }
 
-.toggleButton:hover{
-    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-    -fx-background-color: #93d5d3;
-    -fx-background-insets: 1;
-    -fx-translate-y: -3;
-}
 
-.toggleButton{
-    -fx-background-color: #96bdbc;
-    -fx-background-radius: 10;
-    -fx-transition: all 0.3s ease;
-    -fx-cursor: hand;
-}
 
-/* Sliding animation for toggle button */
-.toggleButton:selected {
-    -fx-background-color: #5e81ac;
-    -fx-effect: dropshadow(gaussian, rgba(94, 129, 172, 0.6), 0, 0, 4, 6);
-    -fx-translate-x: 2px;
-    -fx-translate-y: -2px;
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
-}
 
-.toggleButton:selected:hover {
-    -fx-background-color: #81a1c1;
-    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.7), 0, 0, 5, 8);
-    -fx-translate-x: 3px;
-    -fx-translate-y: -3px;
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-}
-
-/* Smooth transition for all toggle button states */
-.toggleButton, .toggleButton:hover, .toggleButton:selected, .toggleButton:selected:hover {
-    -fx-transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
 .label{
     -fx-font-family: sans-serif,Arial;
 }
@@ -335,6 +301,11 @@
     -fx-border-color: #5e81ac !important;
 }
 
+.dark-mode .chatBoxScreen{
+    -fx-background-color: #4c566a !important;
+}
+
+
 .dark-mode .contact-name {
     -fx-text-fill: #eceff4 !important;
 }
@@ -359,37 +330,7 @@
     -fx-background-color: #81a1c1 !important;
 }
 
-.dark-mode .toggleButton {
-    -fx-background-color: #5e81ac !important;
-    -fx-transition: all 0.3s ease !important;
-}
 
-.dark-mode .toggleButton:hover {
-    -fx-background-color: #81a1c1 !important;
-    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.6), 0, 0, 4, 6) !important;
-    -fx-translate-x: 2px !important;
-    -fx-translate-y: -2px !important;
-    -fx-scale-x: 1.02 !important;
-    -fx-scale-y: 1.02 !important;
-}
-
-.dark-mode .toggleButton:selected {
-    -fx-background-color: #81a1c1 !important;
-    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.8), 0, 0, 5, 8) !important;
-    -fx-translate-x: 3px !important;
-    -fx-translate-y: -3px !important;
-    -fx-scale-x: 1.05 !important;
-    -fx-scale-y: 1.05 !important;
-}
-
-.dark-mode .toggleButton:selected:hover {
-    -fx-background-color: #88c0d0 !important;
-    -fx-effect: dropshadow(gaussian, rgba(136, 192, 208, 0.9), 0, 0, 6, 10) !important;
-    -fx-translate-x: 4px !important;
-    -fx-translate-y: -4px !important;
-    -fx-scale-x: 1.08 !important;
-    -fx-scale-y: 1.08 !important;
-}
 
 .dark-mode .loginButton {
     -fx-background-color: #5e81ac !important;
@@ -540,27 +481,7 @@
     -fx-text-fill: #d8dee9 !important;
 }
 
-/* Chat header label styling */
-#chatNameLabel {
-    -fx-font-size: 13px !important;
-    -fx-font-weight: bold !important;
-    -fx-text-fill: #2e3440 !important;
-}
 
-#chatStatusLabel {
-    -fx-font-size: 6px !important;
-    -fx-opacity: 0.7 !important;
-    -fx-text-fill: #4c566a !important;
-}
-
-/* Dark mode chat header labels */
-.dark-mode #chatNameLabel {
-    -fx-text-fill: #eceff4 !important;
-}
-
-.dark-mode #chatStatusLabel {
-    -fx-text-fill: #d8dee9 !important;
-}
 
 /* Remove alternating stripes from ListView */
 .activeList .list-cell {
@@ -591,5 +512,153 @@
 .activeList .scroll-bar .thumb {
     -fx-background-color: #d8dee9;
     -fx-background-radius: 10;
+}
+
+/* Context Menu Styling */
+.context-menu {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 8;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8 16;
+    -fx-font-size: 14px;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: #d8dee9;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #2e3440;
+}
+
+.context-menu .menu-item:hover .label {
+    -fx-text-fill: #2e3440;
+}
+
+/* Dark mode context menu */
+.dark-mode .context-menu {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .context-menu .menu-item {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .context-menu .menu-item:hover {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .context-menu .menu-item .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .context-menu .menu-item:hover .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+/* Dialog and Popup Styling */
+.dialog-pane {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #5e81ac;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content {
+    -fx-background-color: #eceff4;
+    -fx-padding: 20;
+}
+
+.dialog-pane .content .label {
+    -fx-text-fill: #2e3440;
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .button-bar {
+    -fx-background-color: #eceff4;
+    -fx-padding: 15 20 20 20;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #81a1c1;
+}
+
+.dialog-pane .button.cancel-button {
+    -fx-background-color: #bf616a;
+}
+
+.dialog-pane .button.cancel-button:hover {
+    -fx-background-color: #d08770;
+}
+
+/* Dark mode dialog styling */
+.dark-mode .dialog-pane {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .dialog-pane .header-panel {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .dialog-pane .content {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .dialog-pane .content .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-pane .button-bar {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .dialog-pane .button {
+    -fx-background-color: #5e81ac !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-pane .button:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .dialog-pane .button.cancel-button {
+    -fx-background-color: #bf616a !important;
+}
+
+.dark-mode .dialog-pane .button.cancel-button:hover {
+    -fx-background-color: #d08770 !important;
 }
 

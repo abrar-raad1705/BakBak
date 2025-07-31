@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,7 +66,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -99,6 +99,7 @@ public class ChatController implements Initializable {
     @FXML private VBox chatHeader;
     @FXML private HBox messageInputArea;
     @FXML private Button fileButton;
+    @FXML private ImageView darkModeIcon;
 
     private ChatClient chatClient;
     private String currentUsername;
@@ -262,6 +263,9 @@ public class ChatController implements Initializable {
         // Setup hover effects for send button (no "2" version, just opacity change)
         setupButtonHoverEffect(sendButton, "send.png", null);
         
+        // Setup hover effects for toggle button
+        setupToggleButtonHoverEffects();
+        
         // Setup hover effects for other buttons with a delay to ensure scene is ready
         Platform.runLater(() -> {
             // Retry mechanism for buttons that might not be ready immediately
@@ -351,6 +355,51 @@ public class ChatController implements Initializable {
         });
     }
     
+    private void setupToggleButtonHoverEffects() {
+        if (darkModeToggle == null || darkModeIcon == null) return;
+        
+        // Load all the images
+        Image sunImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/sun.png"));
+        Image sun2Img = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/sun2.png"));
+        Image nightImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/night.png"));
+        Image night2Img = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/night2.png"));
+        
+        // Set initial state (sun icon)
+        darkModeIcon.setImage(sunImg);
+        
+        // Setup hover effects
+        darkModeToggle.setOnMouseEntered(e -> {
+            if (darkModeToggle.isSelected()) {
+                // Dark mode is on, show night2 on hover
+                darkModeIcon.setImage(night2Img);
+            } else {
+                // Light mode is on, show sun2 on hover
+                darkModeIcon.setImage(sun2Img);
+            }
+        });
+        
+        darkModeToggle.setOnMouseExited(e -> {
+            if (darkModeToggle.isSelected()) {
+                // Dark mode is on, show night
+                darkModeIcon.setImage(nightImg);
+            } else {
+                // Light mode is on, show sun
+                darkModeIcon.setImage(sunImg);
+            }
+        });
+        
+        // Update icon when toggle state changes
+        darkModeToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                // Dark mode activated, show night icon
+                darkModeIcon.setImage(nightImg);
+            } else {
+                // Light mode activated, show sun icon
+                darkModeIcon.setImage(sunImg);
+            }
+        });
+    }
+    
 
     
     private Button findButtonByImageRecursive(Node node, String imageName) {
@@ -402,11 +451,9 @@ public class ChatController implements Initializable {
             if (darkModeToggle.isSelected()) {
                 // Enable dark mode
                 scene.getRoot().getStyleClass().add("dark-mode");
-                darkModeToggle.setText("☀️"); // Sun emoji for light mode
             } else {
                 // Disable dark mode
                 scene.getRoot().getStyleClass().remove("dark-mode");
-                darkModeToggle.setText("🌙"); // Moon emoji for dark mode
             }
         }
     }
@@ -1758,22 +1805,69 @@ public class ChatController implements Initializable {
         newGroup.setOnAction(e -> showGroupCreationWorkflow());
         
         settingsMenu.getItems().add(newGroup);
+        
+        // Apply CSS styling to the context menu
+        settingsMenu.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 8; -fx-border-color: #d8dee9; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);");
+        
         settingsMenu.show(settingsButton, javafx.geometry.Side.BOTTOM, 0, 0);
     }
 
     private void showGroupCreationWorkflow() {
-        // Step 1: Group name input
-        TextInputDialog nameDialog = new TextInputDialog();
-        nameDialog.setTitle("New Group");
-        nameDialog.setHeaderText("Create a new group");
-        nameDialog.setContentText("Group name:");
+        // Create a custom dialog for group creation
+        Stage dialogStage = new Stage();
+        dialogStage.initModality(Modality.APPLICATION_MODAL);
+        dialogStage.setTitle("Create New Group");
+        dialogStage.setResizable(false);
         
-        Optional<String> nameResult = nameDialog.showAndWait();
-        if (nameResult.isPresent() && !nameResult.get().trim().isEmpty()) {
-            String groupName = nameResult.get().trim();
-            // Step 2: Show member selection popup
-            showMemberSelectionPopup(groupName, false, null); // false = creating new group
-        }
+        VBox mainContainer = new VBox(20);
+        mainContainer.setPadding(new Insets(25));
+        mainContainer.setPrefSize(400, 200);
+        mainContainer.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 12; -fx-border-color: #d8dee9; -fx-border-radius: 12; -fx-border-width: 1;");
+        
+        // Header
+        Label headerLabel = new Label("Create New Group");
+        headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e3440;");
+        
+        // Group name input
+        Label nameLabel = new Label("Group Name:");
+        nameLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e3440; -fx-font-weight: bold;");
+        
+        TextField nameField = new TextField();
+        nameField.setPromptText("Enter group name...");
+        nameField.setPrefHeight(35);
+        nameField.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 6; -fx-border-color: #d8dee9; -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 14px;");
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setPrefWidth(80);
+        cancelButton.setStyle("-fx-background-color: #bf616a; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;");
+        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle("-fx-background-color: #d08770; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;"));
+        cancelButton.setOnMouseExited(e -> cancelButton.setStyle("-fx-background-color: #bf616a; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;"));
+        cancelButton.setOnAction(e -> dialogStage.close());
+        
+        Button createButton = new Button("Create Group");
+        createButton.setPrefWidth(100);
+        createButton.setStyle("-fx-background-color: #5e81ac; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;");
+        createButton.setOnMouseEntered(e -> createButton.setStyle("-fx-background-color: #81a1c1; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;"));
+        createButton.setOnMouseExited(e -> createButton.setStyle("-fx-background-color: #5e81ac; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 16; -fx-cursor: hand;"));
+        createButton.setOnAction(e -> {
+            String groupName = nameField.getText().trim();
+            if (!groupName.isEmpty()) {
+                dialogStage.close();
+                showMemberSelectionPopup(groupName, false, null);
+            }
+        });
+        
+        buttonBox.getChildren().addAll(cancelButton, createButton);
+        
+        mainContainer.getChildren().addAll(headerLabel, nameLabel, nameField, buttonBox);
+        
+        Scene dialogScene = new Scene(mainContainer);
+        dialogStage.setScene(dialogScene);
+        dialogStage.showAndWait();
     }
 
     private void showMemberSelectionPopup(String groupName, boolean isAddingMembers, String existingGroupId) {
@@ -1782,19 +1876,20 @@ public class ChatController implements Initializable {
         memberSelectionStage.setTitle(isAddingMembers ? "Add Members" : "Select Members");
         memberSelectionStage.setResizable(false);
         
-        VBox mainContainer = new VBox();
-        mainContainer.setSpacing(15);
-        mainContainer.setPadding(new Insets(20));
-        mainContainer.setPrefSize(400, 500);
+        VBox mainContainer = new VBox(20);
+        mainContainer.setPadding(new Insets(25));
+        mainContainer.setPrefSize(450, 550);
+        mainContainer.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 12; -fx-border-color: #d8dee9; -fx-border-radius: 12; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 15, 0, 0, 3);");
         
         // Title
         Label titleLabel = new Label(isAddingMembers ? "Add Members to Group" : "Select Group Members");
-        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e3440;");
         
         // Search field
         TextField searchField = new TextField();
         searchField.setPromptText("Search contacts...");
-        searchField.setPrefHeight(35);
+        searchField.setPrefHeight(40);
+        searchField.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-border-color: #d8dee9; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 10 15; -fx-font-size: 14px; -fx-prompt-text-fill: #81a1c1;");
         
         // Contact list with checkboxes
         ListView<CheckBox> contactListView = new ListView<>();
@@ -1817,7 +1912,7 @@ public class ChatController implements Initializable {
                 String contactName = item.getName();
                 if (!contactName.equals(currentUsername) && !existingMembers.contains(contactName)) {
                     CheckBox contactCheckBox = new CheckBox(contactName);
-                    contactCheckBox.setStyle("-fx-font-size: 14px;");
+                    contactCheckBox.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e3440; -fx-font-weight: 500;");
                     contactCheckBoxes.add(contactCheckBox);
                 }
             }
@@ -1841,18 +1936,21 @@ public class ChatController implements Initializable {
         });
         
         // Buttons
-        HBox buttonBox = new HBox();
-        buttonBox.setSpacing(10);
+        HBox buttonBox = new HBox(15);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         
         Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefWidth(80);
-        cancelButton.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #333;");
+        cancelButton.setPrefWidth(100);
+        cancelButton.setStyle("-fx-background-color: #bf616a; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;");
+        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle("-fx-background-color: #d08770; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"));
+        cancelButton.setOnMouseExited(e -> cancelButton.setStyle("-fx-background-color: #bf616a; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"));
         cancelButton.setOnAction(e -> memberSelectionStage.close());
         
-        Button createButton = new Button(isAddingMembers ? "Add" : "Create");
-        createButton.setPrefWidth(80);
-        createButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white;");
+        Button createButton = new Button(isAddingMembers ? "Add Members" : "Create Group");
+        createButton.setPrefWidth(120);
+        createButton.setStyle("-fx-background-color: #5e81ac; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;");
+        createButton.setOnMouseEntered(e -> createButton.setStyle("-fx-background-color: #81a1c1; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"));
+        createButton.setOnMouseExited(e -> createButton.setStyle("-fx-background-color: #5e81ac; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"));
         createButton.setOnAction(e -> {
             Set<String> selectedMembers = new HashSet<>();
             for (CheckBox checkBox : contactCheckBoxes) {
@@ -2078,15 +2176,8 @@ public class ChatController implements Initializable {
                 nameBox.setSpacing(8);
                 
                 Label nameLabel = new Label(item.getName());
-                
-                // Make name bold if there are unread messages
-                if (item.hasUnreadMessages()) {
-                    nameLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-                    nameLabel.setStyle("-fx-text-fill: #2e3440;");
-                } else {
-                    nameLabel.setFont(Font.font("System", FontWeight.NORMAL, 16));
-                    nameLabel.setStyle("-fx-text-fill: #2e3440;");
-                }
+                nameLabel.setFont(Font.font("System", item.hasUnreadMessages() ? FontWeight.BOLD : FontWeight.NORMAL, 16));
+                nameLabel.setStyle("-fx-text-fill: #2e3440;");
                 
                 if (item.getType() == ChatItem.Type.GROUP) {
                     Label groupIcon = new Label("👥");
@@ -2109,13 +2200,8 @@ public class ChatController implements Initializable {
                     messageBox.setSpacing(8);
                     
                     Label messageLabel = new Label(item.getLastMessage());
-                    if (item.hasUnreadMessages()) {
-                        messageLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-                        messageLabel.setStyle("-fx-text-fill: #3b4252;");
-                    } else {
-                        messageLabel.setFont(Font.font("System", FontWeight.NORMAL, 12));
-                        messageLabel.setStyle("-fx-text-fill: #4c566a;");
-                    }
+                    messageLabel.setFont(Font.font("System", item.hasUnreadMessages() ? FontWeight.BOLD : FontWeight.NORMAL, 12));
+                    messageLabel.setStyle("-fx-text-fill: " + (item.hasUnreadMessages() ? "#3b4252" : "#4c566a") + ";");
                     
                     // Truncate long messages
                     if (messageLabel.getText().length() > 30) {
@@ -2126,14 +2212,14 @@ public class ChatController implements Initializable {
                     HBox.setHgrow(spacer, Priority.ALWAYS);
                     
                     Label timeLabel = new Label(item.getLastMessageTimestamp());
-                    timeLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 11px;");
+                    timeLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 10px;");
                     
                     messageBox.getChildren().addAll(messageLabel, spacer, timeLabel);
                     content.getChildren().add(messageBox);
                 } else {
                     // Show "No messages yet" for contacts without messages
                     Label noMessageLabel = new Label("No messages yet");
-                    noMessageLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 12px; -fx-font-style: italic;");
+                    noMessageLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 10px; -fx-font-style: italic;");
                     content.getChildren().add(noMessageLabel);
                 }
                 
@@ -2216,7 +2302,7 @@ public class ChatController implements Initializable {
         VBox mainContainer = new VBox();
         mainContainer.setSpacing(5);
         mainContainer.setPadding(new Insets(10));
-        mainContainer.setPrefSize(400, 350);
+        mainContainer.setPrefSize(450, 400);
         mainContainer.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1; " +
                               "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);");
         
@@ -2228,7 +2314,7 @@ public class ChatController implements Initializable {
         // Tabs
         TabPane emojiTabs = new TabPane();
         emojiTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        emojiTabs.setPrefHeight(280);
+        emojiTabs.setPrefHeight(330);
         
         // Recent tab
         Tab recentTab = new Tab("Recent");
@@ -2236,35 +2322,47 @@ public class ChatController implements Initializable {
         recentTab.setContent(recentScroll);
         emojiTabs.getTabs().add(recentTab);
         
-        // All emojis tab
-        Tab allTab = new Tab("All");
-        List<String> allEmojis = getAllAvailableEmojis();
-        ScrollPane allScroll = createEmojiScrollPane(allEmojis, emojiPopup);
-        allTab.setContent(allScroll);
-        emojiTabs.getTabs().add(allTab);
+        // Create categorized tabs
+        Map<String, List<String>> categorizedEmojis = categorizeEmojis();
         
-        // Search functionality
+        // Add category tabs
+        for (Map.Entry<String, List<String>> entry : categorizedEmojis.entrySet()) {
+            Tab categoryTab = new Tab(entry.getKey());
+            ScrollPane categoryScroll = createEmojiScrollPane(entry.getValue(), emojiPopup);
+            categoryTab.setContent(categoryScroll);
+            emojiTabs.getTabs().add(categoryTab);
+        }
+        
+        // Search functionality with debouncing
+        Timeline searchDebouncer = new Timeline();
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.trim().isEmpty()) {
-                return;
-            }
-            
-            List<String> searchResults = searchEmojis(newValue);
-            ScrollPane searchScroll = createEmojiScrollPane(searchResults, emojiPopup);
-            
-            // Add or update search results tab
-            Tab searchTab = emojiTabs.getTabs().stream()
-                    .filter(tab -> "Search".equals(tab.getText()))
-                    .findFirst()
-                    .orElse(null);
-            
-            if (searchTab == null) {
-                searchTab = new Tab("Search");
-                emojiTabs.getTabs().add(searchTab);
-            }
-            
-            searchTab.setContent(searchScroll);
-            emojiTabs.getSelectionModel().select(searchTab);
+            searchDebouncer.stop();
+            searchDebouncer.getKeyFrames().clear();
+            searchDebouncer.getKeyFrames().add(new KeyFrame(Duration.millis(300), event -> {
+                if (newValue.trim().isEmpty()) {
+                    // Remove search tab if it exists
+                    emojiTabs.getTabs().removeIf(tab -> "Search".equals(tab.getText()));
+                    return;
+                }
+                
+                List<String> searchResults = searchEmojis(newValue);
+                ScrollPane searchScroll = createEmojiScrollPane(searchResults, emojiPopup);
+                
+                // Add or update search results tab
+                Tab searchTab = emojiTabs.getTabs().stream()
+                        .filter(tab -> "Search".equals(tab.getText()))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (searchTab == null) {
+                    searchTab = new Tab("Search");
+                    emojiTabs.getTabs().add(searchTab);
+                }
+                
+                searchTab.setContent(searchScroll);
+                emojiTabs.getSelectionModel().select(searchTab);
+            }));
+            searchDebouncer.play();
         });
         
         mainContainer.getChildren().addAll(searchField, emojiTabs);
@@ -2275,38 +2373,221 @@ public class ChatController implements Initializable {
         if (emojiButton != null) {
             emojiPopup.show(emojiButton, 
                 emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinX(),
-                emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 360
+                emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 410
             );
         }
+    }
+    
+    private Map<String, List<String>> categorizeEmojis() {
+        Map<String, List<String>> categories = new LinkedHashMap<>();
+        List<String> allEmojis = getAllAvailableEmojis();
+        
+        // Initialize categories
+        categories.put("Smileys", new ArrayList<>());
+        categories.put("Gestures", new ArrayList<>());
+        categories.put("Hearts", new ArrayList<>());
+        categories.put("Symbols", new ArrayList<>());
+        categories.put("Objects", new ArrayList<>());
+        categories.put("Nature", new ArrayList<>());
+        categories.put("Food", new ArrayList<>());
+        categories.put("Activities", new ArrayList<>());
+        categories.put("Travel", new ArrayList<>());
+        categories.put("Flags", new ArrayList<>());
+        categories.put("Other", new ArrayList<>());
+        
+        for (String emoji : allEmojis) {
+            String category = categorizeEmoji(emoji);
+            categories.get(category).add(emoji);
+        }
+        
+        // Remove empty categories
+        categories.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        
+        return categories;
+    }
+    
+    private String categorizeEmoji(String emojiFilename) {
+        // Remove .png extension for analysis
+        String emoji = emojiFilename.replace(".png", "");
+        
+        // Smileys and faces
+        if (emoji.startsWith("1f6") || emoji.startsWith("1f9") || 
+            emoji.startsWith("263a") || emoji.startsWith("2639") || 
+            emoji.startsWith("1f60") || emoji.startsWith("1f61") || 
+            emoji.startsWith("1f62") || emoji.startsWith("1f63") || 
+            emoji.startsWith("1f64") || emoji.startsWith("1f65") || 
+            emoji.startsWith("1f66") || emoji.startsWith("1f67") || 
+            emoji.startsWith("1f68") || emoji.startsWith("1f69") || 
+            emoji.startsWith("1f6a") || emoji.startsWith("1f6b") || 
+            emoji.startsWith("1f6c") || emoji.startsWith("1f6d") || 
+            emoji.startsWith("1f6e") || emoji.startsWith("1f6f")) {
+            return "Smileys";
+        }
+        
+        // Gestures and body parts
+        if (emoji.startsWith("270") || emoji.startsWith("1f44") || 
+            emoji.startsWith("1f45") || emoji.startsWith("1f46") || 
+            emoji.startsWith("1f47") || emoji.startsWith("1f48") || 
+            emoji.startsWith("1f49") || emoji.startsWith("1f4a") || 
+            emoji.startsWith("1f4b") || emoji.startsWith("1f4c") || 
+            emoji.startsWith("1f4d") || emoji.startsWith("1f4e") || 
+            emoji.startsWith("1f4f") || emoji.startsWith("1f50") || 
+            emoji.startsWith("1f51") || emoji.startsWith("1f52") || 
+            emoji.startsWith("1f53") || emoji.startsWith("1f54") || 
+            emoji.startsWith("1f55") || emoji.startsWith("1f56") || 
+            emoji.startsWith("1f57") || emoji.startsWith("1f58") || 
+            emoji.startsWith("1f59") || emoji.startsWith("1f5a") || 
+            emoji.startsWith("1f5b") || emoji.startsWith("1f5c") || 
+            emoji.startsWith("1f5d") || emoji.startsWith("1f5e") || 
+            emoji.startsWith("1f5f")) {
+            return "Gestures";
+        }
+        
+        // Hearts and love
+        if (emoji.startsWith("2764") || emoji.startsWith("1f49") || 
+            emoji.startsWith("1f48") || emoji.startsWith("1f47")) {
+            return "Hearts";
+        }
+        
+        // Symbols
+        if (emoji.startsWith("2") && emoji.length() <= 4) {
+            return "Symbols";
+        }
+        
+        // Objects and things
+        if (emoji.startsWith("1f3") || emoji.startsWith("1f4") || 
+            emoji.startsWith("1f5") || emoji.startsWith("1f6") || 
+            emoji.startsWith("1f7") || emoji.startsWith("1f8") || 
+            emoji.startsWith("1f9")) {
+            return "Objects";
+        }
+        
+        // Nature and weather
+        if (emoji.startsWith("1f30") || emoji.startsWith("1f31") || 
+            emoji.startsWith("1f32") || emoji.startsWith("1f33") || 
+            emoji.startsWith("1f34") || emoji.startsWith("1f35") || 
+            emoji.startsWith("1f36") || emoji.startsWith("1f37") || 
+            emoji.startsWith("1f38") || emoji.startsWith("1f39") || 
+            emoji.startsWith("26") || emoji.startsWith("27")) {
+            return "Nature";
+        }
+        
+        // Food and drink
+        if (emoji.startsWith("1f35") || emoji.startsWith("1f36") || 
+            emoji.startsWith("1f37") || emoji.startsWith("1f95") || 
+            emoji.startsWith("1f96") || emoji.startsWith("1f97") || 
+            emoji.startsWith("1f98") || emoji.startsWith("1f99") || 
+            emoji.startsWith("1f9a") || emoji.startsWith("1f9b") || 
+            emoji.startsWith("1f9c") || emoji.startsWith("1f9d") || 
+            emoji.startsWith("1f9e") || emoji.startsWith("1f9f")) {
+            return "Food";
+        }
+        
+        // Activities and sports
+        if (emoji.startsWith("1f3a") || emoji.startsWith("1f3b") || 
+            emoji.startsWith("1f3c") || emoji.startsWith("1f3d") || 
+            emoji.startsWith("1f3e") || emoji.startsWith("1f3f")) {
+            return "Activities";
+        }
+        
+        // Travel and transport
+        if (emoji.startsWith("1f68") || emoji.startsWith("1f69") || 
+            emoji.startsWith("1f6a") || emoji.startsWith("1f6b") || 
+            emoji.startsWith("1f6c") || emoji.startsWith("1f6d") || 
+            emoji.startsWith("1f6e") || emoji.startsWith("1f6f")) {
+            return "Travel";
+        }
+        
+        // Flags
+        if (emoji.startsWith("1f1")) {
+            return "Flags";
+        }
+        
+        return "Other";
     }
     
     private List<String> getAllAvailableEmojis() {
         List<String> emojis = new ArrayList<>();
         
-        // Add basic Unicode symbol emojis that we know exist
-        emojis.addAll(Arrays.asList(
-            "2764.png", "270d.png", "270c.png", "270b.png", "270a.png", "2709.png", "2708.png",
-            "2705.png", "2702.png", "26fa.png", "26fd.png", "2b50.png", "2b55.png", "2754.png",
-            "2755.png", "2757.png", "2795.png", "2796.png", "2797.png", "27a1.png", "2b05.png",
-            "2b06.png", "2b07.png", "2b1c.png", "2b1b.png", "2934.png", "2935.png", "27bf.png",
-            "2728.png", "2733.png", "2734.png", "2744.png", "2747.png", "274c.png", "274e.png",
-            "2753.png", "2763.png", "2721.png", "3030.png", "303d.png", "3297.png", "3299.png",
-            "a9.png", "ae.png", "e50a.png", "30-20e3.png", "31-20e3.png", "32-20e3.png",
-            "33-20e3.png", "34-20e3.png", "35-20e3.png", "36-20e3.png", "37-20e3.png",
-            "38-20e3.png", "39-20e3.png", "2a-20e3.png"
-        ));
+        try {
+            // Get the emoji resources directory
+            URL emojiDir = getClass().getResource(EMOJI_RESOURCES_PATH);
+            if (emojiDir != null) {
+                // If running from JAR, use different approach
+                if (emojiDir.getProtocol().equals("jar")) {
+                    // For JAR files, we need to list resources differently
+                    emojis = getEmojisFromJar();
+                } else {
+                    // For development, scan the directory
+                    File emojiFolder = new File(emojiDir.toURI());
+                    if (emojiFolder.exists() && emojiFolder.isDirectory()) {
+                        File[] files = emojiFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
+                        if (files != null) {
+                            for (File file : files) {
+                                emojis.add(file.getName());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error scanning emoji directory: " + e.getMessage());
+            // Fallback to hardcoded list if scanning fails
+            emojis.addAll(Arrays.asList(
+                "2764.png", "270d.png", "270c.png", "270b.png", "270a.png", "2709.png", "2708.png",
+                "2705.png", "2702.png", "26fa.png", "26fd.png", "2b50.png", "2b55.png", "2754.png",
+                "2755.png", "2757.png", "2795.png", "2796.png", "2797.png", "27a1.png", "2b05.png",
+                "2b06.png", "2b07.png", "2b1c.png", "2b1b.png", "2934.png", "2935.png", "27bf.png",
+                "2728.png", "2733.png", "2734.png", "2744.png", "2747.png", "274c.png", "274e.png",
+                "2753.png", "2763.png", "2721.png", "3030.png", "303d.png", "3297.png", "3299.png",
+                "a9.png", "ae.png", "e50a.png", "30-20e3.png", "31-20e3.png", "32-20e3.png",
+                "33-20e3.png", "34-20e3.png", "35-20e3.png", "36-20e3.png", "37-20e3.png",
+                "38-20e3.png", "39-20e3.png", "2a-20e3.png"
+            ));
+        }
         
-        // Add the new emojis that we found
-        emojis.addAll(Arrays.asList(
-            "1f004.png", "1f0cf.png", "1f170.png", "1f171.png", "1f17e.png", "1f17f.png",
-            "1f18e.png", "1f191.png", "1f192.png", "1f193.png", "1f194.png", "1f195.png",
-            "1f196.png", "1f197.png", "1f198.png", "1f199.png", "1f19a.png"
-        ));
+        // Sort emojis alphabetically for better organization
+        emojis.sort(String::compareTo);
         
-        // Filter to only include emojis that actually exist
-        return emojis.stream()
-                .filter(this::emojiFileExists)
-                .collect(Collectors.toList());
+        return emojis;
+    }
+    
+    private List<String> getEmojisFromJar() {
+        List<String> emojis = new ArrayList<>();
+        try {
+            // For JAR files, we'll use a comprehensive list based on your emoji folder
+            // This is a more practical approach since listing JAR contents is complex
+            emojis.addAll(Arrays.asList(
+                // Basic symbols and common emojis
+                "2764.png", "270d.png", "270c.png", "270b.png", "270a.png", "2709.png", "2708.png",
+                "2705.png", "2702.png", "26fa.png", "26fd.png", "2b50.png", "2b55.png", "2754.png",
+                "2755.png", "2757.png", "2795.png", "2796.png", "2797.png", "27a1.png", "2b05.png",
+                "2b06.png", "2b07.png", "2b1c.png", "2b1b.png", "2934.png", "2935.png", "27bf.png",
+                "2728.png", "2733.png", "2734.png", "2744.png", "2747.png", "274c.png", "274e.png",
+                "2753.png", "2763.png", "2721.png", "3030.png", "303d.png", "3297.png", "3299.png",
+                "a9.png", "ae.png", "e50a.png", "30-20e3.png", "31-20e3.png", "32-20e3.png",
+                "33-20e3.png", "34-20e3.png", "35-20e3.png", "36-20e3.png", "37-20e3.png",
+                "38-20e3.png", "39-20e3.png", "2a-20e3.png",
+                // Additional emojis from your folder
+                "1f004.png", "1f0cf.png", "1f170.png", "1f171.png", "1f17e.png", "1f17f.png",
+                "1f18e.png", "1f191.png", "1f192.png", "1f193.png", "1f194.png", "1f195.png",
+                "1f196.png", "1f197.png", "1f198.png", "1f199.png", "1f19a.png",
+                // More emojis from your folder
+                "26f8.png", "26f9.png", "270d-1f3fb.png", "270d-1f3fc.png", "270d-1f3fd.png",
+                "270d-1f3fe.png", "270d-1f3ff.png", "270c-1f3fb.png", "270c-1f3fc.png", "270c-1f3fd.png",
+                "270c-1f3fe.png", "270c-1f3ff.png", "270b-1f3fb.png", "270b-1f3fc.png", "270b-1f3fd.png",
+                "270b-1f3fe.png", "270b-1f3ff.png", "270a-1f3fb.png", "270a-1f3fc.png", "270a-1f3fd.png",
+                "270a-1f3fe.png", "270a-1f3ff.png", "2764-fe0f-200d-1f525.png", "2764-fe0f-200d-1fa79.png",
+                "26f9-1f3ff.png", "26f9-fe0f-200d-2640-fe0f.png", "26f9-fe0f-200d-2642-fe0f.png",
+                "26f9-1f3fd.png", "26f9-1f3fe-200d-2640-fe0f.png", "26f9-1f3fe-200d-2642-fe0f.png",
+                "26f9-1f3fe.png", "26f9-1f3ff-200d-2640-fe0f.png", "26f9-1f3ff-200d-2642-fe0f.png",
+                "26f9-1f3fc-200d-2640-fe0f.png", "26f9-1f3fc-200d-2642-fe0f.png", "26f9-1f3fc.png",
+                "26f9-1f3fd-200d-2640-fe0f.png", "26f9-1f3fd-200d-2642-fe0f.png"
+            ));
+        } catch (Exception e) {
+            System.err.println("Error getting emojis from JAR: " + e.getMessage());
+        }
+        return emojis;
     }
     
     private List<String> searchEmojis(String query) {
@@ -2319,27 +2600,57 @@ public class ChatController implements Initializable {
     }
     
     private ScrollPane createEmojiScrollPane(List<String> emojiFiles, Popup emojiPopup) {
-        GridPane grid = new GridPane();
-        grid.setHgap(5);
-        grid.setVgap(5);
-        grid.setPadding(new Insets(10));
+        // Use ListView for better performance with large lists
+        ListView<String> emojiListView = new ListView<>();
+        emojiListView.setItems(FXCollections.observableArrayList(emojiFiles));
+        emojiListView.setCellFactory(param -> new EmojiListCell(emojiPopup));
+        emojiListView.setPrefHeight(240);
+        emojiListView.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
         
-        int col = 0;
-        int row = 0;
-        int itemsPerRow = 8;
+        ScrollPane scrollPane = new ScrollPane(emojiListView);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(240);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+        return scrollPane;
+    }
+    
+    private class EmojiListCell extends ListCell<String> {
+        private final Popup emojiPopup;
         
-        for (String emojiFile : emojiFiles) {
+        public EmojiListCell(Popup emojiPopup) {
+            this.emojiPopup = emojiPopup;
+        }
+        
+        @Override
+        protected void updateItem(String emojiFile, boolean empty) {
+            super.updateItem(emojiFile, empty);
+            
+            if (empty || emojiFile == null) {
+                setGraphic(null);
+                setText(null);
+                return;
+            }
+            
             try {
-                Image emojiImage = new Image(getClass().getResourceAsStream(EMOJI_RESOURCES_PATH + emojiFile));
-                ImageView imageView = new ImageView(emojiImage);
-                imageView.setFitWidth(32);
-                imageView.setFitHeight(32);
-                imageView.setPreserveRatio(true);
-                
+                // Create a simple button with emoji image
                 Button emojiButton = new Button();
-                emojiButton.setGraphic(imageView);
                 emojiButton.setPrefSize(40, 40);
                 emojiButton.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+                
+                // Load image asynchronously to prevent UI blocking
+                Platform.runLater(() -> {
+                    try {
+                        Image emojiImage = new Image(getClass().getResourceAsStream(EMOJI_RESOURCES_PATH + emojiFile));
+                        ImageView imageView = new ImageView(emojiImage);
+                        imageView.setFitWidth(32);
+                        imageView.setFitHeight(32);
+                        imageView.setPreserveRatio(true);
+                        emojiButton.setGraphic(imageView);
+                    } catch (Exception e) {
+                        // If image fails to load, show text fallback
+                        emojiButton.setText("?");
+                    }
+                });
                 
                 String emojiName = emojiNameMap.getOrDefault(emojiFile, emojiFile);
                 emojiButton.setTooltip(new Tooltip(emojiName));
@@ -2353,22 +2664,15 @@ public class ChatController implements Initializable {
                     emojiPopup.hide();
                 });
                 
-                grid.add(emojiButton, col, row);
+                setGraphic(emojiButton);
+                setText(null);
                 
-                col++;
-                if (col >= itemsPerRow) {
-                    col = 0;
-                    row++;
-                }
             } catch (Exception e) {
-                System.err.println("Error loading emoji: " + emojiFile + " - " + e.getMessage());
+                System.err.println("Error creating emoji cell: " + emojiFile + " - " + e.getMessage());
+                setGraphic(null);
+                setText("?");
             }
         }
-        
-        ScrollPane scrollPane = new ScrollPane(grid);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(240);
-        return scrollPane;
     }
     
     private void insertEmojiIntoMessage(String emojiFilename) {
@@ -2431,6 +2735,9 @@ public class ChatController implements Initializable {
         }
         
         if (!chatMenu.getItems().isEmpty()) {
+            // Apply CSS styling to the context menu
+            chatMenu.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 8; -fx-border-color: #d8dee9; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);");
+            
             chatMenu.show(chatMenuButton, javafx.geometry.Side.BOTTOM, 0, 0);
         } else {
             System.out.println("DEBUG: No menu items to show");
