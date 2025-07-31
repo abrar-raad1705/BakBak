@@ -24,16 +24,31 @@ public class ClientHandler implements Runnable {
         try {
             Message message;
             while ((message = (Message) ois.readObject()) != null) {
-                handleMessage(message);
+                if (message != null) {
+                    handleMessage(message);
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error handling client: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error handling client: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             disconnect();
         }
     }
 
     private void handleMessage(Message message) {
+        if (message == null) {
+            System.err.println("Error receiving message: null");
+            return;
+        }
+        
+        System.out.println("DEBUG: handleMessage called for message type: " + message.getType());
+        System.out.println("DEBUG: Sender: " + message.getSender());
+        System.out.println("DEBUG: Recipient: " + message.getRecipient());
+        System.out.println("DEBUG: GroupId: " + message.getGroupId());
+        
         UserManager userManager = UserManager.getInstance();
         GroupManager groupManager = GroupManager.getInstance();
         MessageStore messageStore = MessageStore.getInstance();
@@ -48,9 +63,11 @@ public class ClientHandler implements Runnable {
             case LOGOUT:
                 handleLogout(message, userManager);
                 break;
-            case FILE_MESSAGE:
             case PRIVATE_MESSAGE:
                 handlePrivateMessage(message, userManager, messageStore);
+                break;
+            case FILE_MESSAGE:
+                handleFileMessage(message);
                 break;
             case GROUP_MESSAGE:
                 handleGroupMessage(message, groupManager);
@@ -176,10 +193,6 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleGroupMessage(Message message, GroupManager groupManager) {
-        if (message.getType() == Message.MessageType.FILE_MESSAGE) {
-            handleFileMessage(message);
-            return;
-        }
         String groupId = message.getGroupId();
         String content = message.getContent();
         Set<String> members = groupManager.getGroupMembers(groupId);
@@ -245,30 +258,78 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleFileMessage(Message message) {
-        MessageStore.getInstance().storeMessage(message);
-
-        if (message.getGroupId() != null && !message.getGroupId().isEmpty()) {
-            // Group file message
-            Set<String> members = GroupManager.getInstance().getGroupMembers(message.getGroupId());
-            for (String member : members) {
-                if (!member.equals(username)) {
-                    ClientHandler handler = UserManager.getInstance().getClientHandler(member);
+        if (message == null) {
+            System.err.println("Error: handleFileMessage received null message");
+            return;
+        }
+        
+        System.out.println("DEBUG: handleFileMessage called for message type: " + message.getType());
+        System.out.println("DEBUG: Sender: " + message.getSender());
+        System.out.println("DEBUG: Recipient: " + message.getRecipient());
+        System.out.println("DEBUG: GroupId: " + message.getGroupId());
+        System.out.println("DEBUG: Content: " + message.getContent());
+        
+        try {
+            if (message.getGroupId() != null && !message.getGroupId().isEmpty()) {
+                // Group file message
+                System.out.println("DEBUG: Processing group file message from " + message.getSender() + " to group " + message.getGroupId());
+                Set<String> members = GroupManager.getInstance().getGroupMembers(message.getGroupId());
+                System.out.println("DEBUG: Group members: " + members);
+                
+                if (members != null && !members.isEmpty()) {
+                    System.out.println("DEBUG: Storing group message for " + members.size() + " members");
+                    try {
+                        MessageStore.getInstance().storeGroupMessage(message, members);
+                        System.out.println("DEBUG: Group message stored successfully");
+                    } catch (Exception e) {
+                        System.err.println("ERROR: Failed to store group message: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    
+                    for (String member : members) {
+                        if (!member.equals(username)) {
+                            System.out.println("DEBUG: Sending to member: " + member);
+                            ClientHandler handler = UserManager.getInstance().getClientHandler(member);
+                            if (handler != null) {
+                                System.out.println("DEBUG: Member " + member + " is online, sending message");
+                                try {
+                                    handler.sendMessage(message);
+                                } catch (Exception e) {
+                                    System.err.println("ERROR: Failed to send message to " + member + ": " + e.getMessage());
+                                }
+                            } else {
+                                System.out.println("DEBUG: Member " + member + " is offline, queuing message");
+                                try {
+                                    MessageStore.getInstance().queueOfflineMessage(member, message);
+                                } catch (Exception e) {
+                                    System.err.println("ERROR: Failed to queue offline message for " + member + ": " + e.getMessage());
+                                }
+                            }
+                        }
+                    }
+                    System.out.println("DEBUG: Group file message processing completed");
+                } else {
+                    System.err.println("ERROR: No members found for group " + message.getGroupId());
+                }
+            } else {
+                // Private file message
+                System.out.println("DEBUG: Processing private file message from " + message.getSender() + " to " + message.getRecipient());
+                MessageStore.getInstance().storeMessage(message);
+                String recipient = message.getRecipient();
+                if (recipient != null && !recipient.isEmpty()) {
+                    ClientHandler handler = UserManager.getInstance().getClientHandler(recipient);
                     if (handler != null) {
                         handler.sendMessage(message);
                     } else {
-                        MessageStore.getInstance().queueOfflineMessage(member, message);
+                        MessageStore.getInstance().queueOfflineMessage(recipient, message);
                     }
+                } else {
+                    System.err.println("ERROR: No recipient specified for private file message");
                 }
             }
-        } else {
-            // Private file message
-            String recipient = message.getRecipient();
-            ClientHandler handler = UserManager.getInstance().getClientHandler(recipient);
-            if (handler != null) {
-                handler.sendMessage(message);
-            } else {
-                MessageStore.getInstance().queueOfflineMessage(recipient, message);
-            }
+        } catch (Exception e) {
+            System.err.println("ERROR: Exception in handleFileMessage: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -630,11 +691,19 @@ public class ClientHandler implements Runnable {
     } */
 
     public synchronized void sendMessage(Message message) {
+        if (message == null) {
+            System.err.println("ERROR: Attempting to send null message to client");
+            return;
+        }
+        
         try {
             oos.writeObject(message);
             oos.flush();
         } catch (IOException e) {
             System.err.println("Error sending message to client: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error sending message to client: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

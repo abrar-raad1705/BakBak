@@ -220,9 +220,16 @@ public class ChatController implements Initializable {
                         pendingResponse = null;
                     }
                     break;
-                case FILE_MESSAGE:
                 case PRIVATE_MESSAGE:
                     handleIncomingPrivateMessage(message);
+                    break;
+                case FILE_MESSAGE:
+                    // Check if it's a group file message or private file message
+                    if (message.getGroupId() != null && !message.getGroupId().isEmpty()) {
+                        handleIncomingGroupMessage(message);
+                    } else {
+                        handleIncomingPrivateMessage(message);
+                    }
                     break;
                 case GROUP_MESSAGE:
                     handleIncomingGroupMessage(message);
@@ -278,7 +285,7 @@ public class ChatController implements Initializable {
                     String groupId = parts[4];
                     String timestamp = parts[5];
                     
-                    if ("GROUP_MESSAGE".equals(messageType) && groupId != null && !groupId.isEmpty()) {
+                    if (("GROUP_MESSAGE".equals(messageType) || "FILE_MESSAGE".equals(messageType)) && groupId != null && !groupId.isEmpty()) {
                         // Handle group message
                         String displayMessage;
                         String processedContent = convertEmojiPlaceholdersToDisplay(messageContent);
@@ -2571,7 +2578,11 @@ public class ChatController implements Initializable {
                 
                 // Create and send the file message
                 Message fileMessage = new Message(Message.MessageType.FILE_MESSAGE, currentUsername);
-                fileMessage.setRecipient(selectedChat.getName());
+                if (selectedChat.getType() == ChatItem.Type.GROUP) {
+                    fileMessage.setGroupId(selectedChat.getGroupId()); // Use groupId for group messages
+                } else {
+                    fileMessage.setRecipient(selectedChat.getName()); // Use recipient for private messages
+                }
                 fileMessage.setFileMessageData(fileMessageData);
                 fileMessage.setContent(fileMessageData.toString()); // Set the content field for serialization
                 fileMessage.setTimestamp(LocalDateTime.now());
@@ -3023,3 +3034,4 @@ public class ChatController implements Initializable {
     private Label unifiedProgressLabel;
     private HBox unifiedProgressContainer;
 }
+

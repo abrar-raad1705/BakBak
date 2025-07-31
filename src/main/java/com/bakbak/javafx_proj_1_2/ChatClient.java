@@ -40,10 +40,19 @@ public class ChatClient {
                         Message msgFromServer = (Message) ois.readObject();
                         if (msgFromServer != null && messageHandler != null) {
                             messageHandler.accept(msgFromServer);
+                        } else if (msgFromServer == null) {
+                            System.err.println("Error receiving message: null");
+                            // Don't break the loop for null messages, just log and continue
                         }
                     } catch (IOException | ClassNotFoundException e) {
                         if (isConnected) {
                             System.err.println("Error receiving message: " + e.getMessage());
+                        }
+                        break;
+                    } catch (Exception e) {
+                        if (isConnected) {
+                            System.err.println("Unexpected error receiving message: " + e.getMessage());
+                            e.printStackTrace();
                         }
                         break;
                     }
