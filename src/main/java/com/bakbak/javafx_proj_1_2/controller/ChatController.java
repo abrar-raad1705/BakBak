@@ -1,15 +1,41 @@
 package com.bakbak.javafx_proj_1_2.controller;
 
+import java.awt.Desktop;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 import com.bakbak.javafx_proj_1_2.ChatApplication;
 import com.bakbak.javafx_proj_1_2.ChatClient;
-import com.bakbak.javafx_proj_1_2.Message;
-import com.bakbak.javafx_proj_1_2.FileMessageData;
-import com.bakbak.javafx_proj_1_2.FileChunkSender;
 import com.bakbak.javafx_proj_1_2.FileChunkReceiver;
+import com.bakbak.javafx_proj_1_2.FileChunkSender;
+import com.bakbak.javafx_proj_1_2.FileMessageData;
+import com.bakbak.javafx_proj_1_2.Message;
 import com.bakbak.javafx_proj_1_2.ProgressCallback;
-import javafx.animation.Timeline;
+
 import javafx.animation.KeyFrame;
-import javafx.util.Duration;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,38 +43,44 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.stage.Popup;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.scene.Node;
-
-
 import javafx.stage.FileChooser;
-import java.io.*;
-import java.net.Socket;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.awt.Desktop;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class ChatController implements Initializable {
 
@@ -196,6 +228,9 @@ public class ChatController implements Initializable {
         messageInput.setOnAction(e -> handleSendMessage());
         fileButton.setOnAction(e -> handleSendFile());
         
+        // Setup dark mode toggle
+        darkModeToggle.setOnAction(e -> handleDarkModeToggle());
+        
         // Disable message input initially
         messageInput.setDisable(true);
         sendButton.setDisable(true);
@@ -203,6 +238,175 @@ public class ChatController implements Initializable {
         
         // Setup unified progress bar below chat header
         setupUnifiedProgressBar();
+        
+        // Setup hover effects for icon buttons
+        setupIconButtonHoverEffects();
+        
+        // Setup chat screen containers with CSS classes for dark mode
+        messagesContainer.getStyleClass().add("chatBoxScreen");
+        chatScrollPane.getStyleClass().add("chatBoxScreen");
+    }
+
+    private void setupIconButtonHoverEffects() {
+        // Setup hover effects for settings button
+        setupButtonHoverEffect(settingsButton, "settings.png", "settings2.png");
+        
+        // Setup hover effects for more button
+        setupButtonHoverEffect(chatMenuButton, "more.png", "more2.png");
+        
+        // Setup hover effects for attach button
+        setupButtonHoverEffect(fileButton, "attach.png", "attach2.png");
+        
+        // Setup hover effects for send button (no "2" version, just opacity change)
+        setupButtonHoverEffect(sendButton, "send.png", null);
+        
+        // Setup hover effects for other buttons with a delay to ensure scene is ready
+        Platform.runLater(() -> {
+            // Retry mechanism for buttons that might not be ready immediately
+            setupHoverEffectsWithRetry();
+        });
+    }
+    
+    private void setupHoverEffectsWithRetry() {
+        // Setup hover effects for call button
+        Button callButton = findButtonByImage("call.png");
+        if (callButton != null) {
+            setupButtonHoverEffect(callButton, "call.png", "call2.png");
+        } else {
+            // Retry after a short delay
+            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+                Button retryButton = findButtonByImage("call.png");
+                if (retryButton != null) {
+                    setupButtonHoverEffect(retryButton, "call.png", "call2.png");
+                }
+            }));
+            retryTimer.play();
+        }
+        
+        // Setup hover effects for video button
+        Button videoButton = findButtonByImage("video.png");
+        if (videoButton != null) {
+            setupButtonHoverEffect(videoButton, "video.png", "video2.png");
+        } else {
+            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+                Button retryButton = findButtonByImage("video.png");
+                if (retryButton != null) {
+                    setupButtonHoverEffect(retryButton, "video.png", "video2.png");
+                }
+            }));
+            retryTimer.play();
+        }
+        
+        // Setup hover effects for emoji button
+        Button emojiButton = findButtonByImage("emoji.png");
+        if (emojiButton != null) {
+            setupButtonHoverEffect(emojiButton, "emoji.png", "emoji2.png");
+        } else {
+            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+                Button retryButton = findButtonByImage("emoji.png");
+                if (retryButton != null) {
+                    setupButtonHoverEffect(retryButton, "emoji.png", "emoji2.png");
+                }
+            }));
+            retryTimer.play();
+        }
+        
+        // Setup hover effects for voice button
+        Button voiceButton = findButtonByImage("voice.png");
+        if (voiceButton != null) {
+            setupButtonHoverEffect(voiceButton, "voice.png", "voice2.png");
+        } else {
+            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+                Button retryButton = findButtonByImage("voice.png");
+                if (retryButton != null) {
+                    setupButtonHoverEffect(retryButton, "voice.png", "voice2.png");
+                }
+            }));
+            retryTimer.play();
+        }
+    }
+    
+    private void setupButtonHoverEffect(Button button, String normalImage, String hoverImage) {
+        if (button == null) return;
+        
+        ImageView imageView = (ImageView) button.getGraphic();
+        if (imageView == null) return;
+        
+        Image normalImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/" + normalImage));
+        Image hoverImg = hoverImage != null ? new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/" + hoverImage)) : null;
+        
+        button.setOnMouseEntered(e -> {
+            if (hoverImg != null) {
+                imageView.setImage(hoverImg);
+            } else {
+                imageView.setOpacity(0.8);
+            }
+        });
+        
+        button.setOnMouseExited(e -> {
+            imageView.setImage(normalImg);
+            imageView.setOpacity(1.0);
+        });
+    }
+    
+
+    
+    private Button findButtonByImageRecursive(Node node, String imageName) {
+        if (node instanceof Button) {
+            Button button = (Button) node;
+            if (button.getGraphic() instanceof ImageView) {
+                ImageView imageView = (ImageView) button.getGraphic();
+                if (imageView.getImage() != null) {
+                    String imageUrl = imageView.getImage().getUrl();
+                    if (imageUrl != null && imageUrl.contains(imageName)) {
+                        return button;
+                    }
+                }
+            }
+        }
+        
+        if (node instanceof Parent) {
+            for (Node child : ((Parent) node).getChildrenUnmodifiable()) {
+                Button result = findButtonByImageRecursive(child, imageName);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private Button findButtonByImage(String imageName) {
+        // Search through all buttons in the scene to find the one with the specified image
+        if (settingsButton.getScene() == null) {
+            System.out.println("Scene not ready yet for " + imageName);
+            return null;
+        }
+        
+        Button found = findButtonByImageRecursive(settingsButton.getScene().getRoot(), imageName);
+        if (found != null) {
+            System.out.println("Found button for " + imageName);
+        } else {
+            System.out.println("Could not find button for " + imageName);
+        }
+        return found;
+    }
+    
+    @FXML
+    private void handleDarkModeToggle() {
+        Scene scene = darkModeToggle.getScene();
+        if (scene != null) {
+            if (darkModeToggle.isSelected()) {
+                // Enable dark mode
+                scene.getRoot().getStyleClass().add("dark-mode");
+                darkModeToggle.setText("☀️"); // Sun emoji for light mode
+            } else {
+                // Disable dark mode
+                scene.getRoot().getStyleClass().remove("dark-mode");
+                darkModeToggle.setText("🌙"); // Moon emoji for dark mode
+            }
+        }
     }
 
     private void setupMessageHandler() {
@@ -1073,6 +1277,7 @@ public class ChatController implements Initializable {
         VBox centerBox = new VBox(selectLabel);
         centerBox.setAlignment(Pos.CENTER);
         centerBox.setPrefHeight(400);
+        centerBox.getStyleClass().add("chatBoxScreen"); // Add CSS class for dark mode
         
         messagesContainer.getChildren().add(centerBox);
         fileButton.setDisable(true);
@@ -1221,7 +1426,7 @@ public class ChatController implements Initializable {
             FileMessageData fileData = message.getFileMessageData();
             VBox fileBox = new VBox(8);
             fileBox.setPadding(new Insets(12));
-            fileBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-border-color: #e9ecef; -fx-border-radius: 8; -fx-border-width: 1;");
+            fileBox.getStyleClass().add("file-message-box");
 
             HBox fileInfo = new HBox(12);
             fileInfo.setAlignment(Pos.CENTER_LEFT);
@@ -1237,14 +1442,14 @@ public class ChatController implements Initializable {
             // File name with better styling
             Label fileName = new Label(fileData.getOriginalName());
             fileName.setFont(Font.font("System", FontWeight.BOLD, 13));
-            fileName.setStyle("-fx-text-fill: #2c3e50;");
+            fileName.getStyleClass().add("file-name");
             fileName.setWrapText(true);
             fileName.setMaxWidth(280);
             
             // File size and type
             Label fileInfoLabel = new Label(fileData.getFormattedFileSize() + " • " + getFileTypeDisplay(fileData.getMimeType()));
             fileInfoLabel.setFont(Font.font("System", 11));
-            fileInfoLabel.setStyle("-fx-text-fill: #6c757d;");
+            fileInfoLabel.getStyleClass().add("file-info");
             
             fileDetails.getChildren().addAll(fileName, fileInfoLabel);
 
@@ -1298,11 +1503,11 @@ public class ChatController implements Initializable {
         if (isSentByMe) {
             // Sent messages - align right
             messageBox.setAlignment(Pos.CENTER_RIGHT);
-            messageContent.setStyle("-fx-background-color: #DCF8C6; -fx-background-radius: 18; -fx-padding: 12;");
+            messageContent.setStyle("-fx-background-color:rgb(174, 190, 208); -fx-background-radius: 18; -fx-padding: 12;");
         } else {
             // Received messages - align left
             messageBox.setAlignment(Pos.CENTER_LEFT);
-            messageContent.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 18; -fx-padding: 12; -fx-border-color: #E0E0E0; -fx-border-radius: 18; -fx-border-width: 1;");
+            messageContent.setStyle("-fx-background-color:rgb(248, 251, 255); -fx-background-radius: 18; -fx-padding: 12; -fx-border-color:rgb(193, 193, 193); -fx-border-radius: 18; -fx-border-width: 1;");
         }
         
         messageBox.getChildren().add(messageContent);
@@ -1859,6 +2064,7 @@ public class ChatController implements Initializable {
                 VBox content = new VBox();
                 content.setSpacing(3);
                 content.setPadding(new Insets(8, 10, 8, 10));
+                content.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 8; -fx-border-radius: 8;");
                 
                 HBox nameBox = new HBox();
                 nameBox.setAlignment(Pos.CENTER_LEFT);
@@ -1868,18 +2074,21 @@ public class ChatController implements Initializable {
                 
                 // Make name bold if there are unread messages
                 if (item.hasUnreadMessages()) {
-                    nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+                    nameLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+                    nameLabel.setStyle("-fx-text-fill: #2e3440;");
                 } else {
-                    nameLabel.setFont(Font.font("System", FontWeight.NORMAL, 14));
+                    nameLabel.setFont(Font.font("System", FontWeight.NORMAL, 16));
+                    nameLabel.setStyle("-fx-text-fill: #2e3440;");
                 }
                 
                 if (item.getType() == ChatItem.Type.GROUP) {
                     Label groupIcon = new Label("👥");
+                    groupIcon.setStyle("-fx-text-fill: #5e81ac;");
                     nameBox.getChildren().addAll(groupIcon, nameLabel);
                 } else {
                     nameBox.getChildren().add(nameLabel);
                     if (item.isOnline()) {
-                        Circle statusCircle = new Circle(4, Color.LIMEGREEN);
+                        Circle statusCircle = new Circle(4, Color.web("#a3be8c"));
                         nameBox.getChildren().add(statusCircle);
                     }
                 }
@@ -1895,10 +2104,10 @@ public class ChatController implements Initializable {
                     Label messageLabel = new Label(item.getLastMessage());
                     if (item.hasUnreadMessages()) {
                         messageLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-                        messageLabel.setStyle("-fx-text-fill: #333333;");
+                        messageLabel.setStyle("-fx-text-fill: #3b4252;");
                     } else {
                         messageLabel.setFont(Font.font("System", FontWeight.NORMAL, 12));
-                        messageLabel.setStyle("-fx-text-fill: #666666;");
+                        messageLabel.setStyle("-fx-text-fill: #4c566a;");
                     }
                     
                     // Truncate long messages
@@ -1910,18 +2119,26 @@ public class ChatController implements Initializable {
                     HBox.setHgrow(spacer, Priority.ALWAYS);
                     
                     Label timeLabel = new Label(item.getLastMessageTimestamp());
-                    timeLabel.setStyle("-fx-text-fill: #999999; -fx-font-size: 10px;");
+                    timeLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 11px;");
                     
                     messageBox.getChildren().addAll(messageLabel, spacer, timeLabel);
                     content.getChildren().add(messageBox);
                 } else {
                     // Show "No messages yet" for contacts without messages
                     Label noMessageLabel = new Label("No messages yet");
-                    noMessageLabel.setStyle("-fx-text-fill: #999999; -fx-font-size: 12px; -fx-font-style: italic;");
+                    noMessageLabel.setStyle("-fx-text-fill: #81a1c1; -fx-font-size: 12px; -fx-font-style: italic;");
                     content.getChildren().add(noMessageLabel);
                 }
                 
                 setGraphic(content);
+
+                // Add hover effect
+                content.setOnMouseEntered(e -> {
+                    content.setStyle("-fx-background-color: #d8dee9; -fx-background-radius: 8; -fx-border-radius: 8;");
+                });
+                content.setOnMouseExited(e -> {
+                    content.setStyle("-fx-background-color: #eceff4; -fx-background-radius: 8; -fx-border-radius: 8;");
+                });
 
                 // Add context menu for deleting chat
                 ContextMenu contextMenu = new ContextMenu();

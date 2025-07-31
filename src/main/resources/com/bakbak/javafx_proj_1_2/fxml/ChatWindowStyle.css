@@ -1,0 +1,513 @@
+.splitPane{
+}
+
+.split-pane > .split-pane-divider {
+    -fx-padding: 1;              /* removes thickness */
+    -fx-background-color: #3b4252; /* hides line */
+}
+
+.chatBoxHeader{
+    -fx-background-color: #81a1c1;
+}
+
+.chatBoxFooter{
+    -fx-background-color: #81a1c1;
+
+}
+
+.chatBoxScreen{
+    -fx-background-color: #eceff4;
+}
+
+.mainChatArea {
+    -fx-background-color: #eceff4;
+}
+
+
+.justBorder{
+
+}
+
+.textBox{
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 10;
+
+}
+
+.text{
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+
+}
+
+.lastSeen{
+    -fx-font-size: 15px;
+    -fx-text-fill: #00000050;
+}
+
+.button2{
+    -fx-background-color: transparent;
+
+}
+
+.button2:hover{
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-background-color: #93d5d3;
+    -fx-background-insets: 1;
+    -fx-translate-y: -3;
+}
+
+.toggleButton:hover{
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-background-color: #93d5d3;
+    -fx-background-insets: 1;
+    -fx-translate-y: -3;
+}
+
+
+.toggleButton{
+    -fx-background-color: #96bdbc;
+    -fx-background-radius: 10;
+
+}
+.label{
+    -fx-font-family: sans-serif,Arial;
+}
+
+.chatsTitle{
+    -fx-font-family: sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+    -fx-text-fill: #2e3440;
+    -fx-letter-spacing: 1px;
+}
+
+.activeScreen{
+    -fx-background-color: #5e81ac;
+    -fx-max-width: 400;
+    -fx-padding: 0;
+
+
+}
+.activeScreenHeader{
+    -fx-background-color: #5e81ac;
+}
+.activeScreenFooter{
+    -fx-background-color: #5e81ac;
+    -fx-padding: 15 20 20 20;
+}
+.activeScreenSearchBar{
+    -fx-background-color:  #eceff4;
+    -fx-text-alignment: center;
+    -fx-background-radius: 20;
+
+
+}
+
+
+.activeList{
+    -fx-background-color:  #eceff4;
+}
+
+/* Target the internal ListView components to ensure radius is applied */
+.activeList .viewport {
+    -fx-background-color: transparent;
+}
+
+.activeList .scroll-pane {
+    -fx-background-color: transparent;
+
+}
+
+.activeList .scroll-pane .viewport {
+    -fx-background-color: transparent;
+
+}
+
+.activeList .scroll-pane .content {
+    -fx-background-color: transparent;
+
+}
+
+/* Ensure the ListView itself has the radius */
+.activeList {
+    -fx-background-color: #eceff4;
+    -fx-border-color: transparent;
+}
+
+/* Contact List Item Styling */
+.contact-cell {
+    -fx-background-color: #e5e9f0;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-width: 1;
+    -fx-padding: 12 16;
+    -fx-margin: 4 8;
+}
+
+.contact-cell:hover {
+    -fx-background-color: #d8dee9;
+    -fx-border-color: #81a1c1;
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.2), 0, 0, 2, 2);
+}
+
+.contact-name {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #2e3440 !important;
+}
+
+.contact-message {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-text-fill: #5e81ac !important;
+    -fx-opacity: 0.8 !important;
+}
+
+.contact-time {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-text-fill: #81a1c1;
+    -fx-opacity: 0.6;
+}
+
+.contact-no-message {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+    -fx-text-fill: #81a1c1;
+    -fx-opacity: 0.5;
+}
+
+.group-icon {
+    -fx-font-size: 14px;
+    -fx-opacity: 0.8;
+}
+
+.online-indicator {
+    -fx-fill: #a3be8c;
+    -fx-stroke: #eceff4;
+    -fx-stroke-width: 1;
+}
+
+/* Chat Bubble Styles - Light Mode */
+.message-sent {
+    -fx-background-color: #5e81ac;
+    -fx-background-radius: 18;
+    -fx-padding: 12;
+}
+
+.message-received {
+    -fx-background-color: #d8dee9;
+    -fx-background-radius: 18;
+    -fx-padding: 12;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+}
+
+
+.loginButton {
+    -fx-background-color: #81a1c1; /* Nord Frost Green */
+
+    -fx-background-radius: 10;
+    -fx-effect: none;
+    -fx-text-fill: #eceff4;        /* Nord Snow Storm (white) */
+    -fx-font-family: sans-serif,Arial;
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+    -fx-padding: 8 40 8 40;
+    -fx-letter-spacing: 7;
+    -fx-max-width: 200;
+    -fx-text-alignment: center;
+ /* subtle text shadow for cartoony look */
+    -fx-transition: all 0.3s ease; /* not supported in JavaFX but leaving for clarity */
+    /* Optional: cartoon outline */
+    /* -fx-border-style: solid inside; */
+}
+
+/* Simulate hover effect manually with animation using JavaFX code */
+.loginButton:hover {
+    -fx-effect: dropshadow(gaussian, rgba(70, 70, 89, 0.49), 0, 0, 3, 5);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-translate-y: -3;
+    -fx-background-insets: 1;
+    -fx-background-color: #8ec6d7;
+
+
+}
+
+/* Dark Mode Classes */
+.dark-mode .activeScreen {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .activeList {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .viewport {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane .viewport {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane .content {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .chatBoxHeader {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .chatBoxFooter {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .chatBoxScreen {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .viewport {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane .viewport {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane .content {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatsTitle {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .contact-cell {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .contact-cell:hover {
+    -fx-background-color: #4c566a !important;
+    -fx-border-color: #5e81ac !important;
+}
+
+.dark-mode .contact-name {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .contact-message {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .contact-time {
+    -fx-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .contact-no-message {
+    -fx-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .button2 {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .button2:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .toggleButton {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .toggleButton:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .loginButton {
+    -fx-background-color: #5e81ac !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .loginButton:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .textBox {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .text {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .lastSeen {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .split-pane > .split-pane-divider {
+    -fx-background-color: #4c566a !important;
+}
+
+/* Additional dark mode styles for text fields and other elements */
+.dark-mode TextField {
+    -fx-background-color: #3b4252 !important;
+    -fx-text-fill: #eceff4 !important;
+    -fx-prompt-text-fill: #81a1c1 !important;
+}
+
+.dark-mode TextArea {
+    -fx-background-color: #3b4252 !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode ScrollPane {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode ScrollPane .viewport {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode ScrollPane .content {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode VBox {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode HBox {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode BorderPane {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .mainChatArea {
+    -fx-background-color: #2e3440 !important;
+}
+
+/* Dark mode styles for chat bubbles */
+.dark-mode .message-sent {
+    -fx-background-color: #81a1c1 !important;
+    -fx-background-radius: 18 !important;
+    -fx-padding: 12 !important;
+}
+
+.dark-mode .message-received {
+    -fx-background-color: #3b4252 !important;
+    -fx-background-radius: 18 !important;
+    -fx-padding: 12 !important;
+    -fx-border-color: #4c566a !important;
+    -fx-border-radius: 18 !important;
+    -fx-border-width: 1 !important;
+}
+
+/* More specific targeting for active list */
+.dark-mode .activeList,
+.dark-mode ListView {
+    -fx-background-color: #3b4252 !important;
+    -fx-control-inner-background: #3b4252 !important;
+}
+
+.dark-mode .activeList .list-cell {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .activeList .list-cell:filled {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .activeList .list-cell:filled:selected {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .activeList .list-cell:filled:hover {
+    -fx-background-color: #4c566a !important;
+}
+
+/* Icon button hover effects */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(129, 161, 193, 0.2);
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+}
+
+/* File message box styling */
+.file-message-box {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+/* Dark mode file message box */
+.dark-mode .file-message-box {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+/* File name and info styling */
+.file-name {
+    -fx-text-fill: #2c3e50;
+}
+
+.file-info {
+    -fx-text-fill: #6c757d;
+}
+
+/* Dark mode file name and info */
+.dark-mode .file-name {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .file-info {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+/* Chat header label styling */
+#chatNameLabel {
+    -fx-font-size: 13px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #2e3440 !important;
+}
+
+#chatStatusLabel {
+    -fx-font-size: 6px !important;
+    -fx-opacity: 0.7 !important;
+    -fx-text-fill: #4c566a !important;
+}
+
+/* Dark mode chat header labels */
+.dark-mode #chatNameLabel {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode #chatStatusLabel {
+    -fx-text-fill: #d8dee9 !important;
+}
