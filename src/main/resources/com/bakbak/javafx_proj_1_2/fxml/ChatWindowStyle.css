@@ -1,3 +1,5 @@
+
+
 .splitPane{
 }
 
@@ -69,11 +71,35 @@
     -fx-translate-y: -3;
 }
 
-
 .toggleButton{
     -fx-background-color: #96bdbc;
     -fx-background-radius: 10;
+    -fx-transition: all 0.3s ease;
+    -fx-cursor: hand;
+}
 
+/* Sliding animation for toggle button */
+.toggleButton:selected {
+    -fx-background-color: #5e81ac;
+    -fx-effect: dropshadow(gaussian, rgba(94, 129, 172, 0.6), 0, 0, 4, 6);
+    -fx-translate-x: 2px;
+    -fx-translate-y: -2px;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.toggleButton:selected:hover {
+    -fx-background-color: #81a1c1;
+    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.7), 0, 0, 5, 8);
+    -fx-translate-x: 3px;
+    -fx-translate-y: -3px;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+/* Smooth transition for all toggle button states */
+.toggleButton, .toggleButton:hover, .toggleButton:selected, .toggleButton:selected:hover {
+    -fx-transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 .label{
     -fx-font-family: sans-serif,Arial;
@@ -335,10 +361,34 @@
 
 .dark-mode .toggleButton {
     -fx-background-color: #5e81ac !important;
+    -fx-transition: all 0.3s ease !important;
 }
 
 .dark-mode .toggleButton:hover {
     -fx-background-color: #81a1c1 !important;
+    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.6), 0, 0, 4, 6) !important;
+    -fx-translate-x: 2px !important;
+    -fx-translate-y: -2px !important;
+    -fx-scale-x: 1.02 !important;
+    -fx-scale-y: 1.02 !important;
+}
+
+.dark-mode .toggleButton:selected {
+    -fx-background-color: #81a1c1 !important;
+    -fx-effect: dropshadow(gaussian, rgba(129, 161, 193, 0.8), 0, 0, 5, 8) !important;
+    -fx-translate-x: 3px !important;
+    -fx-translate-y: -3px !important;
+    -fx-scale-x: 1.05 !important;
+    -fx-scale-y: 1.05 !important;
+}
+
+.dark-mode .toggleButton:selected:hover {
+    -fx-background-color: #88c0d0 !important;
+    -fx-effect: dropshadow(gaussian, rgba(136, 192, 208, 0.9), 0, 0, 6, 10) !important;
+    -fx-translate-x: 4px !important;
+    -fx-translate-y: -4px !important;
+    -fx-scale-x: 1.08 !important;
+    -fx-scale-y: 1.08 !important;
 }
 
 .dark-mode .loginButton {
@@ -511,3 +561,35 @@
 .dark-mode #chatStatusLabel {
     -fx-text-fill: #d8dee9 !important;
 }
+
+/* Remove alternating stripes from ListView */
+.activeList .list-cell {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled:selected {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled:hover {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+/* Remove scrollbar styling if needed */
+.activeList .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.activeList .scroll-bar .thumb {
+    -fx-background-color: #d8dee9;
+    -fx-background-radius: 10;
+}
+

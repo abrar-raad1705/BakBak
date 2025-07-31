@@ -3,6 +3,8 @@ package com.bakbak.javafx_proj_1_2;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Message implements Serializable {
     @Serial

@@ -117,6 +117,8 @@ public class ChatController implements Initializable {
     // Image-based emoji system
     private static final String EMOJI_RESOURCES_PATH = "/com/bakbak/javafx_proj_1_2/emojis/";
     private static final String RECENT_EMOJIS_FILE = "chat_data/recent_emojis.txt";
+    
+
     private List<String> recentlyUsedEmojis = new ArrayList<>();
     private Map<String, String> emojiNameMap = new HashMap<>(); // filename -> display name
 
@@ -450,6 +452,7 @@ public class ChatController implements Initializable {
                 case USER_STATUS_UPDATE:
                     handleUserStatusUpdate(message);
                     break;
+
             }
         });
     }
@@ -1395,6 +1398,8 @@ public class ChatController implements Initializable {
         fullMessageContainer.setSpacing(2);
         fullMessageContainer.setPadding(new Insets(2, 10, 2, 10));
         
+
+        
         // Determine if we should show sender name for group chats
         boolean showSenderName = false;
         if (selectedChat != null && selectedChat.getType() == ChatItem.Type.GROUP && !isSentByMe) {
@@ -1741,6 +1746,8 @@ public class ChatController implements Initializable {
             System.out.println("DEBUG: Invalid status update message format: " + message.getContent());
         }
     }
+
+
 
     @FXML
     private void handleSettings() {
@@ -2375,6 +2382,8 @@ public class ChatController implements Initializable {
         messageInput.positionCaret(caretPosition + emojiPlaceholder.length());
         messageInput.requestFocus();
     }
+
+
 
     @FXML
     private void handleChatMenu() {
