@@ -1,0 +1,919 @@
+{
+  "1f32d.png": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "hotdog"
+  },
+  "1f32e.png": {
+    "x": 72,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "taco"
+  },
+  "1f32f.png": {
+    "x": 144,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "burrito"
+  },
+  "1f330.png": {
+    "x": 216,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "chestnut"
+  },
+  "1f336.png": {
+    "x": 288,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f33d.png": {
+    "x": 360,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "corn"
+  },
+  "1f345.png": {
+    "x": 432,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "tomato"
+  },
+  "1f346.png": {
+    "x": 504,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "eggplant"
+  },
+  "1f347.png": {
+    "x": 576,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "grapes"
+  },
+  "1f348.png": {
+    "x": 648,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "melon"
+  },
+  "1f349.png": {
+    "x": 0,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "watermelon"
+  },
+  "1f34a.png": {
+    "x": 72,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "tangerine"
+  },
+  "1f34b.png": {
+    "x": 144,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "lemon"
+  },
+  "1f34c.png": {
+    "x": 216,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "banana"
+  },
+  "1f34d.png": {
+    "x": 288,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "pineapple"
+  },
+  "1f34e.png": {
+    "x": 360,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "apple"
+  },
+  "1f34f.png": {
+    "x": 432,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "green_apple"
+  },
+  "1f350.png": {
+    "x": 504,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "pear"
+  },
+  "1f351.png": {
+    "x": 576,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "peach"
+  },
+  "1f352.png": {
+    "x": 648,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "cherries"
+  },
+  "1f353.png": {
+    "x": 0,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "strawberry"
+  },
+  "1f354.png": {
+    "x": 72,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "hamburger"
+  },
+  "1f355.png": {
+    "x": 144,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "pizza"
+  },
+  "1f356.png": {
+    "x": 216,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "meat_on_bone"
+  },
+  "1f357.png": {
+    "x": 288,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "poultry_leg"
+  },
+  "1f358.png": {
+    "x": 360,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "rice_cracker"
+  },
+  "1f359.png": {
+    "x": 432,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "rice_ball"
+  },
+  "1f35a.png": {
+    "x": 504,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "rice"
+  },
+  "1f35b.png": {
+    "x": 576,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "curry"
+  },
+  "1f35c.png": {
+    "x": 648,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "ramen"
+  },
+  "1f35d.png": {
+    "x": 0,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "spaghetti"
+  },
+  "1f35e.png": {
+    "x": 72,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "bread"
+  },
+  "1f35f.png": {
+    "x": 144,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "fries"
+  },
+  "1f360.png": {
+    "x": 216,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "sweet_potato"
+  },
+  "1f361.png": {
+    "x": 288,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "dango"
+  },
+  "1f362.png": {
+    "x": 360,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "oden"
+  },
+  "1f363.png": {
+    "x": 432,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "sushi"
+  },
+  "1f364.png": {
+    "x": 504,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "fried_shrimp"
+  },
+  "1f365.png": {
+    "x": 576,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "fish_cake"
+  },
+  "1f366.png": {
+    "x": 648,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "icecream"
+  },
+  "1f367.png": {
+    "x": 0,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "shaved_ice"
+  },
+  "1f368.png": {
+    "x": 72,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "ice_cream"
+  },
+  "1f369.png": {
+    "x": 144,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "doughnut"
+  },
+  "1f36a.png": {
+    "x": 216,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "cookie"
+  },
+  "1f36b.png": {
+    "x": 288,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "chocolate_bar"
+  },
+  "1f36c.png": {
+    "x": 360,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "candy"
+  },
+  "1f36d.png": {
+    "x": 432,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "lollipop"
+  },
+  "1f36e.png": {
+    "x": 504,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "custard"
+  },
+  "1f36f.png": {
+    "x": 576,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "honey_pot"
+  },
+  "1f370.png": {
+    "x": 648,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "cake"
+  },
+  "1f371.png": {
+    "x": 0,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "bento"
+  },
+  "1f372.png": {
+    "x": 72,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "stew"
+  },
+  "1f373.png": {
+    "x": 144,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "fried_egg"
+  },
+  "1f374.png": {
+    "x": 216,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "fork_and_knife"
+  },
+  "1f375.png": {
+    "x": 288,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "tea"
+  },
+  "1f376.png": {
+    "x": 360,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "sake"
+  },
+  "1f377.png": {
+    "x": 432,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "wine_glass"
+  },
+  "1f378.png": {
+    "x": 504,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "cocktail"
+  },
+  "1f379.png": {
+    "x": 576,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "tropical_drink"
+  },
+  "1f37a.png": {
+    "x": 648,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "beer"
+  },
+  "1f37b.png": {
+    "x": 0,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "beers"
+  },
+  "1f37c.png": {
+    "x": 72,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "baby_bottle"
+  },
+  "1f37d.png": {
+    "x": 144,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f37e.png": {
+    "x": 216,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "champagne"
+  },
+  "1f37f.png": {
+    "x": 288,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "popcorn"
+  },
+  "1f382.png": {
+    "x": 360,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "birthday"
+  },
+  "1f3fa.png": {
+    "x": 432,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "amphora"
+  },
+  "1f52a.png": {
+    "x": 504,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "hocho"
+  },
+  "1f942.png": {
+    "x": 576,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "clinking_glasses"
+  },
+  "1f943.png": {
+    "x": 648,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "tumbler_glass"
+  },
+  "1f944.png": {
+    "x": 0,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "spoon"
+  },
+  "1f950.png": {
+    "x": 72,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "croissant"
+  },
+  "1f951.png": {
+    "x": 144,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "avocado"
+  },
+  "1f952.png": {
+    "x": 216,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "cucumber"
+  },
+  "1f953.png": {
+    "x": 288,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "bacon"
+  },
+  "1f954.png": {
+    "x": 360,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "potato"
+  },
+  "1f955.png": {
+    "x": 432,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "carrot"
+  },
+  "1f956.png": {
+    "x": 504,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "baguette_bread"
+  },
+  "1f957.png": {
+    "x": 576,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "green_salad"
+  },
+  "1f958.png": {
+    "x": 648,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "shallow_pan_of_food"
+  },
+  "1f959.png": {
+    "x": 0,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "stuffed_flatbread"
+  },
+  "1f95a.png": {
+    "x": 72,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "egg"
+  },
+  "1f95b.png": {
+    "x": 144,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "glass_of_milk"
+  },
+  "1f95c.png": {
+    "x": 216,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "peanuts"
+  },
+  "1f95d.png": {
+    "x": 288,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "kiwifruit"
+  },
+  "1f95e.png": {
+    "x": 360,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "pancakes"
+  },
+  "1f95f.png": {
+    "x": 432,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "dumpling"
+  },
+  "1f960.png": {
+    "x": 504,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "fortune_cookie"
+  },
+  "1f961.png": {
+    "x": 576,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "takeout_box"
+  },
+  "1f962.png": {
+    "x": 648,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "chopsticks"
+  },
+  "1f963.png": {
+    "x": 0,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "bowl_with_spoon"
+  },
+  "1f964.png": {
+    "x": 72,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "cup_with_straw"
+  },
+  "1f965.png": {
+    "x": 144,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "coconut"
+  },
+  "1f966.png": {
+    "x": 216,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "broccoli"
+  },
+  "1f967.png": {
+    "x": 288,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "pie"
+  },
+  "1f968.png": {
+    "x": 360,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "pretzel"
+  },
+  "1f969.png": {
+    "x": 432,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "cut_of_meat"
+  },
+  "1f96a.png": {
+    "x": 504,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "sandwich"
+  },
+  "1f96b.png": {
+    "x": 576,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "canned_food"
+  },
+  "1f96c.png": {
+    "x": 648,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "leafy_green"
+  },
+  "1f96d.png": {
+    "x": 0,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "mango"
+  },
+  "1f96e.png": {
+    "x": 72,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "moon_cake"
+  },
+  "1f96f.png": {
+    "x": 144,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "bagel"
+  },
+  "1f980.png": {
+    "x": 216,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "crab"
+  },
+  "1f990.png": {
+    "x": 288,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "shrimp"
+  },
+  "1f991.png": {
+    "x": 360,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "squid"
+  },
+  "1f99e.png": {
+    "x": 432,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "lobster"
+  },
+  "1f9aa.png": {
+    "x": 504,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "oyster"
+  },
+  "1f9c0.png": {
+    "x": 576,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "cheese_wedge"
+  },
+  "1f9c1.png": {
+    "x": 648,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "cupcake"
+  },
+  "1f9c2.png": {
+    "x": 0,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "salt"
+  },
+  "1f9c3.png": {
+    "x": 72,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "beverage_box"
+  },
+  "1f9c4.png": {
+    "x": 144,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "garlic"
+  },
+  "1f9c5.png": {
+    "x": 216,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "onion"
+  },
+  "1f9c6.png": {
+    "x": 288,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "falafel"
+  },
+  "1f9c7.png": {
+    "x": 360,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "waffle"
+  },
+  "1f9c8.png": {
+    "x": 432,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "butter"
+  },
+  "1f9c9.png": {
+    "x": 504,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "mate_drink"
+  },
+  "1f9ca.png": {
+    "x": 576,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "ice_cube"
+  },
+  "1f9cb.png": {
+    "x": 648,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "bubble_tea"
+  },
+  "1fad0.png": {
+    "x": 0,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "blueberries"
+  },
+  "1fad1.png": {
+    "x": 72,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "bell_pepper"
+  },
+  "1fad2.png": {
+    "x": 144,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "olive"
+  },
+  "1fad3.png": {
+    "x": 216,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "flatbread"
+  },
+  "1fad4.png": {
+    "x": 288,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "tamale"
+  },
+  "1fad5.png": {
+    "x": 360,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "fondue"
+  },
+  "1fad6.png": {
+    "x": 432,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "teapot"
+  },
+  "1fad7.png": {
+    "x": 504,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "pouring_liquid"
+  },
+  "1fad8.png": {
+    "x": 576,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "beans"
+  },
+  "1fad9.png": {
+    "x": 648,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "jar"
+  },
+  "2615.png": {
+    "x": 0,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "coffee"
+  }
+}

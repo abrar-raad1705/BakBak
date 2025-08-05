@@ -1,0 +1,1528 @@
+{
+  "1f300.png": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "cyclone"
+  },
+  "1f301.png": {
+    "x": 72,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "foggy"
+  },
+  "1f302.png": {
+    "x": 144,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "closed_umbrella"
+  },
+  "1f303.png": {
+    "x": 216,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "night_with_stars"
+  },
+  "1f304.png": {
+    "x": 288,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "sunrise_over_mountains"
+  },
+  "1f305.png": {
+    "x": 360,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "sunrise"
+  },
+  "1f306.png": {
+    "x": 432,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "city_sunset"
+  },
+  "1f307.png": {
+    "x": 504,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "city_sunrise"
+  },
+  "1f308.png": {
+    "x": 576,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "rainbow"
+  },
+  "1f309.png": {
+    "x": 648,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "bridge_at_night"
+  },
+  "1f30a.png": {
+    "x": 0,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "ocean"
+  },
+  "1f30b.png": {
+    "x": 72,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "volcano"
+  },
+  "1f30c.png": {
+    "x": 144,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "milky_way"
+  },
+  "1f30d.png": {
+    "x": 216,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "earth_africa"
+  },
+  "1f30e.png": {
+    "x": 288,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "earth_americas"
+  },
+  "1f30f.png": {
+    "x": 360,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "earth_asia"
+  },
+  "1f310.png": {
+    "x": 432,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "globe_with_meridians"
+  },
+  "1f311.png": {
+    "x": 504,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "new_moon"
+  },
+  "1f312.png": {
+    "x": 576,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "waxing_crescent_moon"
+  },
+  "1f313.png": {
+    "x": 648,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "first_quarter_moon"
+  },
+  "1f314.png": {
+    "x": 0,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "moon"
+  },
+  "1f315.png": {
+    "x": 72,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "full_moon"
+  },
+  "1f316.png": {
+    "x": 144,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "waning_gibbous_moon"
+  },
+  "1f317.png": {
+    "x": 216,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "last_quarter_moon"
+  },
+  "1f318.png": {
+    "x": 288,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "waning_crescent_moon"
+  },
+  "1f319.png": {
+    "x": 360,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "crescent_moon"
+  },
+  "1f31a.png": {
+    "x": 432,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "new_moon_with_face"
+  },
+  "1f31b.png": {
+    "x": 504,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "first_quarter_moon_with_face"
+  },
+  "1f31c.png": {
+    "x": 576,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "last_quarter_moon_with_face"
+  },
+  "1f31d.png": {
+    "x": 648,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "full_moon_with_face"
+  },
+  "1f31e.png": {
+    "x": 0,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "sun_with_face"
+  },
+  "1f31f.png": {
+    "x": 72,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "star2"
+  },
+  "1f320.png": {
+    "x": 144,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "stars"
+  },
+  "1f321.png": {
+    "x": 216,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f324.png": {
+    "x": 288,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f325.png": {
+    "x": 360,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f326.png": {
+    "x": 432,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f327.png": {
+    "x": 504,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f328.png": {
+    "x": 576,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f329.png": {
+    "x": 648,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f32a.png": {
+    "x": 0,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f32b.png": {
+    "x": 72,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f32c.png": {
+    "x": 144,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3a0.png": {
+    "x": 216,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "carousel_horse"
+  },
+  "1f3a1.png": {
+    "x": 288,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "ferris_wheel"
+  },
+  "1f3a2.png": {
+    "x": 360,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "roller_coaster"
+  },
+  "1f3aa.png": {
+    "x": 432,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "circus_tent"
+  },
+  "1f3cd.png": {
+    "x": 504,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3ce.png": {
+    "x": 576,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d4.png": {
+    "x": 648,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d5.png": {
+    "x": 0,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d6.png": {
+    "x": 72,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d7.png": {
+    "x": 144,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d8.png": {
+    "x": 216,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3d9.png": {
+    "x": 288,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3da.png": {
+    "x": 360,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3db.png": {
+    "x": 432,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3dc.png": {
+    "x": 504,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3dd.png": {
+    "x": 576,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3de.png": {
+    "x": 648,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3df.png": {
+    "x": 0,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3e0.png": {
+    "x": 72,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "house"
+  },
+  "1f3e1.png": {
+    "x": 144,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "house_with_garden"
+  },
+  "1f3e2.png": {
+    "x": 216,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "office"
+  },
+  "1f3e3.png": {
+    "x": 288,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "post_office"
+  },
+  "1f3e4.png": {
+    "x": 360,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "european_post_office"
+  },
+  "1f3e5.png": {
+    "x": 432,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "hospital"
+  },
+  "1f3e6.png": {
+    "x": 504,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "bank"
+  },
+  "1f3e8.png": {
+    "x": 576,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "hotel"
+  },
+  "1f3e9.png": {
+    "x": 648,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "love_hotel"
+  },
+  "1f3ea.png": {
+    "x": 0,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "convenience_store"
+  },
+  "1f3eb.png": {
+    "x": 72,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "school"
+  },
+  "1f3ec.png": {
+    "x": 144,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "department_store"
+  },
+  "1f3ed.png": {
+    "x": 216,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "factory"
+  },
+  "1f3ef.png": {
+    "x": 288,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "japanese_castle"
+  },
+  "1f3f0.png": {
+    "x": 360,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "european_castle"
+  },
+  "1f488.png": {
+    "x": 432,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "barber"
+  },
+  "1f492.png": {
+    "x": 504,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "wedding"
+  },
+  "1f4a7.png": {
+    "x": 576,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "droplet"
+  },
+  "1f4ba.png": {
+    "x": 648,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "seat"
+  },
+  "1f525.png": {
+    "x": 0,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "fire"
+  },
+  "1f54b.png": {
+    "x": 72,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "kaaba"
+  },
+  "1f54c.png": {
+    "x": 144,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "mosque"
+  },
+  "1f54d.png": {
+    "x": 216,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "synagogue"
+  },
+  "1f550.png": {
+    "x": 288,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock1"
+  },
+  "1f551.png": {
+    "x": 360,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock2"
+  },
+  "1f552.png": {
+    "x": 432,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock3"
+  },
+  "1f553.png": {
+    "x": 504,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock4"
+  },
+  "1f554.png": {
+    "x": 576,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock5"
+  },
+  "1f555.png": {
+    "x": 648,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "clock6"
+  },
+  "1f556.png": {
+    "x": 0,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock7"
+  },
+  "1f557.png": {
+    "x": 72,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock8"
+  },
+  "1f558.png": {
+    "x": 144,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock9"
+  },
+  "1f559.png": {
+    "x": 216,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock10"
+  },
+  "1f55a.png": {
+    "x": 288,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock11"
+  },
+  "1f55b.png": {
+    "x": 360,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock12"
+  },
+  "1f55c.png": {
+    "x": 432,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock130"
+  },
+  "1f55d.png": {
+    "x": 504,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock230"
+  },
+  "1f55e.png": {
+    "x": 576,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock330"
+  },
+  "1f55f.png": {
+    "x": 648,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "clock430"
+  },
+  "1f560.png": {
+    "x": 0,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock530"
+  },
+  "1f561.png": {
+    "x": 72,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock630"
+  },
+  "1f562.png": {
+    "x": 144,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock730"
+  },
+  "1f563.png": {
+    "x": 216,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock830"
+  },
+  "1f564.png": {
+    "x": 288,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock930"
+  },
+  "1f565.png": {
+    "x": 360,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock1030"
+  },
+  "1f566.png": {
+    "x": 432,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock1130"
+  },
+  "1f567.png": {
+    "x": 504,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "clock1230"
+  },
+  "1f570.png": {
+    "x": 576,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f5fa.png": {
+    "x": 648,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f5fb.png": {
+    "x": 0,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "mount_fuji"
+  },
+  "1f5fc.png": {
+    "x": 72,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "tokyo_tower"
+  },
+  "1f5fd.png": {
+    "x": 144,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "statue_of_liberty"
+  },
+  "1f5fe.png": {
+    "x": 216,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "japan"
+  },
+  "1f680.png": {
+    "x": 288,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "rocket"
+  },
+  "1f681.png": {
+    "x": 360,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "helicopter"
+  },
+  "1f682.png": {
+    "x": 432,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "steam_locomotive"
+  },
+  "1f683.png": {
+    "x": 504,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "railway_car"
+  },
+  "1f684.png": {
+    "x": 576,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "bullettrain_side"
+  },
+  "1f685.png": {
+    "x": 648,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "bullettrain_front"
+  },
+  "1f686.png": {
+    "x": 0,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "train2"
+  },
+  "1f687.png": {
+    "x": 72,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "metro"
+  },
+  "1f688.png": {
+    "x": 144,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "light_rail"
+  },
+  "1f689.png": {
+    "x": 216,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "station"
+  },
+  "1f68a.png": {
+    "x": 288,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "tram"
+  },
+  "1f68b.png": {
+    "x": 360,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "train"
+  },
+  "1f68c.png": {
+    "x": 432,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "bus"
+  },
+  "1f68d.png": {
+    "x": 504,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "oncoming_bus"
+  },
+  "1f68e.png": {
+    "x": 576,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "trolleybus"
+  },
+  "1f68f.png": {
+    "x": 648,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "busstop"
+  },
+  "1f690.png": {
+    "x": 0,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "minibus"
+  },
+  "1f691.png": {
+    "x": 72,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "ambulance"
+  },
+  "1f692.png": {
+    "x": 144,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "fire_engine"
+  },
+  "1f693.png": {
+    "x": 216,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "police_car"
+  },
+  "1f694.png": {
+    "x": 288,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "oncoming_police_car"
+  },
+  "1f695.png": {
+    "x": 360,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "taxi"
+  },
+  "1f696.png": {
+    "x": 432,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "oncoming_taxi"
+  },
+  "1f697.png": {
+    "x": 504,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "car"
+  },
+  "1f698.png": {
+    "x": 576,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "oncoming_automobile"
+  },
+  "1f699.png": {
+    "x": 648,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "blue_car"
+  },
+  "1f69a.png": {
+    "x": 0,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "truck"
+  },
+  "1f69b.png": {
+    "x": 72,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "articulated_lorry"
+  },
+  "1f69c.png": {
+    "x": 144,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "tractor"
+  },
+  "1f69d.png": {
+    "x": 216,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "monorail"
+  },
+  "1f69e.png": {
+    "x": 288,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "mountain_railway"
+  },
+  "1f69f.png": {
+    "x": 360,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "suspension_railway"
+  },
+  "1f6a0.png": {
+    "x": 432,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "mountain_cableway"
+  },
+  "1f6a1.png": {
+    "x": 504,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "aerial_tramway"
+  },
+  "1f6a2.png": {
+    "x": 576,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "ship"
+  },
+  "1f6a4.png": {
+    "x": 648,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "speedboat"
+  },
+  "1f6a5.png": {
+    "x": 0,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "traffic_light"
+  },
+  "1f6a6.png": {
+    "x": 72,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "vertical_traffic_light"
+  },
+  "1f6a7.png": {
+    "x": 144,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "construction"
+  },
+  "1f6a8.png": {
+    "x": 216,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "rotating_light"
+  },
+  "1f6b2.png": {
+    "x": 288,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "bike"
+  },
+  "1f6ce.png": {
+    "x": 360,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6d1.png": {
+    "x": 432,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "octagonal_sign"
+  },
+  "1f6d5.png": {
+    "x": 504,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "hindu_temple"
+  },
+  "1f6d6.png": {
+    "x": 576,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "hut"
+  },
+  "1f6dd.png": {
+    "x": 648,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "playground_slide"
+  },
+  "1f6de.png": {
+    "x": 0,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": "wheel"
+  },
+  "1f6df.png": {
+    "x": 72,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": "ring_buoy"
+  },
+  "1f6e2.png": {
+    "x": 144,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6e3.png": {
+    "x": 216,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6e4.png": {
+    "x": 288,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6e5.png": {
+    "x": 360,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6e9.png": {
+    "x": 432,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6eb.png": {
+    "x": 504,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": "airplane_departure"
+  },
+  "1f6ec.png": {
+    "x": 576,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": "airplane_arriving"
+  },
+  "1f6f0.png": {
+    "x": 648,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6f3.png": {
+    "x": 0,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6f4.png": {
+    "x": 72,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "scooter"
+  },
+  "1f6f5.png": {
+    "x": 144,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "motor_scooter"
+  },
+  "1f6f6.png": {
+    "x": 216,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "canoe"
+  },
+  "1f6f8.png": {
+    "x": 288,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "flying_saucer"
+  },
+  "1f6f9.png": {
+    "x": 360,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "skateboard"
+  },
+  "1f6fa.png": {
+    "x": 432,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "auto_rickshaw"
+  },
+  "1f6fb.png": {
+    "x": 504,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "pickup_truck"
+  },
+  "1f6fc.png": {
+    "x": 576,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "roller_skate"
+  },
+  "1f9bc.png": {
+    "x": 648,
+    "y": 1224,
+    "width": 72,
+    "height": 72,
+    "name": "motorized_wheelchair"
+  },
+  "1f9bd.png": {
+    "x": 0,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "manual_wheelchair"
+  },
+  "1f9ed.png": {
+    "x": 72,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "compass"
+  },
+  "1f9f1.png": {
+    "x": 144,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "bricks"
+  },
+  "1f9f3.png": {
+    "x": 216,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "luggage"
+  },
+  "1fa82.png": {
+    "x": 288,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "parachute"
+  },
+  "1fa90.png": {
+    "x": 360,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "ringed_planet"
+  },
+  "1faa8.png": {
+    "x": 432,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "rock"
+  },
+  "1fab5.png": {
+    "x": 504,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "wood"
+  },
+  "231a.png": {
+    "x": 576,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "watch"
+  },
+  "231b.png": {
+    "x": 648,
+    "y": 1296,
+    "width": 72,
+    "height": 72,
+    "name": "hourglass"
+  },
+  "23f0.png": {
+    "x": 0,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": "alarm_clock"
+  },
+  "23f1.png": {
+    "x": 72,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "23f2.png": {
+    "x": 144,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "23f3.png": {
+    "x": 216,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": "hourglass_flowing_sand"
+  },
+  "2600.png": {
+    "x": 288,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2601.png": {
+    "x": 360,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2602.png": {
+    "x": 432,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2603.png": {
+    "x": 504,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2604.png": {
+    "x": 576,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2614.png": {
+    "x": 648,
+    "y": 1368,
+    "width": 72,
+    "height": 72,
+    "name": "umbrella_with_rain_drops"
+  },
+  "2668.png": {
+    "x": 0,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2693.png": {
+    "x": 72,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": "anchor"
+  },
+  "26a1.png": {
+    "x": 144,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": "zap"
+  },
+  "26c4.png": {
+    "x": 216,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": "snowman_without_snow"
+  },
+  "26c5.png": {
+    "x": 288,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": "partly_sunny"
+  },
+  "26c8.png": {
+    "x": 360,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26e9.png": {
+    "x": 432,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26ea.png": {
+    "x": 504,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": "church"
+  },
+  "26f0.png": {
+    "x": 576,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26f1.png": {
+    "x": 648,
+    "y": 1440,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26f2.png": {
+    "x": 0,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": "fountain"
+  },
+  "26f4.png": {
+    "x": 72,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26f5.png": {
+    "x": 144,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": "boat"
+  },
+  "26fa.png": {
+    "x": 216,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": "tent"
+  },
+  "26fd.png": {
+    "x": 288,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": "fuelpump"
+  },
+  "2708.png": {
+    "x": 360,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2744.png": {
+    "x": 432,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2b50.png": {
+    "x": 504,
+    "y": 1512,
+    "width": 72,
+    "height": 72,
+    "name": "star"
+  }
+}

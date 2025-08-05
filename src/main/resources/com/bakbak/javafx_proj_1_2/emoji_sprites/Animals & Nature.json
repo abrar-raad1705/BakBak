@@ -1,0 +1,1017 @@
+{
+  "1f331.png": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "seedling"
+  },
+  "1f332.png": {
+    "x": 72,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "evergreen_tree"
+  },
+  "1f333.png": {
+    "x": 144,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "deciduous_tree"
+  },
+  "1f334.png": {
+    "x": 216,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "palm_tree"
+  },
+  "1f335.png": {
+    "x": 288,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "cactus"
+  },
+  "1f337.png": {
+    "x": 360,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "tulip"
+  },
+  "1f338.png": {
+    "x": 432,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "cherry_blossom"
+  },
+  "1f339.png": {
+    "x": 504,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "rose"
+  },
+  "1f33a.png": {
+    "x": 576,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "hibiscus"
+  },
+  "1f33b.png": {
+    "x": 648,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "sunflower"
+  },
+  "1f33c.png": {
+    "x": 0,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "blossom"
+  },
+  "1f33e.png": {
+    "x": 72,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "ear_of_rice"
+  },
+  "1f33f.png": {
+    "x": 144,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "herb"
+  },
+  "1f340.png": {
+    "x": 216,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "four_leaf_clover"
+  },
+  "1f341.png": {
+    "x": 288,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "maple_leaf"
+  },
+  "1f342.png": {
+    "x": 360,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "fallen_leaf"
+  },
+  "1f343.png": {
+    "x": 432,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "leaves"
+  },
+  "1f344.png": {
+    "x": 504,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "mushroom"
+  },
+  "1f3f5.png": {
+    "x": 576,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f400.png": {
+    "x": 648,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "rat"
+  },
+  "1f401.png": {
+    "x": 0,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "mouse2"
+  },
+  "1f402.png": {
+    "x": 72,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "ox"
+  },
+  "1f403.png": {
+    "x": 144,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "water_buffalo"
+  },
+  "1f404.png": {
+    "x": 216,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "cow2"
+  },
+  "1f405.png": {
+    "x": 288,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "tiger2"
+  },
+  "1f406.png": {
+    "x": 360,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "leopard"
+  },
+  "1f407.png": {
+    "x": 432,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "rabbit2"
+  },
+  "1f408-200d-2b1b.png": {
+    "x": 504,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "black_cat"
+  },
+  "1f408.png": {
+    "x": 576,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "cat2"
+  },
+  "1f409.png": {
+    "x": 648,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "dragon"
+  },
+  "1f40a.png": {
+    "x": 0,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "crocodile"
+  },
+  "1f40b.png": {
+    "x": 72,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "whale2"
+  },
+  "1f40c.png": {
+    "x": 144,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "snail"
+  },
+  "1f40d.png": {
+    "x": 216,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "snake"
+  },
+  "1f40e.png": {
+    "x": 288,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "racehorse"
+  },
+  "1f40f.png": {
+    "x": 360,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "ram"
+  },
+  "1f410.png": {
+    "x": 432,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "goat"
+  },
+  "1f411.png": {
+    "x": 504,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "sheep"
+  },
+  "1f412.png": {
+    "x": 576,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "monkey"
+  },
+  "1f413.png": {
+    "x": 648,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "rooster"
+  },
+  "1f414.png": {
+    "x": 0,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "chicken"
+  },
+  "1f415-200d-1f9ba.png": {
+    "x": 72,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "service_dog"
+  },
+  "1f415.png": {
+    "x": 144,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "dog2"
+  },
+  "1f416.png": {
+    "x": 216,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "pig2"
+  },
+  "1f417.png": {
+    "x": 288,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "boar"
+  },
+  "1f418.png": {
+    "x": 360,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "elephant"
+  },
+  "1f419.png": {
+    "x": 432,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "octopus"
+  },
+  "1f41a.png": {
+    "x": 504,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "shell"
+  },
+  "1f41b.png": {
+    "x": 576,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "bug"
+  },
+  "1f41c.png": {
+    "x": 648,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "ant"
+  },
+  "1f41d.png": {
+    "x": 0,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "bee"
+  },
+  "1f41e.png": {
+    "x": 72,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "ladybug"
+  },
+  "1f41f.png": {
+    "x": 144,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "fish"
+  },
+  "1f420.png": {
+    "x": 216,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "tropical_fish"
+  },
+  "1f421.png": {
+    "x": 288,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "blowfish"
+  },
+  "1f422.png": {
+    "x": 360,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "turtle"
+  },
+  "1f423.png": {
+    "x": 432,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "hatching_chick"
+  },
+  "1f424.png": {
+    "x": 504,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "baby_chick"
+  },
+  "1f425.png": {
+    "x": 576,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "hatched_chick"
+  },
+  "1f426.png": {
+    "x": 648,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "bird"
+  },
+  "1f427.png": {
+    "x": 0,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "penguin"
+  },
+  "1f428.png": {
+    "x": 72,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "koala"
+  },
+  "1f429.png": {
+    "x": 144,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "poodle"
+  },
+  "1f42a.png": {
+    "x": 216,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "dromedary_camel"
+  },
+  "1f42b.png": {
+    "x": 288,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "camel"
+  },
+  "1f42c.png": {
+    "x": 360,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "dolphin"
+  },
+  "1f42d.png": {
+    "x": 432,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "mouse"
+  },
+  "1f42e.png": {
+    "x": 504,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "cow"
+  },
+  "1f42f.png": {
+    "x": 576,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "tiger"
+  },
+  "1f430.png": {
+    "x": 648,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "rabbit"
+  },
+  "1f431.png": {
+    "x": 0,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "cat"
+  },
+  "1f432.png": {
+    "x": 72,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "dragon_face"
+  },
+  "1f433.png": {
+    "x": 144,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "whale"
+  },
+  "1f434.png": {
+    "x": 216,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "horse"
+  },
+  "1f435.png": {
+    "x": 288,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "monkey_face"
+  },
+  "1f436.png": {
+    "x": 360,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "dog"
+  },
+  "1f437.png": {
+    "x": 432,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "pig"
+  },
+  "1f438.png": {
+    "x": 504,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "frog"
+  },
+  "1f439.png": {
+    "x": 576,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "hamster"
+  },
+  "1f43a.png": {
+    "x": 648,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "wolf"
+  },
+  "1f43b-200d-2744-fe0f.png": {
+    "x": 0,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "polar_bear"
+  },
+  "1f43b.png": {
+    "x": 72,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "bear"
+  },
+  "1f43c.png": {
+    "x": 144,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "panda_face"
+  },
+  "1f43d.png": {
+    "x": 216,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "pig_nose"
+  },
+  "1f43e.png": {
+    "x": 288,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "feet"
+  },
+  "1f43f.png": {
+    "x": 360,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f490.png": {
+    "x": 432,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "bouquet"
+  },
+  "1f4ae.png": {
+    "x": 504,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "white_flower"
+  },
+  "1f54a.png": {
+    "x": 576,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f577.png": {
+    "x": 648,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f578.png": {
+    "x": 0,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f940.png": {
+    "x": 72,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "wilted_flower"
+  },
+  "1f981.png": {
+    "x": 144,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "lion_face"
+  },
+  "1f982.png": {
+    "x": 216,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "scorpion"
+  },
+  "1f983.png": {
+    "x": 288,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "turkey"
+  },
+  "1f984.png": {
+    "x": 360,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "unicorn_face"
+  },
+  "1f985.png": {
+    "x": 432,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "eagle"
+  },
+  "1f986.png": {
+    "x": 504,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "duck"
+  },
+  "1f987.png": {
+    "x": 576,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "bat"
+  },
+  "1f988.png": {
+    "x": 648,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "shark"
+  },
+  "1f989.png": {
+    "x": 0,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "owl"
+  },
+  "1f98a.png": {
+    "x": 72,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "fox_face"
+  },
+  "1f98b.png": {
+    "x": 144,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "butterfly"
+  },
+  "1f98c.png": {
+    "x": 216,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "deer"
+  },
+  "1f98d.png": {
+    "x": 288,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "gorilla"
+  },
+  "1f98e.png": {
+    "x": 360,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "lizard"
+  },
+  "1f98f.png": {
+    "x": 432,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "rhinoceros"
+  },
+  "1f992.png": {
+    "x": 504,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "giraffe_face"
+  },
+  "1f993.png": {
+    "x": 576,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "zebra_face"
+  },
+  "1f994.png": {
+    "x": 648,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "hedgehog"
+  },
+  "1f995.png": {
+    "x": 0,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "sauropod"
+  },
+  "1f996.png": {
+    "x": 72,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "t-rex"
+  },
+  "1f997.png": {
+    "x": 144,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "cricket"
+  },
+  "1f998.png": {
+    "x": 216,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "kangaroo"
+  },
+  "1f999.png": {
+    "x": 288,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "llama"
+  },
+  "1f99a.png": {
+    "x": 360,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "peacock"
+  },
+  "1f99b.png": {
+    "x": 432,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "hippopotamus"
+  },
+  "1f99c.png": {
+    "x": 504,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "parrot"
+  },
+  "1f99d.png": {
+    "x": 576,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "raccoon"
+  },
+  "1f99f.png": {
+    "x": 648,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "mosquito"
+  },
+  "1f9a0.png": {
+    "x": 0,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "microbe"
+  },
+  "1f9a1.png": {
+    "x": 72,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "badger"
+  },
+  "1f9a2.png": {
+    "x": 144,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "swan"
+  },
+  "1f9a3.png": {
+    "x": 216,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "mammoth"
+  },
+  "1f9a4.png": {
+    "x": 288,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "dodo"
+  },
+  "1f9a5.png": {
+    "x": 360,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "sloth"
+  },
+  "1f9a6.png": {
+    "x": 432,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "otter"
+  },
+  "1f9a7.png": {
+    "x": 504,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "orangutan"
+  },
+  "1f9a8.png": {
+    "x": 576,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "skunk"
+  },
+  "1f9a9.png": {
+    "x": 648,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "flamingo"
+  },
+  "1f9ab.png": {
+    "x": 0,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "beaver"
+  },
+  "1f9ac.png": {
+    "x": 72,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "bison"
+  },
+  "1f9ad.png": {
+    "x": 144,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "seal"
+  },
+  "1f9ae.png": {
+    "x": 216,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "guide_dog"
+  },
+  "1fab0.png": {
+    "x": 288,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "fly"
+  },
+  "1fab1.png": {
+    "x": 360,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "worm"
+  },
+  "1fab2.png": {
+    "x": 432,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "beetle"
+  },
+  "1fab3.png": {
+    "x": 504,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "cockroach"
+  },
+  "1fab4.png": {
+    "x": 576,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "potted_plant"
+  },
+  "1fab6.png": {
+    "x": 648,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "feather"
+  },
+  "1fab7.png": {
+    "x": 0,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "lotus"
+  },
+  "1fab8.png": {
+    "x": 72,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "coral"
+  },
+  "1fab9.png": {
+    "x": 144,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "empty_nest"
+  },
+  "1faba.png": {
+    "x": 216,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "nest_with_eggs"
+  },
+  "2618.png": {
+    "x": 288,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": null
+  }
+}

@@ -1,0 +1,1136 @@
+{
+  "1f441-200d-1f5e8.png": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f479.png": {
+    "x": 72,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "japanese_ogre"
+  },
+  "1f47a.png": {
+    "x": 144,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "japanese_goblin"
+  },
+  "1f47b.png": {
+    "x": 216,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "ghost"
+  },
+  "1f47d.png": {
+    "x": 288,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "alien"
+  },
+  "1f47e.png": {
+    "x": 360,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "space_invader"
+  },
+  "1f47f.png": {
+    "x": 432,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "imp"
+  },
+  "1f480.png": {
+    "x": 504,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "skull"
+  },
+  "1f48b.png": {
+    "x": 576,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "kiss"
+  },
+  "1f48c.png": {
+    "x": 648,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "love_letter"
+  },
+  "1f493.png": {
+    "x": 0,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "heartbeat"
+  },
+  "1f494.png": {
+    "x": 72,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "broken_heart"
+  },
+  "1f495.png": {
+    "x": 144,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "two_hearts"
+  },
+  "1f496.png": {
+    "x": 216,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "sparkling_heart"
+  },
+  "1f497.png": {
+    "x": 288,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "heartpulse"
+  },
+  "1f498.png": {
+    "x": 360,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "cupid"
+  },
+  "1f499.png": {
+    "x": 432,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "blue_heart"
+  },
+  "1f49a.png": {
+    "x": 504,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "green_heart"
+  },
+  "1f49b.png": {
+    "x": 576,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "yellow_heart"
+  },
+  "1f49c.png": {
+    "x": 648,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "purple_heart"
+  },
+  "1f49d.png": {
+    "x": 0,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "gift_heart"
+  },
+  "1f49e.png": {
+    "x": 72,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "revolving_hearts"
+  },
+  "1f49f.png": {
+    "x": 144,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "heart_decoration"
+  },
+  "1f4a2.png": {
+    "x": 216,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "anger"
+  },
+  "1f4a4.png": {
+    "x": 288,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "zzz"
+  },
+  "1f4a5.png": {
+    "x": 360,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "boom"
+  },
+  "1f4a6.png": {
+    "x": 432,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "sweat_drops"
+  },
+  "1f4a8.png": {
+    "x": 504,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "dash"
+  },
+  "1f4a9.png": {
+    "x": 576,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "hankey"
+  },
+  "1f4ab.png": {
+    "x": 648,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "dizzy"
+  },
+  "1f4ac.png": {
+    "x": 0,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "speech_balloon"
+  },
+  "1f4ad.png": {
+    "x": 72,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "thought_balloon"
+  },
+  "1f4af.png": {
+    "x": 144,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "100"
+  },
+  "1f573.png": {
+    "x": 216,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f5a4.png": {
+    "x": 288,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "black_heart"
+  },
+  "1f5e8.png": {
+    "x": 360,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f5ef.png": {
+    "x": 432,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f600.png": {
+    "x": 504,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "grinning"
+  },
+  "1f601.png": {
+    "x": 576,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "grin"
+  },
+  "1f602.png": {
+    "x": 648,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "joy"
+  },
+  "1f603.png": {
+    "x": 0,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "smiley"
+  },
+  "1f604.png": {
+    "x": 72,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "smile"
+  },
+  "1f605.png": {
+    "x": 144,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "sweat_smile"
+  },
+  "1f606.png": {
+    "x": 216,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "laughing"
+  },
+  "1f607.png": {
+    "x": 288,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "innocent"
+  },
+  "1f608.png": {
+    "x": 360,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "smiling_imp"
+  },
+  "1f609.png": {
+    "x": 432,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "wink"
+  },
+  "1f60a.png": {
+    "x": 504,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "blush"
+  },
+  "1f60b.png": {
+    "x": 576,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "yum"
+  },
+  "1f60c.png": {
+    "x": 648,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "relieved"
+  },
+  "1f60d.png": {
+    "x": 0,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "heart_eyes"
+  },
+  "1f60e.png": {
+    "x": 72,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "sunglasses"
+  },
+  "1f60f.png": {
+    "x": 144,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "smirk"
+  },
+  "1f610.png": {
+    "x": 216,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "neutral_face"
+  },
+  "1f611.png": {
+    "x": 288,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "expressionless"
+  },
+  "1f612.png": {
+    "x": 360,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "unamused"
+  },
+  "1f613.png": {
+    "x": 432,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "sweat"
+  },
+  "1f614.png": {
+    "x": 504,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "pensive"
+  },
+  "1f615.png": {
+    "x": 576,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "confused"
+  },
+  "1f616.png": {
+    "x": 648,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "confounded"
+  },
+  "1f617.png": {
+    "x": 0,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "kissing"
+  },
+  "1f618.png": {
+    "x": 72,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "kissing_heart"
+  },
+  "1f619.png": {
+    "x": 144,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "kissing_smiling_eyes"
+  },
+  "1f61a.png": {
+    "x": 216,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "kissing_closed_eyes"
+  },
+  "1f61b.png": {
+    "x": 288,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "stuck_out_tongue"
+  },
+  "1f61c.png": {
+    "x": 360,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "stuck_out_tongue_winking_eye"
+  },
+  "1f61d.png": {
+    "x": 432,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "stuck_out_tongue_closed_eyes"
+  },
+  "1f61e.png": {
+    "x": 504,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "disappointed"
+  },
+  "1f61f.png": {
+    "x": 576,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "worried"
+  },
+  "1f620.png": {
+    "x": 648,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "angry"
+  },
+  "1f621.png": {
+    "x": 0,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "rage"
+  },
+  "1f622.png": {
+    "x": 72,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "cry"
+  },
+  "1f623.png": {
+    "x": 144,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "persevere"
+  },
+  "1f624.png": {
+    "x": 216,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "triumph"
+  },
+  "1f625.png": {
+    "x": 288,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "disappointed_relieved"
+  },
+  "1f626.png": {
+    "x": 360,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "frowning"
+  },
+  "1f627.png": {
+    "x": 432,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "anguished"
+  },
+  "1f628.png": {
+    "x": 504,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "fearful"
+  },
+  "1f629.png": {
+    "x": 576,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "weary"
+  },
+  "1f62a.png": {
+    "x": 648,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "sleepy"
+  },
+  "1f62b.png": {
+    "x": 0,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "tired_face"
+  },
+  "1f62c.png": {
+    "x": 72,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "grimacing"
+  },
+  "1f62d.png": {
+    "x": 144,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "sob"
+  },
+  "1f62e-200d-1f4a8.png": {
+    "x": 216,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "face_exhaling"
+  },
+  "1f62e.png": {
+    "x": 288,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "open_mouth"
+  },
+  "1f62f.png": {
+    "x": 360,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "hushed"
+  },
+  "1f630.png": {
+    "x": 432,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "cold_sweat"
+  },
+  "1f631.png": {
+    "x": 504,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "scream"
+  },
+  "1f632.png": {
+    "x": 576,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "astonished"
+  },
+  "1f633.png": {
+    "x": 648,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "flushed"
+  },
+  "1f634.png": {
+    "x": 0,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "sleeping"
+  },
+  "1f635-200d-1f4ab.png": {
+    "x": 72,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_spiral_eyes"
+  },
+  "1f635.png": {
+    "x": 144,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "dizzy_face"
+  },
+  "1f636-200d-1f32b-fe0f.png": {
+    "x": 216,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "face_in_clouds"
+  },
+  "1f636.png": {
+    "x": 288,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "no_mouth"
+  },
+  "1f637.png": {
+    "x": 360,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "mask"
+  },
+  "1f638.png": {
+    "x": 432,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "smile_cat"
+  },
+  "1f639.png": {
+    "x": 504,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "joy_cat"
+  },
+  "1f63a.png": {
+    "x": 576,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "smiley_cat"
+  },
+  "1f63b.png": {
+    "x": 648,
+    "y": 648,
+    "width": 72,
+    "height": 72,
+    "name": "heart_eyes_cat"
+  },
+  "1f63c.png": {
+    "x": 0,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "smirk_cat"
+  },
+  "1f63d.png": {
+    "x": 72,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "kissing_cat"
+  },
+  "1f63e.png": {
+    "x": 144,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "pouting_cat"
+  },
+  "1f63f.png": {
+    "x": 216,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "crying_cat_face"
+  },
+  "1f640.png": {
+    "x": 288,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "scream_cat"
+  },
+  "1f641.png": {
+    "x": 360,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "slightly_frowning_face"
+  },
+  "1f642.png": {
+    "x": 432,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "slightly_smiling_face"
+  },
+  "1f643.png": {
+    "x": 504,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "upside_down_face"
+  },
+  "1f644.png": {
+    "x": 576,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_rolling_eyes"
+  },
+  "1f648.png": {
+    "x": 648,
+    "y": 720,
+    "width": 72,
+    "height": 72,
+    "name": "see_no_evil"
+  },
+  "1f649.png": {
+    "x": 0,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "hear_no_evil"
+  },
+  "1f64a.png": {
+    "x": 72,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "speak_no_evil"
+  },
+  "1f90d.png": {
+    "x": 144,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "white_heart"
+  },
+  "1f90e.png": {
+    "x": 216,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "brown_heart"
+  },
+  "1f910.png": {
+    "x": 288,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "zipper_mouth_face"
+  },
+  "1f911.png": {
+    "x": 360,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "money_mouth_face"
+  },
+  "1f912.png": {
+    "x": 432,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_thermometer"
+  },
+  "1f913.png": {
+    "x": 504,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "nerd_face"
+  },
+  "1f914.png": {
+    "x": 576,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "thinking_face"
+  },
+  "1f915.png": {
+    "x": 648,
+    "y": 792,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_head_bandage"
+  },
+  "1f916.png": {
+    "x": 0,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "robot_face"
+  },
+  "1f917.png": {
+    "x": 72,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "hugging_face"
+  },
+  "1f920.png": {
+    "x": 144,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_cowboy_hat"
+  },
+  "1f921.png": {
+    "x": 216,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "clown_face"
+  },
+  "1f922.png": {
+    "x": 288,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "nauseated_face"
+  },
+  "1f923.png": {
+    "x": 360,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "rolling_on_the_floor_laughing"
+  },
+  "1f924.png": {
+    "x": 432,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "drooling_face"
+  },
+  "1f925.png": {
+    "x": 504,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "lying_face"
+  },
+  "1f927.png": {
+    "x": 576,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "sneezing_face"
+  },
+  "1f928.png": {
+    "x": 648,
+    "y": 864,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_raised_eyebrow"
+  },
+  "1f929.png": {
+    "x": 0,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "star-struck"
+  },
+  "1f92a.png": {
+    "x": 72,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "zany_face"
+  },
+  "1f92b.png": {
+    "x": 144,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "shushing_face"
+  },
+  "1f92c.png": {
+    "x": 216,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_symbols_on_mouth"
+  },
+  "1f92d.png": {
+    "x": 288,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_hand_over_mouth"
+  },
+  "1f92e.png": {
+    "x": 360,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "face_vomiting"
+  },
+  "1f92f.png": {
+    "x": 432,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "exploding_head"
+  },
+  "1f970.png": {
+    "x": 504,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "smiling_face_with_3_hearts"
+  },
+  "1f971.png": {
+    "x": 576,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "yawning_face"
+  },
+  "1f972.png": {
+    "x": 648,
+    "y": 936,
+    "width": 72,
+    "height": 72,
+    "name": "smiling_face_with_tear"
+  },
+  "1f973.png": {
+    "x": 0,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "partying_face"
+  },
+  "1f974.png": {
+    "x": 72,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "woozy_face"
+  },
+  "1f975.png": {
+    "x": 144,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "hot_face"
+  },
+  "1f976.png": {
+    "x": 216,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "cold_face"
+  },
+  "1f978.png": {
+    "x": 288,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "disguised_face"
+  },
+  "1f979.png": {
+    "x": 360,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "face_holding_back_tears"
+  },
+  "1f97a.png": {
+    "x": 432,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "pleading_face"
+  },
+  "1f9d0.png": {
+    "x": 504,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_monocle"
+  },
+  "1f9e1.png": {
+    "x": 576,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "orange_heart"
+  },
+  "1fae0.png": {
+    "x": 648,
+    "y": 1008,
+    "width": 72,
+    "height": 72,
+    "name": "melting_face"
+  },
+  "1fae1.png": {
+    "x": 0,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "saluting_face"
+  },
+  "1fae2.png": {
+    "x": 72,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_open_eyes_and_hand_over_mouth"
+  },
+  "1fae3.png": {
+    "x": 144,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_peeking_eye"
+  },
+  "1fae4.png": {
+    "x": 216,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "face_with_diagonal_mouth"
+  },
+  "1fae5.png": {
+    "x": 288,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "dotted_line_face"
+  },
+  "2620.png": {
+    "x": 360,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2639.png": {
+    "x": 432,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "263a.png": {
+    "x": 504,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2763.png": {
+    "x": 576,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2764-fe0f-200d-1f525.png": {
+    "x": 648,
+    "y": 1080,
+    "width": 72,
+    "height": 72,
+    "name": "heart_on_fire"
+  },
+  "2764-fe0f-200d-1fa79.png": {
+    "x": 0,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": "mending_heart"
+  },
+  "2764.png": {
+    "x": 72,
+    "y": 1152,
+    "width": 72,
+    "height": 72,
+    "name": null
+  }
+}

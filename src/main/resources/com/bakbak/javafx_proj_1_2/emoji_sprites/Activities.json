@@ -1,0 +1,597 @@
+{
+  "1f004.png": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "mahjong"
+  },
+  "1f0cf.png": {
+    "x": 72,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "black_joker"
+  },
+  "1f380.png": {
+    "x": 144,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "ribbon"
+  },
+  "1f381.png": {
+    "x": 216,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "gift"
+  },
+  "1f383.png": {
+    "x": 288,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "jack_o_lantern"
+  },
+  "1f384.png": {
+    "x": 360,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "christmas_tree"
+  },
+  "1f386.png": {
+    "x": 432,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "fireworks"
+  },
+  "1f387.png": {
+    "x": 504,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "sparkler"
+  },
+  "1f388.png": {
+    "x": 576,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "balloon"
+  },
+  "1f389.png": {
+    "x": 648,
+    "y": 0,
+    "width": 72,
+    "height": 72,
+    "name": "tada"
+  },
+  "1f38a.png": {
+    "x": 0,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "confetti_ball"
+  },
+  "1f38b.png": {
+    "x": 72,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "tanabata_tree"
+  },
+  "1f38d.png": {
+    "x": 144,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "bamboo"
+  },
+  "1f38e.png": {
+    "x": 216,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "dolls"
+  },
+  "1f38f.png": {
+    "x": 288,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "flags"
+  },
+  "1f390.png": {
+    "x": 360,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "wind_chime"
+  },
+  "1f391.png": {
+    "x": 432,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": "rice_scene"
+  },
+  "1f396.png": {
+    "x": 504,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f397.png": {
+    "x": 576,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f39f.png": {
+    "x": 648,
+    "y": 72,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f3a3.png": {
+    "x": 0,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "fishing_pole_and_fish"
+  },
+  "1f3a8.png": {
+    "x": 72,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "art"
+  },
+  "1f3ab.png": {
+    "x": 144,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "ticket"
+  },
+  "1f3ad.png": {
+    "x": 216,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "performing_arts"
+  },
+  "1f3ae.png": {
+    "x": 288,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "video_game"
+  },
+  "1f3af.png": {
+    "x": 360,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "dart"
+  },
+  "1f3b0.png": {
+    "x": 432,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "slot_machine"
+  },
+  "1f3b1.png": {
+    "x": 504,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "8ball"
+  },
+  "1f3b2.png": {
+    "x": 576,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "game_die"
+  },
+  "1f3b3.png": {
+    "x": 648,
+    "y": 144,
+    "width": 72,
+    "height": 72,
+    "name": "bowling"
+  },
+  "1f3b4.png": {
+    "x": 0,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "flower_playing_cards"
+  },
+  "1f3bd.png": {
+    "x": 72,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "running_shirt_with_sash"
+  },
+  "1f3be.png": {
+    "x": 144,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "tennis"
+  },
+  "1f3bf.png": {
+    "x": 216,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "ski"
+  },
+  "1f3c0.png": {
+    "x": 288,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "basketball"
+  },
+  "1f3c5.png": {
+    "x": 360,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "sports_medal"
+  },
+  "1f3c6.png": {
+    "x": 432,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "trophy"
+  },
+  "1f3c8.png": {
+    "x": 504,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "football"
+  },
+  "1f3c9.png": {
+    "x": 576,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "rugby_football"
+  },
+  "1f3cf.png": {
+    "x": 648,
+    "y": 216,
+    "width": 72,
+    "height": 72,
+    "name": "cricket_bat_and_ball"
+  },
+  "1f3d0.png": {
+    "x": 0,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "volleyball"
+  },
+  "1f3d1.png": {
+    "x": 72,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "field_hockey_stick_and_ball"
+  },
+  "1f3d2.png": {
+    "x": 144,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "ice_hockey_stick_and_puck"
+  },
+  "1f3d3.png": {
+    "x": 216,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "table_tennis_paddle_and_ball"
+  },
+  "1f3f8.png": {
+    "x": 288,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "badminton_racquet_and_shuttlecock"
+  },
+  "1f52b.png": {
+    "x": 360,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "gun"
+  },
+  "1f52e.png": {
+    "x": 432,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "crystal_ball"
+  },
+  "1f579.png": {
+    "x": 504,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f5bc.png": {
+    "x": 576,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "1f6f7.png": {
+    "x": 648,
+    "y": 288,
+    "width": 72,
+    "height": 72,
+    "name": "sled"
+  },
+  "1f93f.png": {
+    "x": 0,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "diving_mask"
+  },
+  "1f945.png": {
+    "x": 72,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "goal_net"
+  },
+  "1f947.png": {
+    "x": 144,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "first_place_medal"
+  },
+  "1f948.png": {
+    "x": 216,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "second_place_medal"
+  },
+  "1f949.png": {
+    "x": 288,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "third_place_medal"
+  },
+  "1f94a.png": {
+    "x": 360,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "boxing_glove"
+  },
+  "1f94b.png": {
+    "x": 432,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "martial_arts_uniform"
+  },
+  "1f94c.png": {
+    "x": 504,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "curling_stone"
+  },
+  "1f94d.png": {
+    "x": 576,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "lacrosse"
+  },
+  "1f94e.png": {
+    "x": 648,
+    "y": 360,
+    "width": 72,
+    "height": 72,
+    "name": "softball"
+  },
+  "1f94f.png": {
+    "x": 0,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "flying_disc"
+  },
+  "1f9e7.png": {
+    "x": 72,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "red_envelope"
+  },
+  "1f9e8.png": {
+    "x": 144,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "firecracker"
+  },
+  "1f9e9.png": {
+    "x": 216,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "jigsaw"
+  },
+  "1f9f5.png": {
+    "x": 288,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "thread"
+  },
+  "1f9f6.png": {
+    "x": 360,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "yarn"
+  },
+  "1f9f8.png": {
+    "x": 432,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "teddy_bear"
+  },
+  "1fa80.png": {
+    "x": 504,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "yo-yo"
+  },
+  "1fa81.png": {
+    "x": 576,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "kite"
+  },
+  "1fa84.png": {
+    "x": 648,
+    "y": 432,
+    "width": 72,
+    "height": 72,
+    "name": "magic_wand"
+  },
+  "1fa85.png": {
+    "x": 0,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "pinata"
+  },
+  "1fa86.png": {
+    "x": 72,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "nesting_dolls"
+  },
+  "1faa1.png": {
+    "x": 144,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "sewing_needle"
+  },
+  "1faa2.png": {
+    "x": 216,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "knot"
+  },
+  "1faa9.png": {
+    "x": 288,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": "mirror_ball"
+  },
+  "265f.png": {
+    "x": 360,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2660.png": {
+    "x": 432,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2663.png": {
+    "x": 504,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2665.png": {
+    "x": 576,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2666.png": {
+    "x": 648,
+    "y": 504,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "26bd.png": {
+    "x": 0,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "soccer"
+  },
+  "26be.png": {
+    "x": 72,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "baseball"
+  },
+  "26f3.png": {
+    "x": 144,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "golf"
+  },
+  "26f8.png": {
+    "x": 216,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": null
+  },
+  "2728.png": {
+    "x": 288,
+    "y": 576,
+    "width": 72,
+    "height": 72,
+    "name": "sparkles"
+  }
+}

@@ -16,6 +16,9 @@ import java.nio.file.Paths;
 
 import javafx.scene.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.geometry.Point2D;
+import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.effect.DropShadow;
@@ -30,6 +33,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -53,6 +57,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -102,6 +107,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.stage.Window;
 
 public class ChatController implements Initializable {
 
@@ -152,20 +160,28 @@ public class ChatController implements Initializable {
     private javafx.beans.value.ChangeListener<ChatItem> chatSelectionListener;
     private boolean isSelectingChat = false; // Prevent multiple rapid selections
 
-    // Image-based emoji system
-    private static final String EMOJI_RESOURCES_PATH = "/com/bakbak/javafx_proj_1_2/emojis/";
-    private static final String RECENT_EMOJIS_FILE = "chat_data/recent_emojis.txt";
+    // Modern sprite-based emoji system
+    private static final String EMOJI_SPRITES_PATH = "/com/bakbak/javafx_proj_1_2/emoji_sprites/";
 
-    private List<String> recentlyUsedEmojis = new ArrayList<>();
-    private Map<String, String> emojiNameMap = new HashMap<>(); // filename -> display name
+    private Map<String, List<EmojiData>> emojiCategories = new LinkedHashMap<>();
+    private Map<String, EmojiData> allEmojis = new HashMap<>();
+    
+    // Cache for sprite sheet images to prevent memory issues
+    private Map<String, Image> spriteSheetCache = new HashMap<>();
+    
+    // Active emoji category for canvas rendering
+    private String activeCategory = "Smileys";
+    // Currently hovered emoji in canvas
+    private EmojiData hoveredEmoji = null;
+    // Store caret position when emoji picker opens
+    private int savedCaretPosition = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         chatClient = ChatApplication.getChatClient();
         setupUI();
         setupMessageHandler();
-        loadRecentlyUsedEmojis(); // Load recent emojis
-        initializeEmojiSystem(); // Initialize image-based emojis
+        initializeEmojiSystem(); // Initialize sprite-based emojis
         startLastSeenUpdateTimer(); // Start timer for last seen updates
 
         // Note: loadContacts() is now called after username is set in
@@ -176,93 +192,323 @@ public class ChatController implements Initializable {
     }
 
     private void initializeEmojiSystem() {
-        // Load emoji name mappings from the text file
-        loadEmojiNamesFromFile();
+        System.out.println("DEBUG: Initializing emoji system...");
+        // Load all emoji categories from sprite sheets
+        loadEmojiCategories();
+        System.out.println("DEBUG: Emoji system initialization complete. Total categories: " + emojiCategories.size() + ", Total emojis: " + allEmojis.size());
     }
 
-    private void loadEmojiNamesFromFile() {
-        try {
-            InputStream inputStream = getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/emoji_map.txt");
-            if (inputStream != null) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        // Skip empty lines and the HashMap declaration line
-                        if (line.isEmpty() || line.startsWith("Map<") || line.startsWith("emojiNameMap = new")) {
-                            continue;
-                        }
+    // Data class for emoji information
+    public static class EmojiData {
+        private final String filename;
+        private final String name;
+        private final int x, y, width, height;
+        private final String category;
 
-                        // Parse lines like: emojiNameMap.put("1f004.png", "Mahjong Tile Red Dragon");
-                        if (line.startsWith("emojiNameMap.put(")) {
-                            int firstQuote = line.indexOf('"');
-                            int secondQuote = line.indexOf('"', firstQuote + 1);
-                            int thirdQuote = line.indexOf('"', secondQuote + 1);
-                            int fourthQuote = line.indexOf('"', thirdQuote + 1);
+        public EmojiData(String filename, String name, int x, int y, int width, int height, String category) {
+            this.filename = filename;
+            this.name = name;
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.category = category;
+        }
 
-                            if (firstQuote != -1 && secondQuote != -1 && thirdQuote != -1 && fourthQuote != -1) {
-                                String filename = line.substring(firstQuote + 1, secondQuote);
-                                String displayName = line.substring(thirdQuote + 1, fourthQuote);
-                                emojiNameMap.put(filename, displayName);
-                            }
+        // Getters
+        public String getFilename() { return filename; }
+        public String getName() { return name; }
+        public int getX() { return x; }
+        public int getY() { return y; }
+        public int getWidth() { return width; }
+        public int getHeight() { return height; }
+        public String getCategory() { return category; }
+    }
+    
+    // Canvas-based emoji renderer class
+    private class EmojiCanvas extends Canvas {
+        private List<EmojiData> emojis;
+        private Image spriteSheet;
+        private int columns = 9;
+        private int emojiSize = 32; // Size of each emoji button
+        private int emojiImageSize = 24; // Actual emoji image size within button
+        private int padding = 8;
+        private Tooltip tooltip = new Tooltip();
+        
+        public EmojiCanvas() {
+            this.setWidth(columns * (emojiSize + padding)); // Remove padding subtraction to give more space
+            
+            // Handle hover events to highlight emojis
+            this.setOnMouseMoved(e -> {
+                int col = (int)(e.getX() / (emojiSize + padding));
+                int row = (int)(e.getY() / (emojiSize + padding));
+                int index = row * columns + col;
+                
+                if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
+                    EmojiData emoji = emojis.get(index);
+                    if (hoveredEmoji != emoji) {
+                        hoveredEmoji = emoji;
+                        if (emoji.getName() != null) {
+                            tooltip.setText(emoji.getName());
+                            tooltip.show(this, e.getScreenX() + 15, e.getScreenY() + 15);
                         }
+                        redraw();
+                    }
+                } else {
+                    if (hoveredEmoji != null) {
+                        hoveredEmoji = null;
+                        tooltip.hide();
+                        redraw();
                     }
                 }
-                System.out.println("Loaded " + emojiNameMap.size() + " emoji mappings from file");
-            } else {
-                System.err.println("Could not find emoji_map.txt file, using fallback mappings");
-                loadFallbackEmojiMappings();
+            });
+            
+            // Handle mouse exit to clear hover state
+            this.setOnMouseExited(e -> {
+                hoveredEmoji = null;
+                tooltip.hide();
+                redraw();
+            });
+            
+            // Handle click events to select emoji
+            this.setOnMouseClicked(e -> {
+                int col = (int)(e.getX() / (emojiSize + padding));
+                int row = (int)(e.getY() / (emojiSize + padding));
+                int index = row * columns + col;
+                
+                if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
+                    EmojiData emoji = emojis.get(index);
+                    insertEmojiIntoMessage(emoji.getFilename());
+                    // Keep popup open for multiple emoji selection
+                }
+            });
+        }
+        
+        public void setEmojis(List<EmojiData> emojis, Image spriteSheet) {
+            this.emojis = emojis;
+            this.spriteSheet = spriteSheet;
+            
+            // Adjust canvas height based on number of emojis
+            int rows = (int) Math.ceil((double) emojis.size() / columns);
+            this.setHeight(rows * (emojiSize + padding) - padding);
+            
+            redraw();
+        }
+        
+        public void redraw() {
+            if (emojis == null || spriteSheet == null) return;
+            
+            GraphicsContext gc = this.getGraphicsContext2D();
+            gc.clearRect(0, 0, this.getWidth(), this.getHeight());
+            
+            int col = 0;
+            int row = 0;
+            
+            for (EmojiData emoji : emojis) {
+                // Calculate position for this emoji
+                int x = col * (emojiSize + padding);
+                int y = row * (emojiSize + padding);
+                
+                // Draw background/highlight if hovered
+                if (emoji == hoveredEmoji) {
+                    gc.setFill(javafx.scene.paint.Color.valueOf("#f0f0f0"));
+                    gc.fillRoundRect(x, y, emojiSize, emojiSize, 6, 6);
+                }
+                
+                // Calculate centering offset for the emoji within the button area
+                int offsetX = (emojiSize - emojiImageSize) / 2;
+                int offsetY = (emojiSize - emojiImageSize) / 2;
+                
+                // Draw the emoji from sprite sheet
+                gc.drawImage(
+                    spriteSheet,
+                    emoji.getX(), emoji.getY(), emoji.getWidth(), emoji.getHeight(),
+                    x + offsetX, y + offsetY, emojiImageSize, emojiImageSize
+                );
+                
+                // Update position for next emoji
+                col++;
+                if (col >= columns) {
+                    col = 0;
+                    row++;
+                }
             }
-        } catch (IOException e) {
-            System.err.println("Error loading emoji mappings: " + e.getMessage());
-            loadFallbackEmojiMappings();
         }
     }
 
-    private void loadFallbackEmojiMappings() {
-        // Fallback emoji mappings in case the file can't be loaded
-        emojiNameMap.put("1f004.png", "🀄 Mahjong");
-        emojiNameMap.put("1f0cf.png", "🃏 Joker");
-        emojiNameMap.put("1f170.png", "🅰 A Button");
-        emojiNameMap.put("1f171.png", "🅱 B Button");
-        emojiNameMap.put("1f17e.png", "🅾 O Button");
-        emojiNameMap.put("1f17f.png", "🅿 P Button");
-        emojiNameMap.put("1f18e.png", "🆎 AB Button");
-        emojiNameMap.put("1f191.png", "🆑 CL Button");
-        emojiNameMap.put("1f192.png", "🆒 Cool");
-        emojiNameMap.put("1f193.png", "🆓 Free");
-        emojiNameMap.put("1f194.png", "🆔 ID Button");
-        emojiNameMap.put("1f195.png", "🆕 New");
-        emojiNameMap.put("1f196.png", "🆖 NG Button");
-        emojiNameMap.put("1f197.png", "🆗 OK Button");
-        emojiNameMap.put("1f198.png", "🆘 SOS");
-        emojiNameMap.put("1f199.png", "🆙 UP");
-        emojiNameMap.put("1f19a.png", "🆚 VS");
+    private void loadEmojiCategories() {
+        // Define categories with their corresponding files
+        String[] categories = {
+            "Smileys", "People", "Animals & Nature", "Food", 
+            "Activities", "Places", "Objects", "Symbols", "Flags", "Tone & Style"
+        };
 
-        // Common symbols that were in the original list
-        emojiNameMap.put("2764.png", "❤ Heart");
-        emojiNameMap.put("270d.png", "✍ Writing");
-        emojiNameMap.put("270c.png", "✌ Peace");
-        emojiNameMap.put("270b.png", "✋ Hand");
-        emojiNameMap.put("270a.png", "✊ Fist");
-        emojiNameMap.put("2709.png", "✉ Envelope");
-        emojiNameMap.put("2708.png", "✈ Airplane");
-        emojiNameMap.put("2705.png", "✅ Check");
-        emojiNameMap.put("2702.png", "✂ Scissors");
-        emojiNameMap.put("26fa.png", "⛺ Tent");
-        emojiNameMap.put("26fd.png", "⛽ Gas");
-        emojiNameMap.put("2b50.png", "⭐ Star");
-        emojiNameMap.put("2b55.png", "⭕ Circle");
-        emojiNameMap.put("2754.png", "❔ Question");
-        emojiNameMap.put("2755.png", "❕ Exclamation");
-        emojiNameMap.put("2757.png", "❗ Exclamation Mark");
-        emojiNameMap.put("2795.png", "➕ Plus");
-        emojiNameMap.put("2796.png", "➖ Minus");
-        emojiNameMap.put("2797.png", "➗ Divide");
-        emojiNameMap.put("27a1.png", "➡ Right Arrow");
-        emojiNameMap.put("2b05.png", "⬅ Left Arrow");
-        emojiNameMap.put("2b06.png", "⬆ Up Arrow");
-        emojiNameMap.put("2b07.png", "⬇ Down Arrow");
+        for (String category : categories) {
+            try {
+                String jsonPath = EMOJI_SPRITES_PATH + category + ".json";
+                InputStream jsonStream = getClass().getResourceAsStream(jsonPath);
+                
+                if (jsonStream != null) {
+                    List<EmojiData> categoryEmojis = parseEmojiJson(jsonStream, category);
+                    if (!categoryEmojis.isEmpty()) {
+                        emojiCategories.put(category, categoryEmojis);
+                        
+                        // Add to global emoji map for search
+                        for (EmojiData emoji : categoryEmojis) {
+                            if (emoji.getName() != null && !emoji.getName().isEmpty()) {
+                                allEmojis.put(emoji.getFilename(), emoji);
+                            }
+                        }
+                        
+                        System.out.println("Loaded " + categoryEmojis.size() + " emojis for category: " + category);
+                    }
+                } else {
+                    System.err.println("Could not find emoji JSON for category: " + category);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading emoji category " + category + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("Total emojis loaded: " + allEmojis.size() + " across " + emojiCategories.size() + " categories");
+    }
+
+    private List<EmojiData> parseEmojiJson(InputStream jsonStream, String category) {
+        List<EmojiData> emojis = new ArrayList<>();
+        
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(jsonStream))) {
+            StringBuilder jsonContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonContent.append(line);
+            }
+            
+            // Simple JSON parsing (you could use a JSON library here for more robust parsing)
+            String json = jsonContent.toString();
+            json = json.trim();
+            if (json.startsWith("{") && json.endsWith("}")) {
+                json = json.substring(1, json.length() - 1); // Remove outer braces
+                
+                // Split by top-level commas (simple approach)
+                String[] entries = parseJsonEntries(json);
+                
+                for (String entry : entries) {
+                    try {
+                        EmojiData emoji = parseEmojiEntry(entry.trim(), category);
+                        if (emoji != null) {
+                            emojis.add(emoji);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error parsing emoji entry: " + e.getMessage());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading emoji JSON: " + e.getMessage());
+        }
+        
+        return emojis;
+    }
+
+    private String[] parseJsonEntries(String json) {
+        List<String> entries = new ArrayList<>();
+        int braceLevel = 0;
+        int start = 0;
+        
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '{') {
+                braceLevel++;
+            } else if (c == '}') {
+                braceLevel--;
+            } else if (c == ',' && braceLevel == 0) {
+                entries.add(json.substring(start, i));
+                start = i + 1;
+            }
+        }
+        
+        // Add the last entry
+        if (start < json.length()) {
+            entries.add(json.substring(start));
+        }
+        
+        return entries.toArray(new String[0]);
+    }
+
+    private EmojiData parseEmojiEntry(String entry, String category) {
+        try {
+            // Parse entry like: "1f479.png": { "x": 72, "y": 0, "width": 72, "height": 72, "name": "japanese_ogre" }
+            int colonIndex = entry.indexOf(':');
+            if (colonIndex == -1) return null;
+            
+            String filename = entry.substring(0, colonIndex).trim();
+            filename = filename.replace("\"", "");
+            
+            String data = entry.substring(colonIndex + 1).trim();
+            if (data.startsWith("{") && data.endsWith("}")) {
+                data = data.substring(1, data.length() - 1);
+                
+                // Parse x, y, width, height, name
+                int x = 0, y = 0, width = 72, height = 72;
+                String name = null;
+                
+                String[] properties = data.split(",");
+                for (String prop : properties) {
+                    prop = prop.trim();
+                    if (prop.contains("\"x\"") && prop.contains(":")) {
+                        x = extractIntValue(prop);
+                    } else if (prop.contains("\"y\"") && prop.contains(":")) {
+                        y = extractIntValue(prop);
+                    } else if (prop.contains("\"width\"") && prop.contains(":")) {
+                        width = extractIntValue(prop);
+                    } else if (prop.contains("\"height\"") && prop.contains(":")) {
+                        height = extractIntValue(prop);
+                    } else if (prop.contains("\"name\"") && prop.contains(":")) {
+                        name = extractStringValue(prop);
+                    }
+                }
+                
+                return new EmojiData(filename, name, x, y, width, height, category);
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing emoji entry: " + entry + " - " + e.getMessage());
+        }
+        
+        return null;
+    }
+
+    private int extractIntValue(String property) {
+        try {
+            int colonIndex = property.indexOf(':');
+            if (colonIndex != -1) {
+                String value = property.substring(colonIndex + 1).trim();
+                // Remove any quotes and non-numeric characters
+                value = value.replaceAll("[^0-9]", "");
+                if (!value.isEmpty()) {
+                    return Integer.parseInt(value);
+                }
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing int value: " + property);
+        }
+        return 0;
+    }
+
+    private String extractStringValue(String property) {
+        try {
+            int colonIndex = property.indexOf(':');
+            if (colonIndex != -1) {
+                String value = property.substring(colonIndex + 1).trim();
+                value = value.replace("\"", "");
+                if ("null".equals(value)) {
+                    return null;
+                }
+                return value;
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing string value: " + property);
+        }
+        return null;
     }
 
     private void startLastSeenUpdateTimer() {
@@ -1525,12 +1771,8 @@ public class ChatController implements Initializable {
                     String emojiFilename = emojiPlaceholder.substring(7, emojiPlaceholder.length() - 1);
 
                     // Get emoji display name or show a generic emoji symbol
-                    String displayName = emojiNameMap.getOrDefault(emojiFilename, "📷");
-                    if (displayName.contains(" ")) {
-                        displayName = displayName.split(" ")[0]; // Just the emoji part
-                    } else {
-                        displayName = "📷"; // Generic emoji symbol
-                    }
+                    EmojiData emoji = allEmojis.get(emojiFilename);
+                    String displayName = emoji != null && emoji.getName() != null ? "📷" : "📷";
                     result.append(displayName);
                     i = endIndex + 1;
                 } else {
@@ -1753,15 +1995,30 @@ public class ChatController implements Initializable {
                     // [EMOJI: and
                     // ]
 
-                    // Create emoji ImageView
+                    // Create emoji ImageView using sprite sheet
                     try {
-                        Image emojiImage = new Image(
-                                getClass().getResourceAsStream(EMOJI_RESOURCES_PATH + emojiFilename));
-                        ImageView emojiView = new ImageView(emojiImage);
-                        emojiView.setFitWidth(20);
-                        emojiView.setFitHeight(20);
-                        emojiView.setPreserveRatio(true);
-                        textFlow.getChildren().add(emojiView);
+                        EmojiData emojiData = allEmojis.get(emojiFilename);
+                        if (emojiData != null) {
+                            Image spriteSheet = loadSpriteSheet(emojiData.getCategory());
+                            if (spriteSheet != null) {
+                                ImageView emojiView = new ImageView(spriteSheet);
+                                emojiView.setViewport(new javafx.geometry.Rectangle2D(
+                                    emojiData.getX(), emojiData.getY(), 
+                                    emojiData.getWidth(), emojiData.getHeight()));
+                                emojiView.setFitWidth(20);
+                                emojiView.setFitHeight(20);
+                                emojiView.setPreserveRatio(true);
+                                textFlow.getChildren().add(emojiView);
+                            } else {
+                                // Fallback to text emoji
+                                Text fallbackEmoji = new Text("📷");
+                                textFlow.getChildren().add(fallbackEmoji);
+                            }
+                        } else {
+                            // Fallback to text emoji
+                            Text fallbackEmoji = new Text("📷");
+                            textFlow.getChildren().add(fallbackEmoji);
+                        }
                     } catch (Exception e) {
                         // If emoji image fails to load, show the filename as text
                         Text fallbackText = new Text("[" + emojiFilename + "]");
@@ -2168,6 +2425,11 @@ public class ChatController implements Initializable {
             if (lastSeenUpdateTimer != null) {
                 lastSeenUpdateTimer.stop();
             }
+            
+            // Clear sprite sheet cache to free memory
+            if (spriteSheetCache != null) {
+                spriteSheetCache.clear();
+            }
 
             // Send logout message
             Message logoutMessage = new Message(Message.MessageType.LOGOUT, currentUsername);
@@ -2444,449 +2706,335 @@ public class ChatController implements Initializable {
     }
 
     // Emoji picker functionality
-    private void loadRecentlyUsedEmojis() {
-        try {
-            Path recentFile = Paths.get(RECENT_EMOJIS_FILE);
-            if (Files.exists(recentFile)) {
-                recentlyUsedEmojis = Files.readAllLines(recentFile);
-                // Keep only existing emoji files
-                recentlyUsedEmojis = recentlyUsedEmojis.stream()
-                        .filter(this::emojiFileExists)
-                        .collect(Collectors.toList());
-            }
-        } catch (IOException e) {
-            System.err.println("Error loading recent emojis: " + e.getMessage());
-        }
-    }
-
-    private boolean emojiFileExists(String filename) {
-        try {
-            return getClass().getResourceAsStream(EMOJI_RESOURCES_PATH + filename) != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private void saveRecentlyUsedEmojis() {
-        try {
-            Path recentFile = Paths.get(RECENT_EMOJIS_FILE);
-            Files.createDirectories(recentFile.getParent());
-            Files.write(recentFile, recentlyUsedEmojis);
-        } catch (IOException e) {
-            System.err.println("Error saving recent emojis: " + e.getMessage());
-        }
-    }
-
-    private void addToRecentEmojis(String emojiFilename) {
-        recentlyUsedEmojis.remove(emojiFilename); // Remove if already exists
-        recentlyUsedEmojis.add(0, emojiFilename); // Add to beginning
-
-        // Keep only the last 20 recent emojis
-        if (recentlyUsedEmojis.size() > 20) {
-            recentlyUsedEmojis = recentlyUsedEmojis.subList(0, 20);
-        }
-
-        saveRecentlyUsedEmojis();
-    }
-
     @FXML
     private void handleEmojiPicker() {
-        showEmojiPickerPopup();
+        showModernEmojiPicker();
     }
 
-    private void showEmojiPickerPopup() {
+    private void showModernEmojiPicker() {
+        // Create main popup
         Popup emojiPopup = new Popup();
-        emojiPopup.setAutoHide(true);
-        emojiPopup.setHideOnEscape(true);
+        emojiPopup.setAutoHide(false); // Prevent auto-hiding so multiple emojis can be selected
+        emojiPopup.setHideOnEscape(true); // Allow closing with Escape key
 
+        // Main container with modern styling
         VBox mainContainer = new VBox();
-        mainContainer.setSpacing(8);
-        mainContainer.setPadding(new Insets(12)); // 8-12px padding as specified
-        mainContainer.setPrefSize(350, 380); // 300-360px width, 320-400px height
-        mainContainer.getStyleClass().add("emoji-picker-popup");
-        // rounded
-        // corners
+        mainContainer.setSpacing(0);
+        mainContainer.setPrefSize(390, 400); // Increased width to accommodate 6 categories
+        mainContainer.getStyleClass().addAll("emoji-picker-popup", "modern-emoji-picker");
+        mainContainer.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 8);");
 
-        // Search field
+        // Search bar
         TextField searchField = new TextField();
         searchField.setPromptText("Search emojis...");
-        searchField.setPrefHeight(30);
+        searchField.setPrefHeight(36);
+        searchField.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 8 12; -fx-border-color: #e0e0e0; -fx-border-width: 1;");
+        VBox.setMargin(searchField, new Insets(12, 12, 8, 12));
 
-        // Tabs
-        TabPane emojiTabs = new TabPane();
-        emojiTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        emojiTabs.setPrefHeight(320); // Adjusted for new popup size
+        // Category tabs container with main visible categories
+        HBox categoryContainer = new HBox();
+        categoryContainer.setPrefHeight(46);
+        categoryContainer.setAlignment(Pos.CENTER);
+        categoryContainer.setPadding(new Insets(0));
+        categoryContainer.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 0 0 1 0; -fx-background-color: white;");
+        
+        // Main category tabs - will show the first few categories
+        HBox categoryTabs = new HBox();
+        categoryTabs.setSpacing(4); // Slightly larger spacing for better readability
+        categoryTabs.setPadding(new Insets(8, 8, 8, 16)); // More padding on the left side
+        categoryTabs.setAlignment(Pos.CENTER_LEFT); // Left align buttons
+        categoryTabs.setPrefWidth(390); // Use full available width for better distribution
+        
+        // More categories dropdown button with context menu
+        Button moreButton = new Button("More");
+        moreButton.getStyleClass().add("emoji-category-button");
+        // Style to match other buttons
+        moreButton.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #e0e0e0; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 8; -fx-font-size: 11px;");
+        moreButton.setPrefHeight(30);
+        moreButton.setPrefWidth(55); // Width for "More" text
+        moreButton.setTooltip(new Tooltip("More categories"));
+        
+        // Create context menu for dropdown functionality
+        ContextMenu moreMenu = new ContextMenu();
 
-        // Recent tab
-        Tab recentTab = new Tab("Recent");
-        ScrollPane recentScroll = createEmojiScrollPane(recentlyUsedEmojis, emojiPopup);
-        recentTab.setContent(recentScroll);
-        emojiTabs.getTabs().add(recentTab);
+        // Emoji canvas container
+        ScrollPane emojiScrollPane = new ScrollPane();
+        emojiScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        emojiScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        emojiScrollPane.setFitToWidth(true);
+        emojiScrollPane.setPrefHeight(350);
+        emojiScrollPane.setStyle("-fx-background: white; -fx-background-color: white;");
 
-        // Create categorized tabs
-        Map<String, List<String>> categorizedEmojis = categorizeEmojis();
+        // Create canvas for emoji rendering
+        EmojiCanvas emojiCanvas = new EmojiCanvas();
+        emojiScrollPane.setContent(emojiCanvas);
 
-        // Add category tabs
-        for (Map.Entry<String, List<String>> entry : categorizedEmojis.entrySet()) {
-            Tab categoryTab = new Tab(entry.getKey());
-            ScrollPane categoryScroll = createEmojiScrollPane(entry.getValue(), emojiPopup);
-            categoryTab.setContent(categoryScroll);
-            emojiTabs.getTabs().add(categoryTab);
+        // Create category buttons and populate initial view
+        Map<String, Button> categoryButtons = new HashMap<>();
+        String[] categories = {"Smileys", "People", "Animals & Nature", "Food", "Activities", "Places", "Objects", "Symbols", "Flags"};
+        // Use abbreviated labels for display to save space
+        String[] shortLabels = {"Smileys", "People", "Animals", "Food", "Activities", "Places", "Objects", "Symbols", "Flags"};
+
+        // Show first 5 categories in the main tab bar and add a "More" button
+        int visibleCategories = 5;
+        // Add Places, Objects, Symbols, Flags to dropdown menu
+        String[] additionalCategories = {"Places", "Objects", "Symbols", "Flags"};
+        
+        // Add the visible category buttons
+        for (int i = 0; i < visibleCategories; i++) {
+            String category = categories[i];
+            String label = shortLabels[i];
+            Button categoryBtn = createCategoryButton(label, category);
+            categoryButtons.put(category, categoryBtn);
+            
+            // Set up click handler for category buttons
+            categoryBtn.setOnAction(e -> {
+                String actualCategory = (String) categoryBtn.getUserData();
+                selectCategory(actualCategory, categoryButtons, emojiCanvas);
+            });
+            
+            categoryTabs.getChildren().add(categoryBtn);
         }
+        
+        // Populate the More menu with the remaining categories
+        for (int i = 0; i < additionalCategories.length; i++) {
+            String additionalCategory = additionalCategories[i];
+            String additionalLabel = shortLabels[visibleCategories + i];
+            
+            MenuItem menuItem = new MenuItem(additionalLabel);
+            menuItem.setUserData(additionalCategory);
+            menuItem.setOnAction(e -> {
+                String category = (String) menuItem.getUserData();
+                selectCategory(category, categoryButtons, emojiCanvas);
+            });
+            moreMenu.getItems().add(menuItem);
+        }
+        
+        // Set the action to show the context menu
+        moreButton.setOnAction(e -> {
+            moreMenu.show(moreButton, Side.BOTTOM, 0, 0);
+        });
+        
+        // Add the remaining categories to the buttons map
+        for (int i = visibleCategories; i < categories.length; i++) {
+            String category = categories[i];
+            String label = shortLabels[i];
+            Button categoryBtn = createCategoryButton(label, category);
+            categoryButtons.put(category, categoryBtn);
+            // These buttons won't be added to the UI, but will be used for styling
+        }
+        
+        // Add the More button at the end
+        categoryTabs.getChildren().add(moreButton);
 
-        // Search functionality with debouncing
+        // Load initial category (Smileys by default)
+        selectCategory("Smileys", categoryButtons, emojiCanvas);
+
+        // Search functionality
         Timeline searchDebouncer = new Timeline();
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             searchDebouncer.stop();
             searchDebouncer.getKeyFrames().clear();
             searchDebouncer.getKeyFrames().add(new KeyFrame(Duration.millis(300), event -> {
                 if (newValue.trim().isEmpty()) {
-                    // Remove search tab if it exists
-                    emojiTabs.getTabs().removeIf(tab -> "Search".equals(tab.getText()));
-                    return;
+                    // Return to Smileys category
+                    selectCategory("Smileys", categoryButtons, emojiCanvas);
+                } else {
+                    // Show search results
+                    showSearchResults(newValue, emojiCanvas, emojiPopup);
                 }
-
-                List<String> searchResults = searchEmojis(newValue);
-                ScrollPane searchScroll = createEmojiScrollPane(searchResults, emojiPopup);
-
-                // Add or update search results tab
-                Tab searchTab = emojiTabs.getTabs().stream()
-                        .filter(tab -> "Search".equals(tab.getText()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (searchTab == null) {
-                    searchTab = new Tab("Search");
-                    emojiTabs.getTabs().add(searchTab);
-                }
-
-                searchTab.setContent(searchScroll);
-                emojiTabs.getSelectionModel().select(searchTab);
             }));
             searchDebouncer.play();
         });
 
-        mainContainer.getChildren().addAll(searchField, emojiTabs);
+        // Add categories directly to the container for proper layout
+        categoryContainer.getChildren().add(categoryTabs);
+        
+        // Assemble popup
+        mainContainer.getChildren().addAll(searchField, categoryContainer, emojiScrollPane);
+        
+        // Register the popup with the canvas for later access
+        emojiCanvas.setUserData(emojiPopup);
         emojiPopup.getContent().add(mainContainer);
+        
+        // Add event filter to handle clicking outside the popup (since autoHide is disabled)
+        Scene scene = messageInput.getScene();
+        if (scene != null) {
+            // Create a event handler for mouse clicks outside the popup
+            javafx.event.EventHandler<MouseEvent> clickOutsideHandler = new javafx.event.EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    if (emojiPopup.isShowing()) {
+                        Node content = emojiPopup.getContent().get(0);
+                        Bounds contentBounds = content.localToScreen(content.getBoundsInLocal());
+                        
+                        // If click is outside the popup's content bounds, hide it
+                        if (contentBounds == null || 
+                                event.getScreenX() < contentBounds.getMinX() || 
+                                event.getScreenX() > contentBounds.getMaxX() ||
+                                event.getScreenY() < contentBounds.getMinY() || 
+                                event.getScreenY() > contentBounds.getMaxY()) {
+                            emojiPopup.hide();
+                            scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this);
+                        }
+                    }
+                }
+            };
+            
+            scene.addEventFilter(MouseEvent.MOUSE_PRESSED, clickOutsideHandler);
+        }
 
-        // Show popup relative to emoji button
+        // Position popup
         Button emojiButton = (Button) messageInput.getParent().lookup("#emojiButton");
         if (emojiButton != null) {
             emojiPopup.show(emojiButton,
-                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinX(),
-                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 390 // Adjusted for 380px
-                    // height
+                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinX() - 50,
+                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 410
             );
         }
     }
 
-    private Map<String, List<String>> categorizeEmojis() {
-        Map<String, List<String>> categories = new LinkedHashMap<>();
-        List<String> allEmojis = getAllAvailableEmojis();
-
-        // Initialize categories
-        categories.put("Smileys", new ArrayList<>());
-        categories.put("Gestures", new ArrayList<>());
-        categories.put("Hearts", new ArrayList<>());
-        categories.put("Symbols", new ArrayList<>());
-        categories.put("Objects", new ArrayList<>());
-        categories.put("Nature", new ArrayList<>());
-        categories.put("Food", new ArrayList<>());
-        categories.put("Activities", new ArrayList<>());
-        categories.put("Travel", new ArrayList<>());
-        categories.put("Flags", new ArrayList<>());
-        categories.put("Other", new ArrayList<>());
-
-        for (String emoji : allEmojis) {
-            String category = categorizeEmoji(emoji);
-            categories.get(category).add(emoji);
+    private Button createCategoryButton(String label, String category) {
+        Button btn = new Button(label);
+        
+        // Store the actual category in the user data
+        btn.setUserData(category);
+        
+        // Configure button properties with text labels
+        btn.setPrefHeight(30);
+        btn.setMinHeight(30);
+        btn.setPrefWidth(55); // Fixed width for uniform appearance
+        btn.setMinWidth(55);
+        // Make buttons more visually appealing
+        btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 6; -fx-padding: 2 4;");
+        btn.setFont(Font.font("System", FontWeight.NORMAL, 11)); // Slightly bigger font
+        
+        // Set tooltip to show full category name
+        if (!label.equals(category)) {
+            btn.setTooltip(new Tooltip(category));
         }
-
-        // Remove empty categories
-        categories.entrySet().removeIf(entry -> entry.getValue().isEmpty());
-
-        return categories;
+        
+        return btn;
     }
 
-    private String categorizeEmoji(String emojiFilename) {
-        // Remove .png extension for analysis
-        String emoji = emojiFilename.replace(".png", "");
-
-        // Smileys and faces
-        if (emoji.startsWith("1f6") || emoji.startsWith("1f9") ||
-                emoji.startsWith("263a") || emoji.startsWith("2639") ||
-                emoji.startsWith("1f60") || emoji.startsWith("1f61") ||
-                emoji.startsWith("1f62") || emoji.startsWith("1f63") ||
-                emoji.startsWith("1f64") || emoji.startsWith("1f65") ||
-                emoji.startsWith("1f66") || emoji.startsWith("1f67") ||
-                emoji.startsWith("1f68") || emoji.startsWith("1f69") ||
-                emoji.startsWith("1f6a") || emoji.startsWith("1f6b") ||
-                emoji.startsWith("1f6c") || emoji.startsWith("1f6d") ||
-                emoji.startsWith("1f6e") || emoji.startsWith("1f6f")) {
-            return "Smileys";
+    private void selectCategory(String category, Map<String, Button> categoryButtons, EmojiCanvas emojiCanvas) {
+        System.out.println("DEBUG: Selecting category: " + category);
+        activeCategory = category;
+        
+        // Update button styles
+        for (Map.Entry<String, Button> entry : categoryButtons.entrySet()) {
+            Button btn = entry.getValue();
+            if (entry.getKey().equals(category)) {
+                btn.setStyle("-fx-background-color: #e3f2fd; -fx-border-color: #2196f3; -fx-border-width: 1; " + 
+                            "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 4; -fx-font-weight: bold;");
+            } else {
+                btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; " +
+                            "-fx-background-radius: 6; -fx-padding: 2 4; -fx-font-weight: normal;");
+            }
         }
 
-        // Gestures and body parts
-        if (emoji.startsWith("270") || emoji.startsWith("1f44") ||
-                emoji.startsWith("1f45") || emoji.startsWith("1f46") ||
-                emoji.startsWith("1f47") || emoji.startsWith("1f48") ||
-                emoji.startsWith("1f49") || emoji.startsWith("1f4a") ||
-                emoji.startsWith("1f4b") || emoji.startsWith("1f4c") ||
-                emoji.startsWith("1f4d") || emoji.startsWith("1f4e") ||
-                emoji.startsWith("1f4f") || emoji.startsWith("1f50") ||
-                emoji.startsWith("1f51") || emoji.startsWith("1f52") ||
-                emoji.startsWith("1f53") || emoji.startsWith("1f54") ||
-                emoji.startsWith("1f55") || emoji.startsWith("1f56") ||
-                emoji.startsWith("1f57") || emoji.startsWith("1f58") ||
-                emoji.startsWith("1f59") || emoji.startsWith("1f5a") ||
-                emoji.startsWith("1f5b") || emoji.startsWith("1f5c") ||
-                emoji.startsWith("1f5d") || emoji.startsWith("1f5e") ||
-                emoji.startsWith("1f5f")) {
-            return "Gestures";
+        // Load emojis for category
+        List<EmojiData> emojis = getCategoryEmojis(category);
+        System.out.println("DEBUG: Found " + emojis.size() + " emojis for category: " + category);
+        
+        // Load the sprite sheet for this category
+        Image spriteSheet = loadSpriteSheet(category);
+        if (spriteSheet != null) {
+            // Set emojis and sprite sheet for the canvas
+            emojiCanvas.setEmojis(emojis, spriteSheet);
         }
-
-        // Hearts and love
-        if (emoji.startsWith("2764") || emoji.startsWith("1f49") ||
-                emoji.startsWith("1f48") || emoji.startsWith("1f47")) {
-            return "Hearts";
-        }
-
-        // Symbols
-        if (emoji.startsWith("2") && emoji.length() <= 4) {
-            return "Symbols";
-        }
-
-        // Objects and things
-        if (emoji.startsWith("1f3") || emoji.startsWith("1f4") ||
-                emoji.startsWith("1f5") || emoji.startsWith("1f6") ||
-                emoji.startsWith("1f7") || emoji.startsWith("1f8") ||
-                emoji.startsWith("1f9")) {
-            return "Objects";
-        }
-
-        // Nature and weather
-        if (emoji.startsWith("1f30") || emoji.startsWith("1f31") ||
-                emoji.startsWith("1f32") || emoji.startsWith("1f33") ||
-                emoji.startsWith("1f34") || emoji.startsWith("1f35") ||
-                emoji.startsWith("1f36") || emoji.startsWith("1f37") ||
-                emoji.startsWith("1f38") || emoji.startsWith("1f39") ||
-                emoji.startsWith("26") || emoji.startsWith("27")) {
-            return "Nature";
-        }
-
-        // Food and drink
-        if (emoji.startsWith("1f35") || emoji.startsWith("1f36") ||
-                emoji.startsWith("1f37") || emoji.startsWith("1f95") ||
-                emoji.startsWith("1f96") || emoji.startsWith("1f97") ||
-                emoji.startsWith("1f98") || emoji.startsWith("1f99") ||
-                emoji.startsWith("1f9a") || emoji.startsWith("1f9b") ||
-                emoji.startsWith("1f9c") || emoji.startsWith("1f9d") ||
-                emoji.startsWith("1f9e") || emoji.startsWith("1f9f")) {
-            return "Food";
-        }
-
-        // Activities and sports
-        if (emoji.startsWith("1f3a") || emoji.startsWith("1f3b") ||
-                emoji.startsWith("1f3c") || emoji.startsWith("1f3d") ||
-                emoji.startsWith("1f3e") || emoji.startsWith("1f3f")) {
-            return "Activities";
-        }
-
-        // Travel and transport
-        if (emoji.startsWith("1f68") || emoji.startsWith("1f69") ||
-                emoji.startsWith("1f6a") || emoji.startsWith("1f6b") ||
-                emoji.startsWith("1f6c") || emoji.startsWith("1f6d") ||
-                emoji.startsWith("1f6e") || emoji.startsWith("1f6f")) {
-            return "Travel";
-        }
-
-        // Flags
-        if (emoji.startsWith("1f1")) {
-            return "Flags";
-        }
-
-        return "Other";
     }
 
-    private List<String> getAllAvailableEmojis() {
-        List<String> emojis = new ArrayList<>();
+    private List<EmojiData> getCategoryEmojis(String category) {
+        return emojiCategories.getOrDefault(category, new ArrayList<>());
+    }
 
-        try {
-            // Get the emoji resources directory
-            URL emojiDir = getClass().getResource(EMOJI_RESOURCES_PATH);
-            if (emojiDir != null) {
-                // If running from JAR, use different approach
-                if (emojiDir.getProtocol().equals("jar")) {
-                    // For JAR files, we need to list resources differently
-                    emojis = getEmojisFromJar();
-                } else {
-                    // For development, scan the directory
-                    File emojiFolder = new File(emojiDir.toURI());
-                    if (emojiFolder.exists() && emojiFolder.isDirectory()) {
-                        File[] files = emojiFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
-                        if (files != null) {
-                            for (File file : files) {
-                                emojis.add(file.getName());
-                            }
-                        }
-                    }
+    private void showSearchResults(String query, EmojiCanvas emojiCanvas, Popup popup) {
+        List<EmojiData> searchResults = searchEmojis(query);
+        // We need to choose an appropriate sprite sheet for the search results
+        // Using a general category or "Smileys" as default
+        String category = "Smileys"; // Default
+        
+        // Try to get a specific category if all results belong to the same category
+        if (!searchResults.isEmpty()) {
+            boolean singleCategory = true;
+            String firstCategory = searchResults.get(0).getCategory();
+            for (EmojiData emoji : searchResults) {
+                if (!emoji.getCategory().equals(firstCategory)) {
+                    singleCategory = false;
+                    break;
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error scanning emoji directory: " + e.getMessage());
-            // Fallback to hardcoded list if scanning fails
-            emojis.addAll(Arrays.asList(
-                    "2764.png", "270d.png", "270c.png", "270b.png", "270a.png", "2709.png", "2708.png",
-                    "2705.png", "2702.png", "26fa.png", "26fd.png", "2b50.png", "2b55.png", "2754.png",
-                    "2755.png", "2757.png", "2795.png", "2796.png", "2797.png", "27a1.png", "2b05.png",
-                    "2b06.png", "2b07.png", "2b1c.png", "2b1b.png", "2934.png", "2935.png", "27bf.png",
-                    "2728.png", "2733.png", "2734.png", "2744.png", "2747.png", "274c.png", "274e.png",
-                    "2753.png", "2763.png", "2721.png", "3030.png", "303d.png", "3297.png", "3299.png",
-                    "a9.png", "ae.png", "e50a.png", "30-20e3.png", "31-20e3.png", "32-20e3.png",
-                    "33-20e3.png", "34-20e3.png", "35-20e3.png", "36-20e3.png", "37-20e3.png",
-                    "38-20e3.png", "39-20e3.png", "2a-20e3.png"));
+            if (singleCategory) {
+                category = firstCategory;
+            }
         }
-
-        // Sort emojis alphabetically for better organization
-        emojis.sort(String::compareTo);
-
-        return emojis;
+        
+        // Load sprite sheet and set emojis
+        Image spriteSheet = loadSpriteSheet(category);
+        if (spriteSheet != null) {
+            emojiCanvas.setEmojis(searchResults, spriteSheet);
+        }
     }
 
-    private List<String> getEmojisFromJar() {
-        List<String> emojis = new ArrayList<>();
-        try {
-            // For JAR files, we'll use a comprehensive list based on your emoji folder
-            // This is a more practical approach since listing JAR contents is complex
-            emojis.addAll(Arrays.asList(
-                    // Basic symbols and common emojis
-                    "2764.png", "270d.png", "270c.png", "270b.png", "270a.png", "2709.png", "2708.png",
-                    "2705.png", "2702.png", "26fa.png", "26fd.png", "2b50.png", "2b55.png", "2754.png",
-                    "2755.png", "2757.png", "2795.png", "2796.png", "2797.png", "27a1.png", "2b05.png",
-                    "2b06.png", "2b07.png", "2b1c.png", "2b1b.png", "2934.png", "2935.png", "27bf.png",
-                    "2728.png", "2733.png", "2734.png", "2744.png", "2747.png", "274c.png", "274e.png",
-                    "2753.png", "2763.png", "2721.png", "3030.png", "303d.png", "3297.png", "3299.png",
-                    "a9.png", "ae.png", "e50a.png", "30-20e3.png", "31-20e3.png", "32-20e3.png",
-                    "33-20e3.png", "34-20e3.png", "35-20e3.png", "36-20e3.png", "37-20e3.png",
-                    "38-20e3.png", "39-20e3.png", "2a-20e3.png",
-                    // Additional emojis from your folder
-                    "1f004.png", "1f0cf.png", "1f170.png", "1f171.png", "1f17e.png", "1f17f.png",
-                    "1f18e.png", "1f191.png", "1f192.png", "1f193.png", "1f194.png", "1f195.png",
-                    "1f196.png", "1f197.png", "1f198.png", "1f199.png", "1f19a.png",
-                    // More emojis from your folder
-                    "26f8.png", "26f9.png", "270d-1f3fb.png", "270d-1f3fc.png", "270d-1f3fd.png",
-                    "270d-1f3fe.png", "270d-1f3ff.png", "270c-1f3fb.png", "270c-1f3fc.png", "270c-1f3fd.png",
-                    "270c-1f3fe.png", "270c-1f3ff.png", "270b-1f3fb.png", "270b-1f3fc.png", "270b-1f3fd.png",
-                    "270b-1f3fe.png", "270b-1f3ff.png", "270a-1f3fb.png", "270a-1f3fc.png", "270a-1f3fd.png",
-                    "270a-1f3fe.png", "270a-1f3ff.png", "2764-fe0f-200d-1f525.png", "2764-fe0f-200d-1fa79.png",
-                    "26f9-1f3ff.png", "26f9-fe0f-200d-2640-fe0f.png", "26f9-fe0f-200d-2642-fe0f.png",
-                    "26f9-1f3fd.png", "26f9-1f3fe-200d-2640-fe0f.png", "26f9-1f3fe-200d-2642-fe0f.png",
-                    "26f9-1f3fe.png", "26f9-1f3ff-200d-2640-fe0f.png", "26f9-1f3ff-200d-2642-fe0f.png",
-                    "26f9-1f3fc-200d-2640-fe0f.png", "26f9-1f3fc-200d-2642-fe0f.png", "26f9-1f3fc.png",
-                    "26f9-1f3fd-200d-2640-fe0f.png", "26f9-1f3fd-200d-2642-fe0f.png"));
-        } catch (Exception e) {
-            System.err.println("Error getting emojis from JAR: " + e.getMessage());
-        }
-        return emojis;
-    }
-
-    private List<String> searchEmojis(String query) {
+    private List<EmojiData> searchEmojis(String query) {
         String lowerQuery = query.toLowerCase();
-        return emojiNameMap.entrySet().stream()
-                .filter(entry -> entry.getValue().toLowerCase().contains(lowerQuery))
-                .map(Map.Entry::getKey)
-                .filter(this::emojiFileExists)
+        return allEmojis.values().stream()
+                .filter(emoji -> emoji.getName() != null && 
+                               emoji.getName().toLowerCase().contains(lowerQuery))
                 .collect(Collectors.toList());
     }
 
-    private ScrollPane createEmojiScrollPane(List<String> emojiFiles, Popup emojiPopup) {
-        // Create a grid layout for emojis
-        GridPane emojiGrid = new GridPane();
-        emojiGrid.setHgap(8); // 8-12px spacing
-        emojiGrid.setVgap(8);
-        emojiGrid.setPadding(new Insets(10));
-        emojiGrid.getStyleClass().add("emoji-grid");
+    // We've replaced the old GridPane-based emoji grid with a Canvas-based implementation
+    // that draws emojis directly from sprite sheets without creating hundreds of nodes
 
-        int columns = 7; // 6-8 emojis per row, using 7 for good balance with new width
-        int row = 0;
-        int col = 0;
-
-        for (String emojiFile : emojiFiles) {
-            Button emojiButton = createEmojiButton(emojiFile, emojiPopup);
-            if (emojiButton != null) {
-                emojiGrid.add(emojiButton, col, row);
-
-                col++;
-                if (col >= columns) {
-                    col = 0;
-                    row++;
-                }
-            }
+    private Image loadSpriteSheet(String category) {
+        // Check cache first
+        if (spriteSheetCache.containsKey(category)) {
+            return spriteSheetCache.get(category);
         }
-
-        ScrollPane scrollPane = new ScrollPane(emojiGrid);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(260); // Adjusted for new popup height
-        scrollPane.getStyleClass().add("emoji-scroll-pane");
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
-        return scrollPane;
-    }
-
-    private Button createEmojiButton(String emojiFile, Popup emojiPopup) {
+        
         try {
-            Button emojiButton = new Button();
-            emojiButton.setPrefSize(36, 36); // 32-40px as specified
-            emojiButton.setMinSize(36, 36);
-            emojiButton.setMaxSize(36, 36);
-            emojiButton.getStyleClass().add("emoji-button");
-
-            // Load emoji image
-            InputStream imageStream = getClass().getResourceAsStream(EMOJI_RESOURCES_PATH + emojiFile);
+            String imagePath = EMOJI_SPRITES_PATH + category + ".png";
+            InputStream imageStream = getClass().getResourceAsStream(imagePath);
             if (imageStream != null) {
-                Image emojiImage = new Image(imageStream);
-                ImageView imageView = new ImageView(emojiImage);
-                imageView.setFitWidth(32); // 32px image size within 36px button
-                imageView.setFitHeight(32);
-                imageView.setPreserveRatio(true);
-                imageView.setSmooth(true);
-                emojiButton.setGraphic(imageView);
-            } else {
-                // Fallback text if image not found
-                emojiButton.setText("?");
-                emojiButton.getStyleClass().add("emoji-button-fallback");
+                Image spriteSheet = new Image(imageStream);
+                // Cache the loaded image
+                spriteSheetCache.put(category, spriteSheet);
+                System.out.println("Loaded and cached sprite sheet for category: " + category);
+                return spriteSheet;
             }
-
-            String emojiName = emojiNameMap.getOrDefault(emojiFile, emojiFile.replace(".png", ""));
-            emojiButton.setTooltip(new Tooltip(emojiName));
-
-            // Click action
-            emojiButton.setOnAction(e -> {
-                insertEmojiIntoMessage(emojiFile);
-                addToRecentEmojis(emojiFile);
-                emojiPopup.hide();
-            });
-
-            return emojiButton;
-
         } catch (Exception e) {
-            System.err.println("Error creating emoji button for " + emojiFile + ": " + e.getMessage());
-            return null;
+            System.err.println("Error loading sprite sheet for category " + category + ": " + e.getMessage());
         }
+        return null;
     }
 
     private void insertEmojiIntoMessage(String emojiFilename) {
         String currentText = messageInput.getText();
-        int caretPosition = messageInput.getCaretPosition();
+        
+        // Simple approach: always insert at the end of current text
+        // This is more reliable than trying to track caret position with focus issues
+        int insertPosition = currentText.length();
+        
+        // Debug output
+        System.out.println("DEBUG: Current text: '" + currentText + "'");
+        System.out.println("DEBUG: Inserting at position: " + insertPosition);
 
         // Insert emoji placeholder in text
         String emojiPlaceholder = "[EMOJI:" + emojiFilename + "]";
-        String newText = currentText.substring(0, caretPosition) + emojiPlaceholder
-                + currentText.substring(caretPosition);
+        String newText = currentText + emojiPlaceholder;
+        
         messageInput.setText(newText);
-        messageInput.positionCaret(caretPosition + emojiPlaceholder.length());
-        messageInput.requestFocus();
+        
+        // Set caret position after the inserted emoji and request focus
+        Platform.runLater(() -> {
+            messageInput.requestFocus();
+            messageInput.positionCaret(newText.length());
+        });
+        
+        System.out.println("DEBUG: New text: '" + newText + "'");
+        System.out.println("DEBUG: Caret positioned at end: " + newText.length());
     }
 
     @FXML

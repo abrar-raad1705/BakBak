@@ -1398,3 +1398,167 @@ Label.message-time {
     -fx-font-size: 12px; /* Navigation Text: 12-14sp */
 }
 
+
+/* Modern Emoji Picker Styles */
+.modern-emoji-picker {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 8);
+}
+
+.modern-emoji-picker .text-field {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px;
+}
+
+.modern-emoji-picker .text-field:focused {
+    -fx-border-color: #2196f3;
+    -fx-background-color: white;
+}
+
+.emoji-category-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-font-size: 18;
+    -fx-padding: 8;
+}
+
+.emoji-category-button:hover {
+    -fx-background-color: #f5f5f5;
+}
+
+.emoji-category-button.selected {
+    -fx-background-color: #e3f2fd;
+    -fx-border-color: #2196f3;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.modern-emoji-grid .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 6;
+}
+
+.modern-emoji-grid .button:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+/* Dark mode styles for modern emoji picker */
+.dark-mode .modern-emoji-picker {
+    -fx-background-color: #3b4252;
+}
+
+.dark-mode .modern-emoji-picker .text-field {
+    -fx-background-color: #2e3440;
+    -fx-border-color: #4c566a;
+    -fx-text-fill: #eceff4;
+    -fx-prompt-text-fill: #81a1c1;
+}
+
+.dark-mode .modern-emoji-picker .text-field:focused {
+    -fx-border-color: #81a1c1;
+    -fx-background-color: #2e3440;
+}
+
+.dark-mode .emoji-category-button:hover {
+    -fx-background-color: #4c566a;
+}
+
+.dark-mode .emoji-category-button.selected {
+    -fx-background-color: #5e81ac;
+    -fx-border-color: #81a1c1;
+}
+
+.dark-mode .modern-emoji-grid .button:hover {
+    -fx-background-color: #4c566a;
+}
+
+/* Modern Emoji Picker Styles */
+.modern-emoji-picker {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 8);
+}
+
+.modern-emoji-picker .text-field {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px;
+}
+
+.modern-emoji-picker .text-field:focused {
+    -fx-border-color: #2196f3;
+    -fx-background-color: white;
+}
+
+.emoji-category-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-font-size: 18;
+    -fx-padding: 8;
+}
+
+.emoji-category-button:hover {
+    -fx-background-color: #f5f5f5;
+}
+
+.emoji-category-button.selected {
+    -fx-background-color: #e3f2fd;
+    -fx-border-color: #2196f3;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.modern-emoji-grid .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 6;
+}
+
+.modern-emoji-grid .button:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+/* Dark mode styles for modern emoji picker */
+.dark-mode .modern-emoji-picker {
+    -fx-background-color: #3b4252;
+}
+
+.dark-mode .modern-emoji-picker .text-field {
+    -fx-background-color: #2e3440;
+    -fx-border-color: #4c566a;
+    -fx-text-fill: #eceff4;
+    -fx-prompt-text-fill: #81a1c1;
+}
+
+.dark-mode .modern-emoji-picker .text-field:focused {
+    -fx-border-color: #81a1c1;
+    -fx-background-color: #2e3440;
+}
+
+.dark-mode .emoji-category-button:hover {
+    -fx-background-color: #4c566a;
+}
+
+.dark-mode .emoji-category-button.selected {
+    -fx-background-color: #5e81ac;
+    -fx-border-color: #81a1c1;
+}
+
+.dark-mode .modern-emoji-grid .button:hover {
+    -fx-background-color: #4c566a;
+}
