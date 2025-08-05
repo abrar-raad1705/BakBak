@@ -1,0 +1,1400 @@
+.splitPane{
+}
+
+.split-pane > .split-pane-divider {
+    -fx-padding: 1;              /* removes thickness */
+    -fx-background-color: #eceff4;
+}
+
+.chatBoxHeader{
+    /*-fx-background-color: #81a1c1;*/
+    -fx-background-color: #81a1c1;
+    -fx-padding: 10 15;
+}
+
+.chatBoxFooter{
+    -fx-background-color: #81a1c1;
+    -fx-padding: 10 15;
+}
+
+.chatBoxScreen{
+    -fx-background-color: #eceff4;
+}
+
+.mainChatArea {
+    -fx-background-color: #eceff4;
+}
+
+
+.justBorder{
+
+}
+
+.textBox{
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 20;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px; /* Input Placeholder: 14sp */
+}
+
+.text{
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-font-weight: bold;
+}
+
+.lastSeen{
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-text-fill: #00000060;
+    -fx-padding: 2 0 0 0; /* Add some top padding to separate from name */
+}
+
+.button2{
+    -fx-background-color: transparent;
+
+}
+
+.button2:hover{
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-background-color: #93d5d3;
+    -fx-background-insets: 1;
+    -fx-translate-y: -3;
+}
+
+.label{
+    -fx-font-family: sans-serif,Arial;
+}
+
+.chatsTitle{
+    -fx-font-family: sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 22px; /* Title/Header: 20-24sp */
+    -fx-text-fill: #2e3440;
+    -fx-letter-spacing: 1px;
+}
+
+.chatNameLabel {
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e3440;
+}
+
+.activeScreen{
+    -fx-background-color: #5e81ac;
+    -fx-max-width: 400;
+    -fx-padding: 0;
+
+
+}
+.activeScreenHeader{
+    -fx-background-color: #5e81ac;
+}
+.activeScreenFooter{
+    -fx-background-color: #5e81ac;
+    -fx-padding: 15 20 20 20;
+}
+.activeScreenSearchBar{
+    -fx-background-color:  #eceff4;
+    -fx-text-alignment: center;
+    -fx-background-radius: 20;
+}
+
+.activeList{
+    -fx-background-color:  #eceff4;
+}
+
+/* Target the internal ListView components to ensure radius is applied */
+.activeList .viewport {
+    -fx-background-color: transparent;
+}
+
+.activeList .scroll-pane {
+    -fx-background-color: transparent;
+
+}
+
+.activeList .scroll-pane .viewport {
+    -fx-background-color: transparent;
+
+}
+
+.activeList .scroll-pane .content {
+    -fx-background-color: transparent;
+
+}
+
+/* Ensure the ListView itself has the radius */
+.activeList {
+    -fx-background-color: #eceff4;
+    -fx-border-color: transparent;
+}
+
+/* Contact List Item Styling */
+.contact-cell {
+    -fx-background-color: #e5e9f0;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;  /* Reduced padding */
+    -fx-margin: 3 6;     /* Reduced margin */
+}
+
+.contact-cell:hover {
+    -fx-background-color: #d8dee9;
+    -fx-border-color: #81a1c1;
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.2), 0, 0, 2, 2);
+}
+
+.contact-name {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #2e3440 !important;
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+}
+
+.contact-message {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-text-fill: #5e81ac !important;
+    -fx-opacity: 0.8 !important;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+.contact-time {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-text-fill: #81a1c1;
+    -fx-opacity: 0.7;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+}
+
+.contact-no-message {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-style: italic;
+    -fx-text-fill: #81a1c1;
+    -fx-opacity: 0.5;
+}
+
+.group-icon {
+    -fx-font-size: 14px;
+    -fx-opacity: 0.8;
+}
+
+.online-indicator {
+    -fx-fill: #a3be8c;
+    -fx-stroke: #eceff4;
+    -fx-stroke-width: 1;
+}
+
+/* Chat Bubble Styles - Based on Nord Theme */
+.message-sent {
+    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
+    -fx-background-radius: 18 18 4 18; /* Rounded except bottom-right */
+    -fx-padding: 10 14 10 14; /* Reduced padding */
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-text-fill: #eceff4; /* User text color - Light nord */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
+    -fx-max-width: 280;
+}
+
+/* Received messages */
+.message-received {
+    -fx-background-color: #eceff4; /* Receiver bubble color - Light nord */
+    -fx-background-radius: 18 18 18 4; /* Rounded except bottom-left */
+    -fx-padding: 10 14 10 14; /* Reduced padding */
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-text-fill: #2e3440; /* Receiver text color - Dark nord */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 1, 0, 0, 0.5);
+    -fx-max-width: 280;
+}
+
+
+.loginButton {
+    -fx-background-color: #81a1c1; /* Nord Frost Green */
+
+    -fx-background-radius: 10;
+    -fx-effect: none;
+    -fx-text-fill: #eceff4;        /* Nord Snow Storm (white) */
+    -fx-font-family: sans-serif,Arial;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-padding: 8 40 8 40;
+    -fx-letter-spacing: 7;
+    -fx-max-width: 200;
+    -fx-text-alignment: center;
+ /* subtle text shadow for cartoony look */
+    -fx-transition: all 0.3s ease; /* not supported in JavaFX but leaving for clarity */
+    /* Optional: cartoon outline */
+    /* -fx-border-style: solid inside; */
+}
+
+/* Simulate hover effect manually with animation using JavaFX code */
+.loginButton:hover {
+    -fx-effect: dropshadow(gaussian, rgba(70, 70, 89, 0.49), 0, 0, 3, 5);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-translate-y: -3;
+    -fx-background-insets: 1;
+    -fx-background-color: #8ec6d7;
+}
+
+/* Dark Mode Classes */
+.dark-mode .activeScreen {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .activeList {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .viewport {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane .viewport {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .activeList .scroll-pane .content {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .chatBoxHeader {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .chatBoxFooter {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .chatBoxScreen {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .viewport {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane .viewport {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatBoxScreen .scroll-pane .content {
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .chatsTitle {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .contact-cell {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .contact-cell:hover {
+    -fx-background-color: #4c566a !important;
+    -fx-border-color: #5e81ac !important;
+}
+
+.dark-mode .chatBoxScreen{
+    -fx-background-color: #4c566a !important;
+}
+
+
+.dark-mode .contact-name {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .contact-message {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .contact-time {
+    -fx-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .contact-no-message {
+    -fx-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .button2 {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .button2:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+
+
+.dark-mode .loginButton {
+    -fx-background-color: #5e81ac !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .loginButton:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .textBox {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .text {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .lastSeen {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .split-pane > .split-pane-divider {
+    -fx-background-color: #4c566a !important;
+}
+
+/* Additional dark mode styles for text fields and other elements */
+.dark-mode TextField {
+    -fx-background-color: #3b4252 !important;
+    -fx-text-fill: #eceff4 !important;
+    -fx-prompt-text-fill: #81a1c1 !important;
+}
+
+.dark-mode TextArea {
+    -fx-background-color: #3b4252 !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode ScrollPane {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode ScrollPane .viewport {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode ScrollPane .content {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode VBox {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode HBox {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode BorderPane {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .mainChatArea {
+    -fx-background-color: #2e3440 !important;
+}
+
+/* Dark mode styles for chat bubbles - using accent color for sent messages */
+.dark-mode .message-sent {
+    -fx-background-color: #81a1c1 !important; /* Accent color for user messages in dark mode */
+    -fx-background-radius: 18 !important;
+    -fx-padding: 12 !important;
+    -fx-text-fill: #eceff4 !important; /* Keeping light text on dark background */
+}
+
+.dark-mode .message-received {
+    -fx-background-color: #3b4252 !important; /* Dark background for received messages */
+    -fx-background-radius: 18 !important;
+    -fx-padding: 12 !important;
+    -fx-text-fill: #eceff4 !important; /* Light text on dark background */
+    -fx-border-color: #4c566a !important;
+    -fx-border-radius: 18 !important;
+    -fx-border-width: 1 !important;
+}
+
+/* More specific targeting for active list */
+.dark-mode .activeList,
+.dark-mode ListView {
+    -fx-background-color: #3b4252 !important;
+    -fx-control-inner-background: #3b4252 !important;
+}
+
+.dark-mode .activeList .list-cell {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .activeList .list-cell:filled {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .activeList .list-cell:filled:selected {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .activeList .list-cell:filled:hover {
+    -fx-background-color: #4c566a !important;
+}
+
+/* Icon button hover effects */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(129, 161, 193, 0.2);
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+}
+
+/* File message box styling */
+.file-message-box {
+    -fx-background-color: #eceff4; /* Receiver color (light) by default */
+    -fx-background-radius: 16;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);
+}
+
+/* Sent file message styling */
+.file-message-box.sent {
+    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
+}
+
+/* Image message box styling - using theme colors */
+.image-message-box {
+    -fx-background-color: #eceff4; /* Receiver color (light) by default */
+    -fx-background-radius: 12;
+    -fx-padding: 3;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);
+    -fx-cursor: hand;
+    -fx-max-width: 300px;
+    -fx-max-height: 300px;
+}
+
+/* Sent image message styling */
+.image-message-box.sent {
+    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
+}
+
+/* Dark mode file message box */
+.dark-mode .file-message-box {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3b4252 0%, #353c4a 70%, #323642 100%) !important;
+    -fx-border-color: #4c566a !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0, 0, 3);
+}
+
+/* Dark mode image message box */
+.dark-mode .image-message-box {
+    -fx-background-color: #3b4252 !important; /* User bubble color */
+    -fx-padding: 2;
+    -fx-border-color: rgba(102, 113, 136, 0.4) !important;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 4, 0, 0, 1);
+    -fx-cursor: hand;
+}
+
+/* Dark mode sent image message styling */
+.dark-mode .image-message-box.sent {
+    -fx-background-color: #81a1c1 !important; /* Accent color */
+}
+
+/* File name and info styling */
+.file-name {
+    -fx-text-fill: #2c3e50; /* Dark text for light backgrounds */
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+    -fx-font-weight: bold;
+}
+
+.file-info {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+}
+
+/* File name and info styling for sent messages with dark background */
+.file-message-box.sent .file-name {
+    -fx-text-fill: #eceff4; /* Light text for dark backgrounds */
+}
+
+.file-message-box.sent .file-info {
+    -fx-text-fill: #d8dee9; /* Lighter gray for dark backgrounds */
+}
+
+/* Dark mode file name and info */
+.dark-mode .file-name {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .file-info {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+/* File download button styling */
+.download-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 4 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
+}
+
+.download-button:hover {
+    -fx-background-color: #0069d9;
+}
+
+.dark-mode .download-button {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .download-button:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+
+
+/* Remove alternating stripes from ListView */
+.activeList .list-cell {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled:selected {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:filled:hover {
+    -fx-background-color: transparent;
+}
+
+.activeList .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+/* Remove scrollbar styling if needed */
+.activeList .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.activeList .scroll-bar .thumb {
+    -fx-background-color: #d8dee9;
+    -fx-background-radius: 10;
+}
+
+/* Context Menu Styling */
+.context-menu {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 8;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: #d8dee9;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #2e3440;
+}
+
+.context-menu .menu-item:hover .label {
+    -fx-text-fill: #2e3440;
+}
+
+/* Dark mode context menu */
+.dark-mode .context-menu {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .context-menu .menu-item {
+    -fx-background-color: transparent !important;
+}
+
+.dark-mode .context-menu .menu-item:hover {
+    -fx-background-color: #4c566a !important;
+}
+
+.dark-mode .context-menu .menu-item .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .context-menu .menu-item:hover .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+/* Dialog and Popup Styling */
+.dialog-pane {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #5e81ac;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content {
+    -fx-background-color: #eceff4;
+    -fx-padding: 20;
+}
+
+/* Dialog and Popup Styling */
+.dialog-pane .content .label {
+    -fx-text-fill: #2e3440;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+.dialog-pane .button-bar {
+    -fx-background-color: #eceff4;
+    -fx-padding: 15 20 20 20;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #81a1c1;
+}
+
+.dialog-pane .button.cancel-button {
+    -fx-background-color: #bf616a;
+}
+
+.dialog-pane .button.cancel-button:hover {
+    -fx-background-color: #d08770;
+}
+
+/* Dark mode dialog styling */
+.dark-mode .dialog-pane {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .dialog-pane .header-panel {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .dialog-pane .content {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .dialog-pane .content .label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-pane .button-bar {
+    -fx-background-color: #3b4252 !important;
+}
+
+.dark-mode .dialog-pane .button {
+    -fx-background-color: #5e81ac !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-pane .button:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+.dark-mode .dialog-pane .button.cancel-button {
+    -fx-background-color: #bf616a !important;
+}
+
+.dark-mode .dialog-pane .button.cancel-button:hover {
+    -fx-background-color: #d08770 !important;
+}
+
+/* Group Member Popup Styling */
+.group-member-popup {
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);
+}
+
+.group-member-popup-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+.group-member-name {
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+}
+
+.group-member-owner {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+}
+
+.group-member-admin {
+    -fx-text-fill: #4ecdc4;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+}
+
+.group-member-item {
+    -fx-cursor: hand;
+}
+
+/* Chat Status Labels */
+.chat-status-clickable {
+    -fx-text-fill: #007bff;
+    -fx-cursor: hand;
+}
+
+.chat-status-normal {
+    -fx-text-fill: #666666;
+}
+
+/* Select Chat Message */
+.select-chat-message {
+    -fx-text-fill: #888888;
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+}
+
+/* Emoji Picker Popup */
+.emoji-picker-popup {
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);
+    -fx-background-radius: 10;
+}
+
+.emoji-reaction {
+    -fx-font-size: 16px;
+    -fx-padding: 2;
+}
+
+.emoji-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.emoji-grid {
+    -fx-background-color: transparent;
+}
+
+.emoji-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 3;
+}
+
+.emoji-button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #bbb;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.emoji-button-fallback {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+/* Settings Context Menu */
+.settings-context-menu {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 8;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);
+}
+
+/* Group Creation Dialog */
+.group-creation-dialog {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.dialog-header {
+    -fx-font-size: 22px; /* Title/Header: 20-24sp */
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e3440;
+}
+
+.dialog-label {
+    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+    -fx-text-fill: #2e3440;
+    -fx-font-weight: bold;
+}
+
+.dialog-text-field {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 6;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px; /* Input text: 14sp */
+}
+
+.dialog-cancel-button {
+    -fx-background-color: #bf616a;
+    -fx-text-fill: white;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.dialog-cancel-button:hover {
+    -fx-background-color: #d08770;
+}
+
+.dialog-create-button {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: white;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.dialog-create-button:hover {
+    -fx-background-color: #81a1c1;
+}
+
+/* Dark mode styles for new classes */
+.dark-mode .group-member-popup {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .group-member-popup-title {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .group-member-name {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .chat-status-clickable {
+    -fx-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .chat-status-normal {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .select-chat-message {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+.dark-mode .emoji-picker-popup {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .emoji-button:hover {
+    -fx-background-color: #4c566a !important;
+    -fx-border-color: #5e81ac !important;
+}
+
+.dark-mode .emoji-button-fallback {
+    -fx-background-color: #2e3440 !important;
+    -fx-border-color: #4c566a !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .settings-context-menu {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .group-creation-dialog {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+.dark-mode .dialog-header {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-label {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-text-field {
+    -fx-background-color: #2e3440 !important;
+    -fx-border-color: #4c566a !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .dialog-cancel-button {
+    -fx-background-color: #bf616a !important;
+}
+
+.dark-mode .dialog-cancel-button:hover {
+    -fx-background-color: #d08770 !important;
+}
+
+.dark-mode .dialog-create-button {
+    -fx-background-color: #5e81ac !important;
+}
+
+.dark-mode .dialog-create-button:hover {
+    -fx-background-color: #81a1c1 !important;
+}
+
+/* Open Button Styling */
+.open-button {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 4 8;
+    -fx-cursor: hand;
+}
+
+.open-button:hover {
+    -fx-background-color: #1e7e34;
+}
+
+/* File Type Label Styling */
+.file-type-label-document {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-image {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-video {
+    -fx-background-color: #fd7e14;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-audio {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-archive {
+    -fx-background-color: #6610f2;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-program {
+    -fx-background-color: #0d6efd;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+.file-type-label-other {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-padding: 3 6;
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-weight: bold;
+    -fx-background-radius: 3;
+}
+
+/* Message Time Styling */
+.message-time {
+    -fx-font-size: 11px;
+    -fx-text-fill: #7a7a7a;
+    -fx-padding: 2 0 0 0;
+}
+
+/* Make timestamp styling more specific to override bubble font sizes */
+.message-sent .message-time,
+.message-received .message-time {
+    -fx-font-size: 9 !important; /* Timestamp/secondary: very small */
+}
+
+/* Specific styling for sent message timestamps - on dark background */
+.message-sent .message-time {
+    -fx-text-fill: rgba(236, 239, 244, 0.8) !important; /* Light color with transparency for dark background */
+}
+
+/* Specific styling for received message timestamps - on light background */
+.message-received .message-time {
+    -fx-text-fill: #666666 !important; /* Dark gray for light background */
+}
+
+/* Ultra-specific selectors to override everything */
+VBox .message-sent .message-time,
+VBox .message-received .message-time,
+HBox .message-sent .message-time,
+HBox .message-received .message-time {
+    -fx-font-size: 9 !important;
+}
+
+Label.message-time {
+    -fx-font-size: 9 !important;
+}
+
+.dark-mode .message-sent .message-time,
+.dark-mode .message-received .message-time {
+    -fx-text-fill: #d8dee9 !important;
+    -fx-font-size: 9 !important;
+    -fx-opacity: 0.8 !important;
+}
+
+/* Dark mode styles for new classes */
+.dark-mode .open-button {
+    -fx-background-color: #a3be8c !important;
+}
+
+.dark-mode .open-button:hover {
+    -fx-background-color: #88c0a0 !important;
+}
+
+.dark-mode .message-time {
+    -fx-text-fill: #d8dee9 !important;
+    -fx-font-size: 9 !important;
+    -fx-opacity: 0.8 !important;
+}
+
+/* Dark mode ultra-specific selectors */
+.dark-mode VBox .message-sent .message-time,
+.dark-mode VBox .message-received .message-time,
+.dark-mode HBox .message-sent .message-time,
+.dark-mode HBox .message-received .message-time {
+    -fx-font-size: 9 !important;
+}
+
+.dark-mode Label.message-time {
+    -fx-font-size: 9 !important;
+}
+
+/* Member Selection Dialog Styling */
+.member-selection-search-field {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px; /* Input text: 14sp */
+    -fx-prompt-text-fill: #81a1c1;
+}
+
+.member-selection-checkbox {
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-text-fill: #2e3440;
+    -fx-font-weight: 500;
+}
+
+/* Dark mode styles for member selection */
+.dark-mode .member-selection-search-field {
+    -fx-background-color: #2e3440 !important;
+    -fx-border-color: #4c566a !important;
+    -fx-text-fill: #eceff4 !important;
+    -fx-prompt-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .member-selection-checkbox {
+    -fx-text-fill: #eceff4 !important;
+}
+
+/* Contact Message Styling */
+.contact-message-unread {
+    -fx-text-fill: #3b4252;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+.contact-message {
+    -fx-text-fill: #4c566a;
+    -fx-font-weight: normal;
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+/* Dark mode for contact messages */
+.dark-mode .contact-message-unread {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .contact-message {
+    -fx-text-fill: #d8dee9 !important;
+}
+
+/* Member Selection Dialog */
+.member-selection-dialog {
+    -fx-background-color: #eceff4;
+    -fx-background-radius: 12;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 15, 0, 0, 3);
+}
+
+.dark-mode .member-selection-dialog {
+    -fx-background-color: #3b4252 !important;
+    -fx-border-color: #4c566a !important;
+}
+
+/* Audio Player Styles */
+.progress-bar.custom-progress-bar {
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-accent: #3498db !important;
+}
+
+.progress-bar.custom-progress-bar > .bar {
+    -fx-background-color: #3498db !important;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.progress-bar.custom-progress-bar > .track {
+    -fx-background-color: #ecf0f1;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.progress-bar.progress-bar-pulse {
+    -fx-accent: #52a3e0 !important;
+}
+
+.progress-bar.progress-bar-pulse > .bar {
+    -fx-background-color: #52a3e0 !important;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(82, 163, 224, 0.4), 10, 0, 0, 0);
+}
+
+.progress-bar.progress-bar-normal {
+    -fx-accent: #3498db !important;
+}
+
+.progress-bar.progress-bar-normal > .bar {
+    -fx-background-color: #3498db !important;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.progress-drag-handle {
+    -fx-fill: white;
+    -fx-stroke: #3498db;
+    -fx-stroke-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);
+}
+
+/* File Type Color Classes */
+.file-type-image {
+    -fx-background-color: #e83e8c;
+}
+
+.file-type-audio {
+    -fx-background-color: #6f42c1;
+}
+
+.file-type-video {
+    -fx-background-color: #fd7e14;
+}
+
+.file-type-text {
+    -fx-background-color: #6c757d;
+}
+
+.file-type-json, .file-type-xml {
+    -fx-background-color: #17a2b8;
+}
+
+.file-type-html {
+    -fx-background-color: #e83e8c;
+}
+
+.file-type-csv {
+    -fx-background-color: #28a745;
+}
+
+.file-type-pdf {
+    -fx-background-color: #dc3545;
+}
+
+.file-type-archive {
+    -fx-background-color: #6610f2;
+}
+
+.file-type-document {
+    -fx-background-color: #007bff;
+}
+
+.file-type-spreadsheet {
+    -fx-background-color: #28a745;
+}
+
+.file-type-presentation {
+    -fx-background-color: #fd7e14;
+}
+
+.file-type-program {
+    -fx-background-color: #0d6efd;
+}
+
+.file-type-other {
+    -fx-background-color: #6c757d;
+}
+
+/* New CSS classes for proper font size control */
+.search-field {
+    -fx-font-size: 14px; /* Input Placeholder: 14sp */
+}
+
+.message-input-field {
+    -fx-font-size: 14px; /* Input Placeholder: 14sp */
+}
+
+.navigation-button {
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+}
+
+.send-button {
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+}
+
+/* Emoji fallback text styling */
+.emoji-fallback-text {
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+}
+
+/* Sender name label in group chats */
+.sender-name-label {
+    -fx-text-fill: #666666;
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 2 15;
+}
+
+/* Group management window title */
+.group-management-title {
+    -fx-font-size: 18px; /* Between subtitle and title: 16-20sp */
+    -fx-font-weight: bold;
+}
+
+/* File loading and error labels */
+.file-loading-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 10px; /* Timestamp/secondary: 10-12sp */
+    -fx-padding: 2;
+}
+
+.file-error-label {
+    -fx-text-fill: #dc3545;
+    -fx-font-size: 9px; /* Small error text */
+    -fx-padding: 2;
+}
+
+/* Audio player time labels */
+.audio-time-label {
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-text-fill: #7f8c8d;
+    -fx-font-family: 'Segoe UI', sans-serif;
+}
+
+.audio-time-separator {
+    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-text-fill: #bdc3c7;
+}
+
+/* Audio control fallback text */
+.audio-control-fallback-text {
+    -fx-text-fill: white;
+    -fx-font-size: 12px; /* Navigation Text: 12-14sp */
+}
+
+/* Progress labels */
+.download-progress-label {
+    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-font-weight: bold;
+}
+
+.unified-progress-label {
+    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-text-fill: #6c757d;
+}
+
+/* Audio control fallback text */
+.audio-control-fallback-text {
+    -fx-text-fill: white;
+    -fx-font-size: 12px; /* Navigation Text: 12-14sp */
+}
+

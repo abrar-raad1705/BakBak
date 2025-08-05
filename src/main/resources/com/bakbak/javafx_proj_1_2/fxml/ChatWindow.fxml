@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<SplitPane dividerPositions="0.4022531477799867" orientation="HORIZONTAL" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.controller.ChatController">
+
+   <!-- Left Sidebar -->
+   <VBox maxWidth="400" minWidth="300" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="activeList" stylesheets="@ChatWindowStyle.css">
+
+      <!-- Header -->
+      <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;" stylesheets="@ChatWindowStyle.css">
+         <Label styleClass="chatsTitle" text="Chats" />
+         <Region HBox.hgrow="ALWAYS" />
+         <ToggleButton fx:id="darkModeToggle" minHeight="25" minWidth="30" style="-fx-background-color: transparent;" styleClass="navigation-button">
+            <graphic>
+               <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../icons/sun.png" />
+                  </image>
+               </ImageView>
+            </graphic></ToggleButton>
+         <Button fx:id="settingsButton" minHeight="30" minWidth="30" onAction="#handleSettings" style="-fx-background-color: transparent;" styleClass="button2 icon-button" stylesheets="@ChatWindowStyle.css">
+            <graphic>
+               <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true" styleClass="icon-image">
+                  <image>
+                     <Image url="@../icons/settings.png" />
+                  </image>
+               </ImageView>
+            </graphic></Button>
+      </HBox>
+
+      <!-- User/Chat List -->
+      <VBox alignment="CENTER" stylesheets="@ChatWindowStyle.css" VBox.vgrow="ALWAYS">
+         <TextField fx:id="messageInput1" prefHeight="40" prefWidth="279.0" promptText="Search" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" styleClass="search-field">
+            <VBox.margin>
+               <Insets top="20.0" />
+            </VBox.margin></TextField>
+         <ListView fx:id="userListView" style="-fx-background-color: transparent; -fx-border-width: 0;" stylesheets="@ChatWindowStyle.css" VBox.vgrow="ALWAYS" />
+         <VBox.margin>
+            <Insets left="10.0" right="10.0" />
+         </VBox.margin>
+      </VBox>
+
+      <!-- Bottom Controls -->
+      <VBox alignment="CENTER" spacing="10" style="-fx-padding: 15 20 20 20;" stylesheets="@ChatWindowStyle.css">
+         <HBox alignment="CENTER_LEFT" spacing="10" />
+         <Button fx:id="logoutButton" onAction="#handleLogout" prefWidth="Infinity" styleClass="loginButton" stylesheets="@ChatWindowStyle.css" text="Logout" />
+      </VBox>
+   </VBox>
+
+   <!-- Main Chat Area -->
+   <BorderPane styleClass="mainChatArea">
+      <!-- Chat Header -->
+      <top>
+         <VBox fx:id="chatHeader" alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" prefHeight="60" spacing="15" style="-fx-padding: 15 20 15 20; -fx-border-width: 0 0 1 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="chatBoxHeader" stylesheets="@ChatWindowStyle.css">
+
+               <VBox spacing="2" HBox.hgrow="ALWAYS">
+                  <Label fx:id="chatNameLabel" styleClass="chatNameLabel" text="Name" />
+                  <Label fx:id="chatStatusLabel" styleClass="lastSeen" text="Last Seen" />
+               </VBox>
+
+               <HBox spacing="5">
+                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/call.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/video.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/more.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+               </HBox>
+            </HBox>
+         </VBox>
+      </top>
+
+      <!-- Messages Area -->
+      <center>
+         <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <content>
+               <VBox fx:id="messagesContainer" spacing="8" style="-fx-padding: 20;" />
+            </content>
+         </ScrollPane>
+      </center>
+
+      <!-- Message Input -->
+      <bottom>
+         <HBox fx:id="messageInputArea" alignment="CENTER">
+            <VBox style="-fx-padding: 15 20 20 20; -fx-border-width: 1 0 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="chatBoxFooter" stylesheets="@ChatWindowStyle.css" HBox.hgrow="ALWAYS">
+               <HBox alignment="CENTER" spacing="12">
+                  <Button fx:id="fileButton" minHeight="40" minWidth="40" onAction="#handleSendFile" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/attach.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" styleClass="message-input-field" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/emoji.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button minHeight="40" minWidth="40.0" prefWidth="31.0" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/voice.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="sendButton" minHeight="40" minWidth="40" onAction="#handleSendMessage" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-background-color: transparent;" styleClass="send-button">
+                     <graphic>
+                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/send.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+               </HBox>
+            </VBox>
+         </HBox>
+      </bottom>
+   </BorderPane>
+</SplitPane>

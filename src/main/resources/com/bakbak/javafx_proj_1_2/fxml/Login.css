@@ -1,0 +1,41 @@
+.root {
+    -fx-background-color: #b2bed3;
+    -fx-min-width: 400px;
+    -fx-min-height: 600px;
+    -fx-pref-width: 400px;
+    -fx-pref-height: 600px;
+}
+
+.background{
+    -fx-background-color: #e5e9f0;
+    -fx-min-height: 600;
+    -fx-min-width: 400;
+    -fx-pref-width: 400;
+    -fx-pref-height: 600;
+    -fx-max-width: 400;
+    -fx-max-height: 600;
+}
+
+.textField{
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+}
+
+.buttonContainer{
+
+}
+
+.button{
+    -fx-background-color: #81a1c1;
+    -fx-background-radius: 10;
+}
+.button:hover{
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-background-color: #8ec6d7;
+    -fx-background-insets: 1;
+    -fx-translate-y: -3;
+}
+
+

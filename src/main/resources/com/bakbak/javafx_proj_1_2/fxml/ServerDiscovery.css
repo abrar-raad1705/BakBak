@@ -1,0 +1,99 @@
+.background{
+    -fx-background-color: #e5e9f0;
+    -fx-padding: 40;
+
+}
+
+.logo:hover{
+    -fx-scale-x: 1.35;
+    -fx-scale-y: 1.35;
+
+}
+
+
+.root {
+    -fx-min-width: 470px;
+    -fx-min-height: 700px;
+    -fx-pref-width: 470px;
+    -fx-pref-height: 700px;
+}
+
+.titleWhole{
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e3440;
+}
+
+.label{
+    -fx-font-family: sans-serif;
+    -fx-text-fill: #3f5673;
+    -fx-letter-spacing: 1px;
+}
+
+.buttonContainer{
+}
+
+.textBox{
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-font-size: 13px;
+}
+
+
+
+.titleLetters{
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #434c5e;
+}
+
+.button{
+    -fx-background-color: #81a1c1;
+    -fx-background-radius: 10;
+}
+.button:hover{
+    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-background-color: #8ec6d7;
+    -fx-background-insets: 1;
+    -fx-translate-y: -3;
+}
+
+.serverListView {
+    -fx-background-color: #e5e9f0;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #81a1c1;
+    -fx-border-width: 2px;
+    -fx-padding: 4 0 4 0;
+    -fx-control-inner-background: #e5e9f0;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-font-size: 15px;
+    -fx-text-fill: #2e3440;
+}
+
+.serverListView .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2e3440;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    -fx-font-size: 15px;
+    -fx-padding: 8 18 8 18;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #d8dee9;
+    -fx-transition: background-color 0.2s;
+}
+
+.serverListView .list-cell:selected, .serverListView .list-cell:filled:selected, .serverListView .list-cell:filled:selected:focused {
+    -fx-background-color: #8fbcbb;
+    -fx-text-fill: #eceff4;
+    -fx-border-color: #81a1c1;
+}
+
+.serverListView .list-cell:hover {
+    -fx-background-color: #d8dee9;
+    -fx-text-fill: #2e3440;
+    -fx-cursor: hand;
+}
