@@ -18,6 +18,9 @@ import javafx.scene.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -1814,7 +1817,7 @@ public class ChatController implements Initializable {
 
         VBox messageContent = new VBox();
         messageContent.setSpacing(2);
-        messageContent.setMaxWidth(450); // Increased to accommodate larger images
+        messageContent.setMaxWidth(300); // Compact width like demo (280px CSS + padding)
 
         if (FileMessageData.isAFileReference(message.getContent())) {
             message.setFileMessageData(FileMessageData.fromString(message.getContent()));
@@ -1843,9 +1846,20 @@ public class ChatController implements Initializable {
                 fileBox.setPadding(new Insets(8));
                 fileBox.getStyleClass().add("file-message-box");
                 fileBox.setMaxWidth(380); // 85% of 450 = ~380
+                
+                // Set white background and force ALL text inside to be black
+                fileBox.setStyle("-fx-background-color: white; -fx-text-fill: #000000 !important;");
+                // Apply black text to all child labels after scene is built
+                Platform.runLater(() -> {
+                    fileBox.lookupAll(".label").forEach(node -> {
+                        if (node instanceof Label) {
+                            ((Label) node).setTextFill(Color.BLACK);
+                        }
+                    });
+                });
             }
 
-            // Add media preview first if supported (takes most space)
+            // Add media preview if supported (takes most space)
             Node mediaPreview = createMediaPreview(fileData);
             if (mediaPreview != null) {
                 fileBox.getChildren().add(mediaPreview);
@@ -1865,10 +1879,14 @@ public class ChatController implements Initializable {
 
             VBox fileDetails = new VBox(2);
 
-            // Compact file name with smaller styling
+            // Compact file name with bold styling - let CSS handle font and size
             Label fileName = new Label(fileData.getOriginalName());
-            // Remove direct font setting to use CSS class instead
+            // Force black text and add CSS class for styling
             fileName.getStyleClass().add("file-name");
+            fileName.setTextFill(Color.BLACK);
+            fileName.setStyle("-fx-text-fill: #000000 !important;");
+            // Force the text fill to black after adding to scene
+            Platform.runLater(() -> fileName.setTextFill(Color.BLACK));
             fileName.setWrapText(true);
             fileName.setMaxWidth(200);
 
@@ -1876,19 +1894,24 @@ public class ChatController implements Initializable {
             HBox fileMetaInfo = new HBox(4);
             fileMetaInfo.setAlignment(Pos.CENTER_LEFT);
 
-            // File size info
+            // File size info with consistent font size - let CSS handle font and size
             Label fileSizeLabel = new Label(fileData.getFormattedFileSize());
-            // Remove direct font setting to use CSS class instead
+            // Force black text and add CSS class for styling
             fileSizeLabel.getStyleClass().add("file-info");
+            fileSizeLabel.setTextFill(Color.BLACK);
+            fileSizeLabel.setStyle("-fx-text-fill: #000000 !important;");
+            // Force the text fill to black after adding to scene
+            Platform.runLater(() -> fileSizeLabel.setTextFill(Color.BLACK));
 
-            // Add colored file type label with border
+            // Add colored file type label with border and color accent - let CSS handle font and size
             Label fileTypeLabel = new Label(getFileTypeDisplay(fileData.getMimeType()));
             fileTypeLabel.getStyleClass().add("file-type-label");
-            // Use text color from style class and add to CSS instead of inline style
+            // Use color-specific style class for accent coloring
             String styleClass = getFileTypeStyleClass(fileData.getMimeType());
-            // Remove direct font setting and padding to use CSS class instead
-            // Also remove direct text fill setting to use CSS class
-            fileTypeLabel.getStyleClass().add("file-type-label-" + styleClass);
+            fileTypeLabel.getStyleClass().add(styleClass);
+            // Add file-info class for JetBrains Mono font styling
+            fileTypeLabel.getStyleClass().add("file-info");
+            // Don't force black text here - let the CSS color accent show through
 
             fileMetaInfo.getChildren().addAll(fileSizeLabel, fileTypeLabel);
             fileDetails.getChildren().addAll(fileName, fileMetaInfo);
@@ -1897,10 +1920,12 @@ public class ChatController implements Initializable {
             // Modern download button
             Button downloadButton = new Button("Download");
             downloadButton.getStyleClass().add("download-button");
+            downloadButton.setStyle("-fx-text-fill: white;"); // Ensure text is white on blue background
             downloadButton.setOnAction(e -> downloadFile(fileData));
 
             Button openButton = new Button("Open");
             openButton.getStyleClass().add("open-button");
+            openButton.setStyle("-fx-text-fill: white;"); // Ensure text is white on green background
             openButton.setOnAction(e -> openFile(fileData));
 
             // Create compact HBox for buttons
@@ -1917,36 +1942,63 @@ public class ChatController implements Initializable {
             fileBox.getChildren().add(compactInfoSection);
 
             messageContent.getChildren().add(fileBox);
+            
+            // Apply sent/received styling to fileBox
+            if (isSentByMe) {
+                fileBox.getStyleClass().add("sent");
+            } else {
+                fileBox.getStyleClass().add("received");
+            }
         } else {
             // Create TextFlow with mixed text and emoji content
             TextFlow textFlow = createTextFlowWithEmojis(message.getContent());
             messageContent.getChildren().add(textFlow);
         }
 
-        // Timestamp in bottom right corner
-        String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
-        Label timeLabel = new Label(timeStr);
-        timeLabel.getStyleClass().add("message-time");
-
-        // Add timestamp aligned to the right
-        HBox timestampBox = new HBox();
-        timestampBox.setAlignment(Pos.CENTER_RIGHT);
-        timestampBox.getChildren().add(timeLabel);
-
-        messageContent.getChildren().addAll(timestampBox);
-
+        // Apply message bubble styles to the content
+        // Apply message styles for all messages including file messages
         if (isSentByMe) {
-            // Sent messages - align right
-            messageBox.setAlignment(Pos.CENTER_RIGHT);
             messageContent.getStyleClass().add("message-sent");
         } else {
-            // Received messages - align left
-            messageBox.setAlignment(Pos.CENTER_LEFT);
             messageContent.getStyleClass().add("message-received");
         }
 
-        messageBox.getChildren().add(messageContent);
-        fullMessageContainer.getChildren().add(messageBox);
+        // Create timestamp without checkmarks, always right-aligned
+        String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
+        Label timeLabel = new Label(timeStr);
+        timeLabel.getStyleClass().add("message-time-internal");
+        
+        // Add timestamp inside the message content (always right-aligned)
+        messageContent.getChildren().add(timeLabel);
+        
+        // Set alignment for timestamp within the message content - always right-aligned
+        VBox.setMargin(timeLabel, new Insets(2, 0, 0, 0)); // Small top margin
+        // Ensure timestamp is always right-aligned by adding it to a right-aligned container
+        HBox timestampContainer = new HBox();
+        timestampContainer.setAlignment(Pos.CENTER_RIGHT);
+        timestampContainer.getChildren().add(timeLabel);
+        
+        // Remove the standalone timeLabel and add the container instead
+        messageContent.getChildren().remove(timeLabel);
+        messageContent.getChildren().add(timestampContainer);
+
+        // Create message row with proper alignment (like in demo)
+        HBox messageRow = new HBox();
+        messageRow.setPadding(new Insets(2, 10, 2, 10));
+        
+        if (isSentByMe) {
+            // Sent message: push to right
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            messageRow.getChildren().addAll(spacer, messageContent);
+        } else {
+            // Received message: align to left with spacer on right
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            messageRow.getChildren().addAll(messageContent, spacer);
+        }
+
+        fullMessageContainer.getChildren().add(messageRow);
 
         // Add the complete message container to the messages container
         messagesContainer.getChildren().add(fullMessageContainer);
@@ -2005,9 +2057,11 @@ public class ChatController implements Initializable {
                                 emojiView.setViewport(new javafx.geometry.Rectangle2D(
                                     emojiData.getX(), emojiData.getY(), 
                                     emojiData.getWidth(), emojiData.getHeight()));
-                                emojiView.setFitWidth(20);
-                                emojiView.setFitHeight(20);
+                                emojiView.setFitWidth(18);
+                                emojiView.setFitHeight(18);
                                 emojiView.setPreserveRatio(true);
+                                // Ensure the emoji aligns with text baseline
+                                emojiView.setTranslateY(2); // Move emoji down to align with text baseline
                                 textFlow.getChildren().add(emojiView);
                             } else {
                                 // Fallback to text emoji
@@ -2647,12 +2701,12 @@ public class ChatController implements Initializable {
                 Label nameLabel = new Label(item.getName());
                 nameLabel.getStyleClass().add("contact-name");
                 if (!item.hasUnreadMessages()) {
-                    nameLabel.setStyle("-fx-font-weight: normal;");
+                    nameLabel.getStyleClass().add("contact-name-normal");
                 }
 
                 if (item.getType() == ChatItem.Type.GROUP) {
                     Label groupIcon = new Label("👥");
-                    groupIcon.setStyle("-fx-text-fill: #5e81ac;");
+                    groupIcon.getStyleClass().add("group-icon");
                     nameBox.getChildren().addAll(groupIcon, nameLabel);
                 } else {
                     nameBox.getChildren().add(nameLabel);
@@ -2722,13 +2776,13 @@ public class ChatController implements Initializable {
         mainContainer.setSpacing(0);
         mainContainer.setPrefSize(390, 400); // Increased width to accommodate 6 categories
         mainContainer.getStyleClass().addAll("emoji-picker-popup", "modern-emoji-picker");
-        mainContainer.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 8);");
+        // Remove inline styles to allow CSS to control styling
 
         // Search bar
         TextField searchField = new TextField();
         searchField.setPromptText("Search emojis...");
         searchField.setPrefHeight(36);
-        searchField.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 8 12; -fx-border-color: #e0e0e0; -fx-border-width: 1;");
+        searchField.getStyleClass().add("emoji-search-field");
         VBox.setMargin(searchField, new Insets(12, 12, 8, 12));
 
         // Category tabs container with main visible categories
@@ -2736,7 +2790,7 @@ public class ChatController implements Initializable {
         categoryContainer.setPrefHeight(46);
         categoryContainer.setAlignment(Pos.CENTER);
         categoryContainer.setPadding(new Insets(0));
-        categoryContainer.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 0 0 1 0; -fx-background-color: white;");
+        categoryContainer.getStyleClass().add("emoji-category-container");
         
         // Main category tabs - will show the first few categories
         HBox categoryTabs = new HBox();
@@ -2749,7 +2803,7 @@ public class ChatController implements Initializable {
         Button moreButton = new Button("More");
         moreButton.getStyleClass().add("emoji-category-button");
         // Style to match other buttons
-        moreButton.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #e0e0e0; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 8; -fx-font-size: 11px;");
+        moreButton.getStyleClass().add("emoji-more-button");
         moreButton.setPrefHeight(30);
         moreButton.setPrefWidth(55); // Width for "More" text
         moreButton.setTooltip(new Tooltip("More categories"));
@@ -2763,7 +2817,7 @@ public class ChatController implements Initializable {
         emojiScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         emojiScrollPane.setFitToWidth(true);
         emojiScrollPane.setPrefHeight(350);
-        emojiScrollPane.setStyle("-fx-background: white; -fx-background-color: white;");
+        emojiScrollPane.getStyleClass().add("emoji-scroll-pane");
 
         // Create canvas for emoji rendering
         EmojiCanvas emojiCanvas = new EmojiCanvas();
@@ -2906,8 +2960,8 @@ public class ChatController implements Initializable {
         btn.setPrefWidth(55); // Fixed width for uniform appearance
         btn.setMinWidth(55);
         // Make buttons more visually appealing
-        btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 6; -fx-padding: 2 4;");
-        btn.setFont(Font.font("System", FontWeight.NORMAL, 11)); // Slightly bigger font
+                    btn.getStyleClass().add("emoji-button");
+            // Remove programmatic font setting to allow CSS to control font size
         
         // Set tooltip to show full category name
         if (!label.equals(category)) {
@@ -3551,39 +3605,39 @@ public class ChatController implements Initializable {
 
     private String getFileTypeStyleClass(String mimeType) {
         if (mimeType == null)
-            return "file-type-other";
+            return "file-type-label-other";
 
         if (mimeType.startsWith("image/"))
-            return "file-type-image";
+            return "file-type-label-image";
         if (mimeType.startsWith("video/"))
-            return "file-type-video";
+            return "file-type-label-video";
         if (mimeType.startsWith("audio/"))
-            return "file-type-audio";
+            return "file-type-label-audio";
         if (mimeType.startsWith("text/plain"))
-            return "file-type-text";
+            return "file-type-label-text";
         if (mimeType.startsWith("text/html") || mimeType.endsWith("html"))
-            return "file-type-html";
+            return "file-type-label-html";
         if (mimeType.startsWith("application/json"))
-            return "file-type-json";
+            return "file-type-label-json";
         if (mimeType.startsWith("text/xml") || mimeType.endsWith("xml"))
-            return "file-type-xml";
+            return "file-type-label-xml";
         if (mimeType.startsWith("text/csv") || mimeType.endsWith("csv"))
-            return "file-type-csv";
+            return "file-type-label-csv";
         if (mimeType.equals("application/pdf"))
-            return "file-type-pdf";
+            return "file-type-label-pdf";
         if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
                 mimeType.startsWith("application/msword"))
-            return "file-type-document";
+            return "file-type-label-document";
         if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
                 mimeType.startsWith("application/vnd.ms-excel"))
-            return "file-type-spreadsheet";
+            return "file-type-label-spreadsheet";
         if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation") ||
                 mimeType.startsWith("application/vnd.ms-powerpoint"))
-            return "file-type-presentation";
+            return "file-type-label-presentation";
         if (mimeType.startsWith("application/zip") ||
                 mimeType.startsWith("application/x-rar") ||
                 mimeType.startsWith("application/x-7z"))
-            return "file-type-archive";
+            return "file-type-label-archive";
             
         // Add support for executable file types
         if (mimeType.startsWith("application/x-msdownload") ||
@@ -3593,9 +3647,9 @@ public class ChatController implements Initializable {
                 mimeType.endsWith("bat") ||
                 mimeType.endsWith("cmd") ||
                 mimeType.endsWith("sh"))
-            return "file-type-program";
+            return "file-type-label-program";
 
-        return "file-type-other";
+        return "file-type-label-document";
     }
 
     private String getFileTypeIcon(String mimeType) {
@@ -4106,7 +4160,8 @@ public class ChatController implements Initializable {
                         "-fx-border-color: #e9ecef;" +
                         "-fx-border-radius: 12;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);");
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);" +
+                        "-fx-text-fill: black !important;");
         audioContainer.setMaxWidth(280);
         audioContainer.setPrefWidth(280);
         audioContainer.setMaxHeight(60);

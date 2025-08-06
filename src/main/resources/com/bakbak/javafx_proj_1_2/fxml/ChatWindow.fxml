@@ -44,7 +44,7 @@
 
       <!-- User/Chat List -->
       <VBox alignment="CENTER" stylesheets="@ChatWindowStyle.css" VBox.vgrow="ALWAYS">
-         <TextField fx:id="messageInput1" prefHeight="40" prefWidth="279.0" promptText="Search" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" styleClass="search-field">
+         <TextField fx:id="messageInput1" prefHeight="40" prefWidth="279.0" promptText="Search" styleClass="search-field">
             <VBox.margin>
                <Insets top="20.0" />
             </VBox.margin></TextField>
@@ -125,7 +125,7 @@
                            </image>
                         </ImageView>
                      </graphic></Button>
-                  <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 16 8 16;" styleClass="message-input-field" HBox.hgrow="ALWAYS" />
+                  <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." styleClass="message-input-field" HBox.hgrow="ALWAYS" />
                   <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" style="-fx-background-color: transparent;" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">

@@ -38,15 +38,15 @@
 }
 
 .text{
-    -fx-text-fill: #eceff4;
-    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
-    -fx-font-weight: bold;
+    -fx-text-fill: #eceff4 !important;
+    -fx-font-size: 15px !important; /* Body Text/Messages: 14-16sp */
+    -fx-font-weight: bold !important;
 }
 
 .lastSeen{
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-text-fill: #00000060;
-    -fx-padding: 2 0 0 0; /* Add some top padding to separate from name */
+    -fx-font-size: 11px !important; /* Timestamp/secondary: 10-12sp */
+    -fx-text-fill: #00000060 !important;
+    -fx-padding: 2 0 0 0 !important; /* Add some top padding to separate from name */
 }
 
 .button2{
@@ -68,17 +68,17 @@
 }
 
 .chatsTitle{
-    -fx-font-family: sans-serif;
-    -fx-font-weight: bold;
-    -fx-font-size: 22px; /* Title/Header: 20-24sp */
-    -fx-text-fill: #2e3440;
-    -fx-letter-spacing: 1px;
+    -fx-font-family: sans-serif !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 22px !important; /* Title/Header: 20-24sp */
+    -fx-text-fill: #2e3440 !important;
+    -fx-letter-spacing: 1px !important;
 }
 
 .chatNameLabel {
-    -fx-font-size: 17px; /* Subtitle: 16-18sp */
-    -fx-font-weight: bold;
-    -fx-text-fill: #2e3440;
+    -fx-font-size: 17px !important; /* Subtitle: 16-18sp */
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #2e3440 !important;
 }
 
 .activeScreen{
@@ -152,29 +152,29 @@
     -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
     -fx-font-weight: bold !important;
     -fx-text-fill: #2e3440 !important;
-    -fx-font-size: 17px; /* Subtitle: 16-18sp */
+    -fx-font-size: 17px !important; /* Subtitle: 16-18sp */
 }
 
 .contact-message {
     -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
     -fx-text-fill: #5e81ac !important;
     -fx-opacity: 0.8 !important;
-    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
+    -fx-font-size: 15px !important; /* Body Text/Messages: 14-16sp */
 }
 
 .contact-time {
-    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    -fx-text-fill: #81a1c1;
-    -fx-opacity: 0.7;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-text-fill: #81a1c1 !important;
+    -fx-opacity: 0.7 !important;
+    -fx-font-size: 11px !important; /* Timestamp/secondary: 10-12sp */
 }
 
 .contact-no-message {
-    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
-    -fx-font-style: italic;
-    -fx-text-fill: #81a1c1;
-    -fx-opacity: 0.5;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    -fx-font-size: 13px !important; /* Navigation Text: 12-14sp */
+    -fx-font-style: italic !important;
+    -fx-text-fill: #81a1c1 !important;
+    -fx-opacity: 0.5 !important;
 }
 
 .group-icon {
@@ -188,26 +188,49 @@
     -fx-stroke-width: 1;
 }
 
-/* Chat Bubble Styles - Based on Nord Theme */
+/* Chat Bubble Styles - Modern Design */
 .message-sent {
-    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
-    -fx-background-radius: 18 18 4 18; /* Rounded except bottom-right */
-    -fx-padding: 10 14 10 14; /* Reduced padding */
-    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
-    -fx-text-fill: #eceff4; /* User text color - Light nord */
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
-    -fx-max-width: 280;
+    -fx-background-color: linear-gradient(to bottom right, #4568DC, #3498db) !important; /* Gradient blue */
+    -fx-background-radius: 22 22 4 22 !important; /* More rounded except bottom-right */
+    -fx-padding: 12 16 12 16 !important; /* Slightly increased padding */
+    -fx-font-family: 'Segoe UI', 'Roboto', sans-serif !important;
+    -fx-font-size: 15px !important; /* Body Text/Messages */
+    -fx-font-weight: normal !important;
+    -fx-text-fill: white !important; /* White text on blue background */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2) !important;
+    -fx-max-width: 280 !important; /* More compact like demo */
+    -fx-border-width: 0 !important; /* No border */
 }
 
 /* Received messages */
 .message-received {
-    -fx-background-color: #eceff4; /* Receiver bubble color - Light nord */
-    -fx-background-radius: 18 18 18 4; /* Rounded except bottom-left */
-    -fx-padding: 10 14 10 14; /* Reduced padding */
-    -fx-font-size: 15px; /* Body Text/Messages: 14-16sp */
-    -fx-text-fill: #2e3440; /* Receiver text color - Dark nord */
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 1, 0, 0, 0.5);
-    -fx-max-width: 280;
+    -fx-background-color: white !important; /* Clean white background */
+    -fx-background-radius: 22 22 22 4 !important; /* More rounded except bottom-left */
+    -fx-padding: 12 16 12 16 !important; /* Slightly increased padding */
+    -fx-font-family: 'Segoe UI', 'Roboto', sans-serif !important;
+    -fx-font-size: 15px !important; /* Body Text/Messages */
+    -fx-font-weight: normal !important;
+    -fx-text-fill: #2c3e50 !important; /* Dark blue-gray text */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1) !important;
+    -fx-max-width: 280 !important; /* More compact like demo */
+    -fx-border-color: rgba(0,0,0,0.05) !important; /* Subtle border */
+    -fx-border-width: 1 !important;
+    -fx-border-radius: 22 22 22 4 !important;
+}
+
+/* Text nodes within message bubbles */
+.message-sent .text,
+.message-sent Text {
+    -fx-fill: white !important;
+    -fx-text-fill: white !important;
+    -fx-font-weight: normal !important;
+}
+
+.message-received .text,
+.message-received Text {
+    -fx-fill: #2c3e50 !important;
+    -fx-text-fill: #2c3e50 !important;
+    -fx-font-weight: normal !important;
 }
 
 
@@ -403,22 +426,42 @@
     -fx-background-color: #2e3440 !important;
 }
 
-/* Dark mode styles for chat bubbles - using accent color for sent messages */
+/* Dark mode styles for chat bubbles - Modern Design */
 .dark-mode .message-sent {
-    -fx-background-color: #81a1c1 !important; /* Accent color for user messages in dark mode */
-    -fx-background-radius: 18 !important;
-    -fx-padding: 12 !important;
+    -fx-background-color: linear-gradient(to bottom right, #5e81ac, #81a1c1) !important; /* Nord-themed gradient for dark mode */
+    -fx-background-radius: 22 22 4 22 !important;
+    -fx-padding: 12 16 12 16 !important;
     -fx-text-fill: #eceff4 !important; /* Keeping light text on dark background */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 4, 0, 0, 2) !important;
+    -fx-max-width: 280 !important; /* More compact like demo */
+    -fx-border-width: 0 !important;
 }
 
 .dark-mode .message-received {
     -fx-background-color: #3b4252 !important; /* Dark background for received messages */
-    -fx-background-radius: 18 !important;
-    -fx-padding: 12 !important;
-    -fx-text-fill: #eceff4 !important; /* Light text on dark background */
+    -fx-background-radius: 22 22 22 4 !important;
+    -fx-padding: 12 16 12 16 !important;
+    -fx-text-fill: #e5e9f0 !important; /* Light text on dark background */
     -fx-border-color: #4c566a !important;
-    -fx-border-radius: 18 !important;
+    -fx-border-radius: 22 22 22 4 !important;
     -fx-border-width: 1 !important;
+    -fx-max-width: 280 !important; /* More compact like demo */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 3, 0, 0, 1) !important;
+}
+
+/* Dark mode Text nodes within message bubbles */
+.dark-mode .message-sent .text,
+.dark-mode .message-sent Text {
+    -fx-fill: #eceff4 !important;
+    -fx-text-fill: #eceff4 !important;
+    -fx-font-weight: normal !important;
+}
+
+.dark-mode .message-received .text,
+.dark-mode .message-received Text {
+    -fx-fill: #e5e9f0 !important;
+    -fx-text-fill: #e5e9f0 !important;
+    -fx-font-weight: normal !important;
 }
 
 /* More specific targeting for active list */
@@ -456,98 +499,192 @@
     -fx-border-radius: 5;
 }
 
-/* File message box styling */
+/* File message box styling - Modern Design */
 .file-message-box {
-    -fx-background-color: #eceff4; /* Receiver color (light) by default */
-    -fx-background-radius: 16;
-    -fx-border-color: #e9ecef;
-    -fx-border-radius: 16;
+    -fx-background-color: #FAF9F6; /* Nice whitish background */
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-radius: 18;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);
+    -fx-padding: 12;
 }
 
 /* Sent file message styling */
 .file-message-box.sent {
-    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
+    -fx-background-color: #FAF9F6; /* Same whitish background for consistency */
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
 }
 
-/* Image message box styling - using theme colors */
+/* Image message box styling - Modern Design */
 .image-message-box {
-    -fx-background-color: #eceff4; /* Receiver color (light) by default */
-    -fx-background-radius: 12;
-    -fx-padding: 3;
-    -fx-border-color: rgba(0,0,0,0.08);
-    -fx-border-radius: 12;
+    -fx-background-color: transparent; /* Transparent background */
+    -fx-background-radius: 16;
+    -fx-padding: 2;
+    -fx-border-color: rgba(255,255,255,0.3); /* Subtle white border */
+    -fx-border-radius: 16;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2); /* Softer shadow */
     -fx-cursor: hand;
-    -fx-max-width: 300px;
-    -fx-max-height: 300px;
+    -fx-max-width: 320px;
+    -fx-max-height: 320px;
 }
 
 /* Sent image message styling */
 .image-message-box.sent {
-    -fx-background-color: #3b4252; /* User bubble color - Dark nord */
+    -fx-background-color: transparent; /* Transparent background */
+    -fx-border-color: rgba(255,255,255,0.3); /* Subtle white border */
 }
 
-/* Dark mode file message box */
+/* Dark mode file message box - Modern Design */
 .dark-mode .file-message-box {
-    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3b4252 0%, #353c4a 70%, #323642 100%) !important;
-    -fx-border-color: #4c566a !important;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0, 0, 3);
+    -fx-background-color: #4c566a !important; /* Nice dark gray background for dark mode */
+    -fx-border-color: #5e81ac !important;
+    -fx-border-radius: 18 !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2) !important;
+    -fx-padding: 12 !important;
 }
 
-/* Dark mode image message box */
+/* Dark mode file message box sent */
+.dark-mode .file-message-box.sent {
+    -fx-background-color: #4c566a !important; /* Same background for consistency */
+    -fx-border-color: #5e81ac !important;
+    -fx-border-radius: 18 !important;
+    -fx-border-width: 1 !important;
+}
+
+/* Dark mode image message box - Modern Design */
 .dark-mode .image-message-box {
-    -fx-background-color: #3b4252 !important; /* User bubble color */
-    -fx-padding: 2;
-    -fx-border-color: rgba(102, 113, 136, 0.4) !important;
-    -fx-border-radius: 12;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 4, 0, 0, 1);
-    -fx-cursor: hand;
+    -fx-background-color: transparent !important;
+    -fx-padding: 2 !important;
+    -fx-border-color: rgba(129, 161, 193, 0.3) !important; /* Subtle accent-colored border */
+    -fx-border-radius: 16 !important;
+    -fx-border-width: 1 !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2) !important;
+    -fx-cursor: hand !important;
 }
 
 /* Dark mode sent image message styling */
 .dark-mode .image-message-box.sent {
-    -fx-background-color: #81a1c1 !important; /* Accent color */
+    -fx-background-color: transparent !important;
+    -fx-border-color: rgba(236, 239, 244, 0.3) !important; /* Subtle light border */
 }
 
-/* File name and info styling */
+/* File name and info styling - Modern Design with Inter Font */
 .file-name {
-    -fx-text-fill: #2c3e50; /* Dark text for light backgrounds */
-    -fx-font-size: 17px; /* Subtitle: 16-18sp */
-    -fx-font-weight: bold;
+    -fx-text-fill: black; /* Pure black text for better readability */
+    -fx-font-size: 16px !important; /* Larger font size for file title */
+    font-size: 16px !important;
+    -fx-font-weight: bold !important; /* Bold for file title */
+    font-weight: bold !important;
+    -fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
 }
 
 .file-info {
-    -fx-text-fill: #6c757d;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-text-fill: black; /* Pure black text for better readability */
+    -fx-font-size: 12px !important; /* Smaller font size for file info */
+    font-size: 12px !important;
+    -fx-font-weight: 600 !important; /* Semibold weight for file info */
+    font-weight: 600 !important;
+    -fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
 }
 
-/* File name and info styling for sent messages with dark background */
+/* File name and info styling for sent messages with gradient background */
 .file-message-box.sent .file-name {
-    -fx-text-fill: #eceff4; /* Light text for dark backgrounds */
+    -fx-text-fill: #2c3e50; /* Dark text on light inner bubble */
 }
 
 .file-message-box.sent .file-info {
-    -fx-text-fill: #d8dee9; /* Lighter gray for dark backgrounds */
+    -fx-text-fill: #7f8c8d; /* Slightly lighter gray for file info */
 }
 
-/* Dark mode file name and info */
+.file-message-box.sent .file-info {
+    -fx-text-fill: #95a5a6; /* Gray for file info */
+}
+
+/* File name and info styling for received messages */
+.file-message-box.received .file-name {
+    -fx-text-fill: #2c3e50; /* Dark text for received messages */
+}
+
+.file-message-box.received .file-info {
+    -fx-text-fill: #95a5a6; /* Gray text for received messages */
+}
+
+/* Dark mode file name and info - Modern Design with Inter Font */
 .dark-mode .file-name {
-    -fx-text-fill: #eceff4 !important;
+    -fx-text-fill: #eceff4 !important; /* Light text on dark background */
+    -fx-font-size: 16px !important; /* Larger font size for file title */
+    font-size: 16px !important;
+    -fx-font-weight: bold !important; /* Bold for file title */
+    font-weight: bold !important;
+    -fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
 }
 
 .dark-mode .file-info {
-    -fx-text-fill: #d8dee9 !important;
+    -fx-text-fill: rgba(236, 239, 244, 0.7) !important; /* Light text with transparency */
+    -fx-font-size: 12px !important; /* Smaller font size for file info */
+    font-size: 12px !important;
+    -fx-font-weight: 600 !important; /* Semibold weight for file info */
+    font-weight: 600 !important;
+    -fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif !important;
+}
+
+/* Dark mode file name/info in sent messages (on gradient background) */
+.dark-mode .file-message-box.sent .file-name {
+    -fx-text-fill: #eceff4 !important; /* Light text for dark mode */
+}
+
+.dark-mode .file-message-box.sent .file-info {
+    -fx-text-fill: rgba(236, 239, 244, 0.8) !important; /* Light text with transparency */
+}
+
+/* Dark mode file name/info in received messages */
+.dark-mode .file-message-box.received .file-name {
+    -fx-text-fill: #eceff4 !important; /* Light text for received messages in dark mode */
+}
+
+.dark-mode .file-message-box.received .file-info {
+    -fx-text-fill: rgba(236, 239, 244, 0.7) !important; /* Light text with transparency for received messages */
+}
+
+/* Ensure file message text elements are not overridden by general message styles */
+.file-message-box .file-name,
+.file-message-box.sent .file-name,
+.file-message-box.received .file-name {
+    -fx-text-fill: black !important; /* Force black text in light mode */
+}
+
+.file-message-box .file-info,
+.file-message-box.sent .file-info,
+.file-message-box.received .file-info {
+    -fx-text-fill: black !important; /* Force black text in light mode */
+}
+
+/* Dark mode overrides for file message text */
+.dark-mode .file-message-box .file-name,
+.dark-mode .file-message-box.sent .file-name,
+.dark-mode .file-message-box.received .file-name {
+    -fx-text-fill: #eceff4 !important; /* Force light text in dark mode */
+}
+
+.dark-mode .file-message-box .file-info,
+.dark-mode .file-message-box.sent .file-info,
+.dark-mode .file-message-box.received .file-info {
+    -fx-text-fill: rgba(236, 239, 244, 0.8) !important; /* Force light text in dark mode */
 }
 
 /* File download button styling */
 .download-button {
     -fx-background-color: #007bff;
     -fx-text-fill: white;
-    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-size: 11px; /* Smaller font size for compact design */
     -fx-font-weight: bold;
     -fx-background-radius: 4;
     -fx-padding: 4 8;
@@ -997,7 +1134,7 @@
 .open-button {
     -fx-background-color: #28a745;
     -fx-text-fill: white;
-    -fx-font-size: 13px; /* Navigation Text: 12-14sp */
+    -fx-font-size: 11px; /* Smaller font size for compact design */
     -fx-font-weight: bold;
     -fx-background-radius: 4;
     -fx-padding: 4 8;
@@ -1008,110 +1145,252 @@
     -fx-background-color: #1e7e34;
 }
 
-/* File Type Label Styling */
-.file-type-label-document {
-    -fx-background-color: #007bff;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+/* File Type Label Styling - Premium style with low opacity background and border */
+.file-type-label {
+    /* Base properties for all file type labels */
+    -fx-padding: 3 8;
+    padding: 3px 8px;
+    -fx-font-size: 10px; /* Timestamp/secondary: 10-12sp */
+    font-size: 10px;
     -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    font-weight: bold;
+    -fx-background-radius: 12px; /* More rounded for modern look */
+    border-radius: 12px;
+    -fx-border-width: 1.5px; /* Slightly thicker border for premium feel */
+    border-width: 1.5px;
+    -fx-border-radius: 12px;
+    border-radius: 12px;
+}
+
+.file-type-label-document {
+    -fx-background-color: rgba(0, 123, 255, 0.15); /* Blue background with 15% opacity */
+    background-color: rgba(0, 123, 255, 0.15);
+    -fx-border-color: rgba(0, 123, 255, 0.5); /* Blue border with 50% opacity */
+    border-color: rgba(0, 123, 255, 0.5);
+    -fx-text-fill: #007bff !important; /* Solid text color for readability */
+    color: #007bff !important;
+}
+
+.file-type-label-pdf {
+    -fx-background-color: rgba(220, 53, 69, 0.15); /* Red background with 15% opacity */
+    background-color: rgba(220, 53, 69, 0.15);
+    -fx-border-color: rgba(220, 53, 69, 0.5); /* Red border with 50% opacity */
+    border-color: rgba(220, 53, 69, 0.5);
+    -fx-text-fill: #dc3545 !important; /* Solid text color for readability */
+    color: #dc3545 !important;
 }
 
 .file-type-label-image {
-    -fx-background-color: #28a745;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(40, 167, 69, 0.15); /* Green background with 15% opacity */
+    background-color: rgba(40, 167, 69, 0.15);
+    -fx-border-color: rgba(40, 167, 69, 0.5); /* Green border with 50% opacity */
+    border-color: rgba(40, 167, 69, 0.5);
+    -fx-text-fill: #28a745 !important; /* Solid text color for readability */
+    color: #28a745 !important;
 }
 
 .file-type-label-video {
-    -fx-background-color: #fd7e14;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(253, 126, 20, 0.15); /* Orange background with 15% opacity */
+    background-color: rgba(253, 126, 20, 0.15);
+    -fx-border-color: rgba(253, 126, 20, 0.5); /* Orange border with 50% opacity */
+    border-color: rgba(253, 126, 20, 0.5);
+    -fx-text-fill: #fd7e14 !important; /* Solid text color for readability */
+    color: #fd7e14 !important;
 }
 
 .file-type-label-audio {
-    -fx-background-color: #dc3545;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(232, 62, 140, 0.15); /* Pink background with 15% opacity */
+    background-color: rgba(232, 62, 140, 0.15);
+    -fx-border-color: rgba(232, 62, 140, 0.5); /* Pink border with 50% opacity */
+    border-color: rgba(232, 62, 140, 0.5);
+    -fx-text-fill: #e83e8c !important; /* Solid text color for readability */
+    color: #e83e8c !important;
 }
 
 .file-type-label-archive {
-    -fx-background-color: #6610f2;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(102, 16, 242, 0.15); /* Purple background with 15% opacity */
+    background-color: rgba(102, 16, 242, 0.15);
+    -fx-border-color: rgba(102, 16, 242, 0.5); /* Purple border with 50% opacity */
+    border-color: rgba(102, 16, 242, 0.5);
+    -fx-text-fill: #6610f2 !important; /* Solid text color for readability */
+    color: #6610f2 !important;
 }
 
 .file-type-label-program {
-    -fx-background-color: #0d6efd;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
-    -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(13, 110, 253, 0.15); /* Blue background with 15% opacity */
+    background-color: rgba(13, 110, 253, 0.15);
+    -fx-border-color: rgba(13, 110, 253, 0.5); /* Blue border with 50% opacity */
+    border-color: rgba(13, 110, 253, 0.5);
+    -fx-text-fill: #0d6efd !important; /* Solid text color for readability */
+    color: #0d6efd !important;
+}
+
+.file-type-label-spreadsheet {
+    -fx-background-color: rgba(25, 135, 84, 0.15); /* Green background with 15% opacity */
+    background-color: rgba(25, 135, 84, 0.15);
+    -fx-border-color: rgba(25, 135, 84, 0.5); /* Green border with 50% opacity */
+    border-color: rgba(25, 135, 84, 0.5);
+    -fx-text-fill: #198754 !important; /* Solid text color for readability */
+    color: #198754 !important;
+}
+
+.file-type-label-presentation {
+    -fx-background-color: rgba(253, 126, 20, 0.15); /* Orange background with 15% opacity */
+    background-color: rgba(253, 126, 20, 0.15);
+    -fx-border-color: rgba(253, 126, 20, 0.5); /* Orange border with 50% opacity */
+    border-color: rgba(253, 126, 20, 0.5);
+    -fx-text-fill: #fd7e14 !important; /* Solid text color for readability */
+    color: #fd7e14 !important;
+}
+
+.file-type-label-text {
+    -fx-background-color: rgba(108, 117, 125, 0.15); /* Gray background with 15% opacity */
+    background-color: rgba(108, 117, 125, 0.15);
+    -fx-border-color: rgba(108, 117, 125, 0.5); /* Gray border with 50% opacity */
+    border-color: rgba(108, 117, 125, 0.5);
+    -fx-text-fill: #6c757d !important; /* Solid text color for readability */
+    color: #6c757d !important;
+}
+
+.file-type-label-json {
+    -fx-background-color: rgba(23, 162, 184, 0.15); /* Cyan background with 15% opacity */
+    background-color: rgba(23, 162, 184, 0.15);
+    -fx-border-color: rgba(23, 162, 184, 0.5); /* Cyan border with 50% opacity */
+    border-color: rgba(23, 162, 184, 0.5);
+    -fx-text-fill: #17a2b8 !important; /* Solid text color for readability */
+    color: #17a2b8 !important;
+}
+
+.file-type-label-xml {
+    -fx-background-color: rgba(255, 193, 7, 0.15); /* Yellow background with 15% opacity */
+    background-color: rgba(255, 193, 7, 0.15);
+    -fx-border-color: rgba(255, 193, 7, 0.5); /* Yellow border with 50% opacity */
+    border-color: rgba(255, 193, 7, 0.5);
+    -fx-text-fill: #ffc107 !important; /* Solid text color for readability */
+    color: #ffc107 !important;
 }
 
 .file-type-label-other {
-    -fx-background-color: #6c757d;
-    -fx-text-fill: white;
-    -fx-padding: 3 6;
-    -fx-font-size: 11px; /* Timestamp/secondary: 10-12sp */
+    -fx-background-color: rgba(108, 117, 125, 0.15); /* Gray background with 15% opacity */
+    background-color: rgba(108, 117, 125, 0.15);
+    -fx-border-color: rgba(108, 117, 125, 0.5); /* Gray border with 50% opacity */
+    border-color: rgba(108, 117, 125, 0.5);
+    -fx-text-fill: #6c757d !important; /* Solid text color for readability */
+    color: #6c757d !important;
+    font-size: 10px;
     -fx-font-weight: bold;
-    -fx-background-radius: 3;
+    font-weight: bold;
+    -fx-background-radius: 12px;
+    border-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(108,117,125,0.5), 4, 0, 0, 2);
 }
 
-/* Message Time Styling */
+/* Message Time Styling - Inside message bubble with JetBrains Mono font */
 .message-time {
-    -fx-font-size: 11px;
-    -fx-text-fill: #7a7a7a;
-    -fx-padding: 2 0 0 0;
+    -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important; /* Monospace font for timestamps */
+    -fx-font-size: 15px !important; /* Same as message text */
+    -fx-font-weight: normal !important;
+    -fx-text-fill: inherit !important; /* Inherit color from parent message bubble */
+    -fx-padding: 0 !important;
+    -fx-opacity: 0.7 !important; /* Slightly transparent to distinguish from main text */
 }
 
-/* Make timestamp styling more specific to override bubble font sizes */
-.message-sent .message-time,
-.message-received .message-time {
-    -fx-font-size: 9 !important; /* Timestamp/secondary: very small */
+/* External Message Time Styling - Outside message bubble, positioned to the right */
+.message-time-external {
+    -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+    -fx-font-size: 11px !important; /* Smaller font for external timestamp */
+    -fx-font-weight: normal !important;
+    -fx-text-fill: rgba(108, 117, 125, 0.8) !important; /* Subtle gray color */
+    -fx-padding: 0 !important;
+    -fx-translate-y: -8 !important; /* Move timestamp slightly upward */
 }
 
-/* Specific styling for sent message timestamps - on dark background */
+/* Internal Message Time Styling - Inside message bubble, always right-aligned */
+.message-time-internal {
+    -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+    -fx-font-size: 11px !important; /* Smaller font for timestamp */
+    -fx-font-weight: normal !important;
+    -fx-text-fill: inherit !important; /* Inherit color from parent message bubble */
+    -fx-padding: 2 0 0 0 !important; /* Small top padding */
+    -fx-opacity: 0.8 !important; /* Slightly transparent */
+    -fx-alignment: center-right !important; /* Always right-aligned */
+}
+
+/* Timestamp styling within sent messages */
 .message-sent .message-time {
-    -fx-text-fill: rgba(236, 239, 244, 0.8) !important; /* Light color with transparency for dark background */
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white */
 }
 
-/* Specific styling for received message timestamps - on light background */
+/* Timestamp styling within received messages */
 .message-received .message-time {
-    -fx-text-fill: #666666 !important; /* Dark gray for light background */
+    -fx-text-fill: rgba(44, 62, 80, 0.7) !important; /* Semi-transparent dark text */
 }
 
-/* Ultra-specific selectors to override everything */
-VBox .message-sent .message-time,
-VBox .message-received .message-time,
-HBox .message-sent .message-time,
-HBox .message-received .message-time {
-    -fx-font-size: 9 !important;
+/* Internal timestamp styling within sent messages */
+.message-sent .message-time-internal {
+    -fx-text-fill: rgba(255, 255, 255, 0.8) !important; /* Semi-transparent white */
 }
 
-Label.message-time {
-    -fx-font-size: 9 !important;
+/* Internal timestamp styling within received messages */
+.message-received .message-time-internal {
+    -fx-text-fill: rgba(44, 62, 80, 0.8) !important; /* Semi-transparent dark text */
 }
 
-.dark-mode .message-sent .message-time,
+/* Dark mode timestamp styling */
+.dark-mode .message-sent .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white */
+}
+
 .dark-mode .message-received .message-time {
-    -fx-text-fill: #d8dee9 !important;
-    -fx-font-size: 9 !important;
-    -fx-opacity: 0.8 !important;
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for dark mode */
+}
+
+/* Dark mode external timestamp styling */
+.dark-mode .message-time-external {
+    -fx-text-fill: rgba(216, 222, 233, 0.8) !important; /* Subtle light gray for dark mode */
+}
+
+/* Dark mode internal timestamp styling */
+.dark-mode .message-sent .message-time-internal {
+    -fx-text-fill: rgba(255, 255, 255, 0.8) !important; /* Semi-transparent white */
+}
+
+.dark-mode .message-received .message-time-internal {
+    -fx-text-fill: rgba(255, 255, 255, 0.8) !important; /* Semi-transparent white for dark mode */
+}
+
+/* File message timestamp styling - for file messages that use .sent/.received classes */
+.file-message-box.sent .message-time {
+    -fx-text-fill: rgba(44, 62, 80, 0.7) !important; /* Semi-transparent dark text for sent file messages */
+}
+
+.file-message-box.received .message-time {
+    -fx-text-fill: rgba(44, 62, 80, 0.7) !important; /* Semi-transparent dark text for received file messages */
+}
+
+.image-message-box.sent .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for sent image messages */
+}
+
+.image-message-box.received .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for received image messages */
+}
+
+/* Dark mode file message timestamp styling */
+.dark-mode .file-message-box.sent .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for dark mode sent file messages */
+}
+
+.dark-mode .file-message-box.received .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for dark mode received file messages */
+}
+
+.dark-mode .image-message-box.sent .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for dark mode sent image messages */
+}
+
+.dark-mode .image-message-box.received .message-time {
+    -fx-text-fill: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent white for dark mode received image messages */
 }
 
 /* Dark mode styles for new classes */
@@ -1123,22 +1402,71 @@ Label.message-time {
     -fx-background-color: #88c0a0 !important;
 }
 
-.dark-mode .message-time {
-    -fx-text-fill: #d8dee9 !important;
-    -fx-font-size: 9 !important;
-    -fx-opacity: 0.8 !important;
+/* Dark mode styles for file type labels - Enhanced colors for dark theme */
+.dark-mode .file-type-label-document {
+    -fx-background-color: #4c9aff !important; /* Lighter blue for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(76,154,255,0.4), 2, 0, 0, 1) !important;
 }
 
-/* Dark mode ultra-specific selectors */
-.dark-mode VBox .message-sent .message-time,
-.dark-mode VBox .message-received .message-time,
-.dark-mode HBox .message-sent .message-time,
-.dark-mode HBox .message-received .message-time {
-    -fx-font-size: 9 !important;
+.dark-mode .file-type-label-pdf {
+    -fx-background-color: #ff6b6b !important; /* Lighter red for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(255,107,107,0.4), 2, 0, 0, 1) !important;
 }
 
-.dark-mode Label.message-time {
-    -fx-font-size: 9 !important;
+.dark-mode .file-type-label-image {
+    -fx-background-color: #51d451 !important; /* Lighter green for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(81,212,81,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-video {
+    -fx-background-color: #ffa726 !important; /* Lighter orange for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(255,167,38,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-audio {
+    -fx-background-color: #ff69b4 !important; /* Lighter pink for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(255,105,180,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-archive {
+    -fx-background-color: #9c4dff !important; /* Lighter purple for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(156,77,255,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-program {
+    -fx-background-color: #4d9cff !important; /* Lighter bright blue for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(77,156,255,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-spreadsheet {
+    -fx-background-color: #4dd162 !important; /* Lighter green for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(77,209,98,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-presentation {
+    -fx-background-color: #ffa726 !important; /* Lighter orange for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(255,167,38,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-text {
+    -fx-background-color: #9e9e9e !important; /* Lighter gray for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(158,158,158,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-json {
+    -fx-background-color: #26c6da !important; /* Lighter cyan for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(38,198,218,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-xml {
+    -fx-background-color: #ffcc02 !important; /* Bright yellow for dark mode */
+    -fx-text-fill: #212529 !important; /* Keep dark text on yellow */
+    -fx-effect: dropshadow(gaussian, rgba(255,204,2,0.4), 2, 0, 0, 1) !important;
+}
+
+.dark-mode .file-type-label-other {
+    -fx-background-color: #9e9e9e !important; /* Lighter gray for dark mode */
+    -fx-effect: dropshadow(gaussian, rgba(158,158,158,0.4), 2, 0, 0, 1) !important;
 }
 
 /* Member Selection Dialog Styling */
@@ -1315,11 +1643,19 @@ Label.message-time {
 
 /* New CSS classes for proper font size control */
 .search-field {
-    -fx-font-size: 14px; /* Input Placeholder: 14sp */
+    -fx-font-size: 14px !important; /* Input Placeholder: 14sp */
+    -fx-font-family: 'Segoe UI', sans-serif !important;
+    -fx-background-radius: 20 !important;
+    -fx-border-radius: 20 !important;
+    -fx-padding: 8 16 8 16 !important;
 }
 
 .message-input-field {
-    -fx-font-size: 14px; /* Input Placeholder: 14sp */
+    -fx-font-size: 14px !important; /* Input Placeholder: 14sp */
+    -fx-font-family: 'Segoe UI', sans-serif !important;
+    -fx-background-radius: 20 !important;
+    -fx-border-radius: 20 !important;
+    -fx-padding: 8 16 8 16 !important;
 }
 
 .navigation-button {
@@ -1398,6 +1734,18 @@ Label.message-time {
     -fx-font-size: 12px; /* Navigation Text: 12-14sp */
 }
 
+/* TextFlow inline emoji alignment */
+.text-flow {
+    -fx-text-alignment: left;
+    -fx-line-spacing: 1px;
+}
+
+/* Ensure emojis align with text in TextFlow */
+.text-flow > .image-view {
+    -fx-effect: null;
+    -fx-translate-y: 1px; /* Fine-tune vertical alignment - move down */
+}
+
 
 /* Modern Emoji Picker Styles */
 .modern-emoji-picker {
@@ -1561,4 +1909,86 @@ Label.message-time {
 
 .dark-mode .modern-emoji-grid .button:hover {
     -fx-background-color: #4c566a;
+}
+
+/* Contact name styling with normal weight variant */
+.contact-name-normal {
+    -fx-font-weight: normal !important;
+}
+
+/* Group icon styling */
+.group-icon {
+    -fx-text-fill: #5e81ac !important;
+    -fx-font-size: 14px !important;
+    -fx-opacity: 0.8 !important;
+}
+
+/* Emoji picker styling */
+.emoji-search-field {
+    -fx-background-radius: 8 !important;
+    -fx-border-radius: 8 !important;
+    -fx-padding: 8 12 !important;
+    -fx-border-color: #e0e0e0 !important;
+    -fx-border-width: 1 !important;
+    -fx-font-size: 14px !important;
+}
+
+.emoji-category-container {
+    -fx-border-color: #f0f0f0 !important;
+    -fx-border-width: 0 0 1 0 !important;
+    -fx-background-color: white !important;
+}
+
+.emoji-more-button {
+    -fx-background-color: #f0f0f0 !important;
+    -fx-border-color: #e0e0e0 !important;
+    -fx-background-radius: 6 !important;
+    -fx-border-radius: 6 !important;
+    -fx-padding: 2 8 !important;
+    -fx-font-size: 11px !important;
+}
+
+.emoji-scroll-pane {
+    -fx-background: white !important;
+    -fx-background-color: white !important;
+}
+
+.emoji-button {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 6 !important;
+    -fx-padding: 2 4 !important;
+    -fx-font-size: 11px !important;
+}
+
+/* Dark mode variants for emoji picker */
+.dark-mode .emoji-search-field {
+    -fx-background-color: #2e3440 !important;
+    -fx-border-color: #4c566a !important;
+    -fx-text-fill: #eceff4 !important;
+    -fx-prompt-text-fill: #81a1c1 !important;
+}
+
+.dark-mode .emoji-category-container {
+    -fx-border-color: #4c566a !important;
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .emoji-more-button {
+    -fx-background-color: #4c566a !important;
+    -fx-border-color: #5e81ac !important;
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .emoji-scroll-pane {
+    -fx-background: #2e3440 !important;
+    -fx-background-color: #2e3440 !important;
+}
+
+.dark-mode .emoji-button {
+    -fx-text-fill: #eceff4 !important;
+}
+
+.dark-mode .emoji-button:hover {
+    -fx-background-color: #4c566a !important;
 }
