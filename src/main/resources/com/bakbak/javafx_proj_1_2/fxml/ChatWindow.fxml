@@ -18,7 +18,7 @@
 <SplitPane dividerPositions="0.4022531477799867" orientation="HORIZONTAL" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.controller.ChatController">
 
    <!-- Left Sidebar -->
-   <VBox maxWidth="400" minWidth="300" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="activeList" stylesheets="@ChatWindowStyle.css">
+   <VBox maxWidth="400" minWidth="300" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="activeList" >
 
       <!-- Header -->
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;" stylesheets="@ChatWindowStyle.css">
@@ -134,7 +134,7 @@
                            </image>
                         </ImageView>
                      </graphic></Button>
-                  <Button minHeight="40" minWidth="40.0" prefWidth="31.0" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                  <Button fx:id="voiceButton" minHeight="40" minWidth="40.0" prefWidth="31.0" onAction="#handleVoiceMessage" style="-fx-background-color: transparent;" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>

@@ -11,18 +11,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import javafx.scene.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.scene.layout.Priority;
+import javafx.scene.Scene;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.util.Duration;
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.effect.DropShadow;
 
@@ -43,6 +49,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import javax.sound.sampled.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import com.bakbak.javafx_proj_1_2.ChatApplication;
 import com.bakbak.javafx_proj_1_2.ChatClient;
 import com.bakbak.javafx_proj_1_2.FileChunkReceiver;
@@ -61,7 +71,6 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -81,11 +90,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
@@ -147,6 +151,8 @@ public class ChatController implements Initializable {
     @FXML
     private Button fileButton;
     @FXML
+    private Button voiceButton;
+    @FXML
     private ImageView darkModeIcon;
 
     private ChatClient chatClient;
@@ -168,10 +174,10 @@ public class ChatController implements Initializable {
 
     private Map<String, List<EmojiData>> emojiCategories = new LinkedHashMap<>();
     private Map<String, EmojiData> allEmojis = new HashMap<>();
-    
+
     // Cache for sprite sheet images to prevent memory issues
     private Map<String, Image> spriteSheetCache = new HashMap<>();
-    
+
     // Active emoji category for canvas rendering
     private String activeCategory = "Smileys";
     // Currently hovered emoji in canvas
@@ -198,7 +204,8 @@ public class ChatController implements Initializable {
         System.out.println("DEBUG: Initializing emoji system...");
         // Load all emoji categories from sprite sheets
         loadEmojiCategories();
-        System.out.println("DEBUG: Emoji system initialization complete. Total categories: " + emojiCategories.size() + ", Total emojis: " + allEmojis.size());
+        System.out.println("DEBUG: Emoji system initialization complete. Total categories: " + emojiCategories.size()
+                + ", Total emojis: " + allEmojis.size());
     }
 
     // Data class for emoji information
@@ -219,15 +226,35 @@ public class ChatController implements Initializable {
         }
 
         // Getters
-        public String getFilename() { return filename; }
-        public String getName() { return name; }
-        public int getX() { return x; }
-        public int getY() { return y; }
-        public int getWidth() { return width; }
-        public int getHeight() { return height; }
-        public String getCategory() { return category; }
+        public String getFilename() {
+            return filename;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        public String getCategory() {
+            return category;
+        }
     }
-    
+
     // Canvas-based emoji renderer class
     private class EmojiCanvas extends Canvas {
         private List<EmojiData> emojis;
@@ -237,16 +264,16 @@ public class ChatController implements Initializable {
         private int emojiImageSize = 24; // Actual emoji image size within button
         private int padding = 8;
         private Tooltip tooltip = new Tooltip();
-        
+
         public EmojiCanvas() {
             this.setWidth(columns * (emojiSize + padding)); // Remove padding subtraction to give more space
-            
+
             // Handle hover events to highlight emojis
             this.setOnMouseMoved(e -> {
-                int col = (int)(e.getX() / (emojiSize + padding));
-                int row = (int)(e.getY() / (emojiSize + padding));
+                int col = (int) (e.getX() / (emojiSize + padding));
+                int row = (int) (e.getY() / (emojiSize + padding));
                 int index = row * columns + col;
-                
+
                 if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
                     EmojiData emoji = emojis.get(index);
                     if (hoveredEmoji != emoji) {
@@ -265,20 +292,20 @@ public class ChatController implements Initializable {
                     }
                 }
             });
-            
+
             // Handle mouse exit to clear hover state
             this.setOnMouseExited(e -> {
                 hoveredEmoji = null;
                 tooltip.hide();
                 redraw();
             });
-            
+
             // Handle click events to select emoji
             this.setOnMouseClicked(e -> {
-                int col = (int)(e.getX() / (emojiSize + padding));
-                int row = (int)(e.getY() / (emojiSize + padding));
+                int col = (int) (e.getX() / (emojiSize + padding));
+                int row = (int) (e.getY() / (emojiSize + padding));
                 int index = row * columns + col;
-                
+
                 if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
                     EmojiData emoji = emojis.get(index);
                     insertEmojiIntoMessage(emoji.getFilename());
@@ -286,49 +313,49 @@ public class ChatController implements Initializable {
                 }
             });
         }
-        
+
         public void setEmojis(List<EmojiData> emojis, Image spriteSheet) {
             this.emojis = emojis;
             this.spriteSheet = spriteSheet;
-            
+
             // Adjust canvas height based on number of emojis
             int rows = (int) Math.ceil((double) emojis.size() / columns);
             this.setHeight(rows * (emojiSize + padding) - padding);
-            
+
             redraw();
         }
-        
+
         public void redraw() {
-            if (emojis == null || spriteSheet == null) return;
-            
+            if (emojis == null || spriteSheet == null)
+                return;
+
             GraphicsContext gc = this.getGraphicsContext2D();
             gc.clearRect(0, 0, this.getWidth(), this.getHeight());
-            
+
             int col = 0;
             int row = 0;
-            
+
             for (EmojiData emoji : emojis) {
                 // Calculate position for this emoji
                 int x = col * (emojiSize + padding);
                 int y = row * (emojiSize + padding);
-                
+
                 // Draw background/highlight if hovered
                 if (emoji == hoveredEmoji) {
                     gc.setFill(javafx.scene.paint.Color.valueOf("#f0f0f0"));
                     gc.fillRoundRect(x, y, emojiSize, emojiSize, 6, 6);
                 }
-                
+
                 // Calculate centering offset for the emoji within the button area
                 int offsetX = (emojiSize - emojiImageSize) / 2;
                 int offsetY = (emojiSize - emojiImageSize) / 2;
-                
+
                 // Draw the emoji from sprite sheet
                 gc.drawImage(
-                    spriteSheet,
-                    emoji.getX(), emoji.getY(), emoji.getWidth(), emoji.getHeight(),
-                    x + offsetX, y + offsetY, emojiImageSize, emojiImageSize
-                );
-                
+                        spriteSheet,
+                        emoji.getX(), emoji.getY(), emoji.getWidth(), emoji.getHeight(),
+                        x + offsetX, y + offsetY, emojiImageSize, emojiImageSize);
+
                 // Update position for next emoji
                 col++;
                 if (col >= columns) {
@@ -342,27 +369,27 @@ public class ChatController implements Initializable {
     private void loadEmojiCategories() {
         // Define categories with their corresponding files
         String[] categories = {
-            "Smileys", "People", "Animals & Nature", "Food", 
-            "Activities", "Places", "Objects", "Symbols", "Flags", "Tone & Style"
+                "Smileys", "People", "Animals & Nature", "Food",
+                "Activities", "Places", "Objects", "Symbols", "Flags", "Tone & Style"
         };
 
         for (String category : categories) {
             try {
                 String jsonPath = EMOJI_SPRITES_PATH + category + ".json";
                 InputStream jsonStream = getClass().getResourceAsStream(jsonPath);
-                
+
                 if (jsonStream != null) {
                     List<EmojiData> categoryEmojis = parseEmojiJson(jsonStream, category);
                     if (!categoryEmojis.isEmpty()) {
                         emojiCategories.put(category, categoryEmojis);
-                        
+
                         // Add to global emoji map for search
                         for (EmojiData emoji : categoryEmojis) {
                             if (emoji.getName() != null && !emoji.getName().isEmpty()) {
                                 allEmojis.put(emoji.getFilename(), emoji);
                             }
                         }
-                        
+
                         System.out.println("Loaded " + categoryEmojis.size() + " emojis for category: " + category);
                     }
                 } else {
@@ -372,29 +399,31 @@ public class ChatController implements Initializable {
                 System.err.println("Error loading emoji category " + category + ": " + e.getMessage());
             }
         }
-        
-        System.out.println("Total emojis loaded: " + allEmojis.size() + " across " + emojiCategories.size() + " categories");
+
+        System.out.println(
+                "Total emojis loaded: " + allEmojis.size() + " across " + emojiCategories.size() + " categories");
     }
 
     private List<EmojiData> parseEmojiJson(InputStream jsonStream, String category) {
         List<EmojiData> emojis = new ArrayList<>();
-        
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(jsonStream))) {
             StringBuilder jsonContent = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 jsonContent.append(line);
             }
-            
-            // Simple JSON parsing (you could use a JSON library here for more robust parsing)
+
+            // Simple JSON parsing (you could use a JSON library here for more robust
+            // parsing)
             String json = jsonContent.toString();
             json = json.trim();
             if (json.startsWith("{") && json.endsWith("}")) {
                 json = json.substring(1, json.length() - 1); // Remove outer braces
-                
+
                 // Split by top-level commas (simple approach)
                 String[] entries = parseJsonEntries(json);
-                
+
                 for (String entry : entries) {
                     try {
                         EmojiData emoji = parseEmojiEntry(entry.trim(), category);
@@ -409,7 +438,7 @@ public class ChatController implements Initializable {
         } catch (IOException e) {
             System.err.println("Error reading emoji JSON: " + e.getMessage());
         }
-        
+
         return emojis;
     }
 
@@ -417,7 +446,7 @@ public class ChatController implements Initializable {
         List<String> entries = new ArrayList<>();
         int braceLevel = 0;
         int start = 0;
-        
+
         for (int i = 0; i < json.length(); i++) {
             char c = json.charAt(i);
             if (c == '{') {
@@ -429,32 +458,34 @@ public class ChatController implements Initializable {
                 start = i + 1;
             }
         }
-        
+
         // Add the last entry
         if (start < json.length()) {
             entries.add(json.substring(start));
         }
-        
+
         return entries.toArray(new String[0]);
     }
 
     private EmojiData parseEmojiEntry(String entry, String category) {
         try {
-            // Parse entry like: "1f479.png": { "x": 72, "y": 0, "width": 72, "height": 72, "name": "japanese_ogre" }
+            // Parse entry like: "1f479.png": { "x": 72, "y": 0, "width": 72, "height": 72,
+            // "name": "japanese_ogre" }
             int colonIndex = entry.indexOf(':');
-            if (colonIndex == -1) return null;
-            
+            if (colonIndex == -1)
+                return null;
+
             String filename = entry.substring(0, colonIndex).trim();
             filename = filename.replace("\"", "");
-            
+
             String data = entry.substring(colonIndex + 1).trim();
             if (data.startsWith("{") && data.endsWith("}")) {
                 data = data.substring(1, data.length() - 1);
-                
+
                 // Parse x, y, width, height, name
                 int x = 0, y = 0, width = 72, height = 72;
                 String name = null;
-                
+
                 String[] properties = data.split(",");
                 for (String prop : properties) {
                     prop = prop.trim();
@@ -470,13 +501,13 @@ public class ChatController implements Initializable {
                         name = extractStringValue(prop);
                     }
                 }
-                
+
                 return new EmojiData(filename, name, x, y, width, height, category);
             }
         } catch (Exception e) {
             System.err.println("Error parsing emoji entry: " + entry + " - " + e.getMessage());
         }
-        
+
         return null;
     }
 
@@ -1236,7 +1267,7 @@ public class ChatController implements Initializable {
                 allChatItems.remove(oldGroupName);
             }
             // Remove old group name from userGroups if present
-            for (Iterator<Map.Entry<String, String>> it = userGroups.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<String, String>> it = userGroups.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<String, String> entry = it.next();
                 if (entry.getKey().equals(groupId) && !entry.getValue().equals(groupName)) {
                     it.remove();
@@ -1569,7 +1600,7 @@ public class ChatController implements Initializable {
     }
 
     private void showMemberContextMenu(ChatItem groupItem, String targetMember,
-                                       javafx.scene.input.ContextMenuEvent event) {
+            javafx.scene.input.ContextMenuEvent event) {
         if (targetMember.equals(currentUsername)) {
             return; // Don't show context menu for self
         }
@@ -1826,6 +1857,7 @@ public class ChatController implements Initializable {
         if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
             FileMessageData fileData = message.getFileMessageData();
             VBox fileBox = new VBox(6);
+            fileBox.getStyleClass().add("file-message-box"); // Add a wrapper class for specificity
 
             // Check if this is an image file
             boolean isImageFile = fileData.getMimeType() != null && fileData.getMimeType().startsWith("image/");
@@ -1834,29 +1866,34 @@ public class ChatController implements Initializable {
                             fileData.getOriginalName().toLowerCase().endsWith(".png"));
 
             if (isImageFile) {
-                // For image files, use a modern thin chat bubble style
-                fileBox.setPadding(new Insets(2));
-                fileBox.getStyleClass().add("image-message-box");
-                fileBox.setMaxWidth(360);  // Slightly smaller width for a more elegant look
+                // For image files, use completely transparent style - no border, no background
+                fileBox.setPadding(new Insets(0));
+                fileBox.setMaxWidth(360); // Slightly smaller width for a more elegant look
 
-                // No special handling needed - the transparent background style in CSS will let
-                // the message bubble background show through naturally
+                // Apply completely transparent styling - no border at all
+                fileBox.setStyle(
+                        "-fx-background-color: transparent;" +
+                                "-fx-background-radius: 16;" +
+                                "-fx-padding: 0;" +
+                                "-fx-cursor: hand;" +
+                                "-fx-max-width: 320px;" +
+                                "-fx-max-height: 320px;");
             } else {
                 // Standard file message styling for non-image files
                 fileBox.setPadding(new Insets(8));
-                fileBox.getStyleClass().add("file-message-box");
                 fileBox.setMaxWidth(380); // 85% of 450 = ~380
-                
-                // Set white background and force ALL text inside to be black
-                fileBox.setStyle("-fx-background-color: white; -fx-text-fill: #000000 !important;");
-                // Apply black text to all child labels after scene is built
-                Platform.runLater(() -> {
-                    fileBox.lookupAll(".label").forEach(node -> {
-                        if (node instanceof Label) {
-                            ((Label) node).setTextFill(Color.BLACK);
-                        }
-                    });
-                });
+
+                // Apply file message box styling directly with premium white background
+                fileBox.setStyle(
+                        "-fx-background-color: #FAF9F6;" + // Nice whitish background
+                                "-fx-background-radius: 18;" +
+                                "-fx-border-color: rgba(0,0,0,0.08);" +
+                                "-fx-border-radius: 18;" +
+                                "-fx-border-width: 1;" +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);" +
+                                "-fx-padding: 12;");
+
+                // Removed Platform.runLater to avoid CSS binding conflicts with text fill
             }
 
             // Add media preview if supported (takes most space)
@@ -1865,7 +1902,13 @@ public class ChatController implements Initializable {
                 fileBox.getChildren().add(mediaPreview);
             }
 
-            // Compact file info section
+            // For image files, no buttons in chat bubble - keep it clean
+            if (isImageFile) {
+                // Just add the image file box without any buttons
+                messageContent.getChildren().add(fileBox);
+            } else {
+
+            // Compact file info section (only for non-image files)
             HBox fileInfo = new HBox(8);
             fileInfo.setAlignment(Pos.CENTER_LEFT);
             fileInfo.setPadding(new Insets(4, 0, 4, 0));
@@ -1879,14 +1922,11 @@ public class ChatController implements Initializable {
 
             VBox fileDetails = new VBox(2);
 
-            // Compact file name with bold styling - let CSS handle font and size
+            // File name with larger, bold styling for better hierarchy
             Label fileName = new Label(fileData.getOriginalName());
-            // Force black text and add CSS class for styling
-            fileName.getStyleClass().add("file-name");
-            fileName.setTextFill(Color.BLACK);
-            fileName.setStyle("-fx-text-fill: #000000 !important;");
-            // Force the text fill to black after adding to scene
-            Platform.runLater(() -> fileName.setTextFill(Color.BLACK));
+            // Use CSS class for font styling and also add fallback inline styles
+            fileName.getStyleClass().add("file-name-label");
+            fileName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000000;");
             fileName.setWrapText(true);
             fileName.setMaxWidth(200);
 
@@ -1894,24 +1934,21 @@ public class ChatController implements Initializable {
             HBox fileMetaInfo = new HBox(4);
             fileMetaInfo.setAlignment(Pos.CENTER_LEFT);
 
-            // File size info with consistent font size - let CSS handle font and size
+            // File size info with smaller font for details
             Label fileSizeLabel = new Label(fileData.getFormattedFileSize());
-            // Force black text and add CSS class for styling
-            fileSizeLabel.getStyleClass().add("file-info");
-            fileSizeLabel.setTextFill(Color.BLACK);
-            fileSizeLabel.setStyle("-fx-text-fill: #000000 !important;");
-            // Force the text fill to black after adding to scene
-            Platform.runLater(() -> fileSizeLabel.setTextFill(Color.BLACK));
+            // Use CSS class for font styling and also add fallback inline styles
+            fileSizeLabel.getStyleClass().add("file-size-label");
+            fileSizeLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: normal; -fx-text-fill: #666666;");
 
-            // Add colored file type label with border and color accent - let CSS handle font and size
+            // File type label with smaller font and color accent
             Label fileTypeLabel = new Label(getFileTypeDisplay(fileData.getMimeType()));
-            fileTypeLabel.getStyleClass().add("file-type-label");
-            // Use color-specific style class for accent coloring
-            String styleClass = getFileTypeStyleClass(fileData.getMimeType());
-            fileTypeLabel.getStyleClass().add(styleClass);
-            // Add file-info class for JetBrains Mono font styling
-            fileTypeLabel.getStyleClass().add("file-info");
-            // Don't force black text here - let the CSS color accent show through
+            // Use CSS class for font styling and also add fallback inline styles
+            fileTypeLabel.getStyleClass().add("file-type-info-label");
+            fileTypeLabel.getStyleClass().add("file-type-label"); // Add base class for padding/radius
+            fileTypeLabel.setStyle("-fx-font-size: 7px; -fx-font-weight: normal; -fx-text-fill: #666666;");
+
+            // Apply color-specific styling based on file type
+            fileTypeLabel.getStyleClass().add(getFileTypeStyleClass(fileData.getMimeType()));
 
             fileMetaInfo.getChildren().addAll(fileSizeLabel, fileTypeLabel);
             fileDetails.getChildren().addAll(fileName, fileMetaInfo);
@@ -1934,50 +1971,104 @@ public class ChatController implements Initializable {
             buttonContainer.setPadding(new Insets(0, 0, 0, 0)); // Remove left padding
             buttonContainer.getChildren().addAll(downloadButton, openButton);
 
-            // Add file info and buttons together in a compact layout
-            VBox compactInfoSection = new VBox(4);
-            compactInfoSection.setPrefWidth(280); // Set preferred width to ensure buttons can align right
-            compactInfoSection.setMaxWidth(Double.MAX_VALUE); // Allow it to fill available space
-            compactInfoSection.getChildren().addAll(fileInfo, buttonContainer);
-            fileBox.getChildren().add(compactInfoSection);
+                // Add file info and buttons together in a compact layout
+                VBox compactInfoSection = new VBox(4);
+                compactInfoSection.setPrefWidth(280); // Set preferred width to ensure buttons can align right
+                compactInfoSection.setMaxWidth(Double.MAX_VALUE); // Allow it to fill available space
+                compactInfoSection.getChildren().addAll(fileInfo, buttonContainer);
+                fileBox.getChildren().add(compactInfoSection);
 
-            messageContent.getChildren().add(fileBox);
-            
-            // Apply sent/received styling to fileBox
-            if (isSentByMe) {
-                fileBox.getStyleClass().add("sent");
-            } else {
-                fileBox.getStyleClass().add("received");
+                messageContent.getChildren().add(fileBox);
             }
+
+            // No additional file box styling needed - already handled in styling above
         } else {
             // Create TextFlow with mixed text and emoji content
             TextFlow textFlow = createTextFlowWithEmojis(message.getContent());
+            
+            // Set text color based on message type (sent vs received)
+            if (isSentByMe) {
+                textFlow.setStyle("-fx-text-fill: white;");
+            } else {
+                textFlow.setStyle("-fx-text-fill: #2c3e50;");
+            }
+            
             messageContent.getChildren().add(textFlow);
         }
 
-        // Apply message bubble styles to the content
-        // Apply message styles for all messages including file messages
+        // Apply message bubble styles directly in Java (no CSS classes)
         if (isSentByMe) {
-            messageContent.getStyleClass().add("message-sent");
+            // Sent message bubble - Blue gradient with rounded corners
+            messageContent.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom right, #4568DC, #3498db);" +
+                            "-fx-background-radius: 22 22 4 22;" +
+                            "-fx-padding: 12 16 12 16;" +
+                            "-fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;" +
+                            "-fx-font-size: 15px;" +
+                            "-fx-font-weight: 600;" +
+                            "-fx-text-fill: white;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);" +
+                            "-fx-max-width: 300px;" +
+                            "-fx-border-width: 0;");
+
+            // Force all text nodes to be white - REMOVED due to CSS binding conflicts
+            // Platform.runLater(() -> {
+            // messageContent.lookupAll(".text").forEach(node -> {
+            // if (node instanceof Text) {
+            // ((Text) node).setFill(Color.WHITE);
+            // }
+            // });
+            // });
         } else {
-            messageContent.getStyleClass().add("message-received");
+            // Received message bubble - White background with rounded corners
+            messageContent.setStyle(
+                    "-fx-background-color: white;" +
+                            "-fx-background-radius: 22 22 22 4;" +
+                            "-fx-padding: 12 16 12 16;" +
+                            "-fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;" +
+                            "-fx-font-size: 15px;" +
+                            "-fx-font-weight: 600;" +
+                            "-fx-text-fill: #2c3e50;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1);" +
+                            "-fx-max-width: 300px;" +
+                            "-fx-border-color: rgba(0,0,0,0.05);" +
+                            "-fx-border-width: 1;" +
+                            "-fx-border-radius: 22 22 22 4;");
+
+            // Force all text nodes to be dark - REMOVED due to CSS binding conflicts
+            // Platform.runLater(() -> {
+            // messageContent.lookupAll(".text").forEach(node -> {
+            // if (node instanceof Text) {
+            // ((Text) node).setFill(Color.web("#2c3e50"));
+            // }
+            // });
+            // });
         }
 
         // Create timestamp without checkmarks, always right-aligned
         String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
         Label timeLabel = new Label(timeStr);
-        timeLabel.getStyleClass().add("message-time-internal");
-        
+        // Apply JetBrains Mono font styling directly in Java
+        timeLabel.setStyle(
+                "-fx-font-family: 'Inter', 'Monaco', monospace;" +
+                        "-fx-font-size: 8px;" +
+                        "-fx-font-weight: normal;" +
+                        "-fx-text-fill: inherit;" +
+                        "-fx-padding: 2 0 0 0;" +
+                        "-fx-opacity: 0.8;" +
+                        "-fx-alignment: center-right;");
+
         // Add timestamp inside the message content (always right-aligned)
         messageContent.getChildren().add(timeLabel);
-        
+
         // Set alignment for timestamp within the message content - always right-aligned
         VBox.setMargin(timeLabel, new Insets(2, 0, 0, 0)); // Small top margin
-        // Ensure timestamp is always right-aligned by adding it to a right-aligned container
+        // Ensure timestamp is always right-aligned by adding it to a right-aligned
+        // container
         HBox timestampContainer = new HBox();
         timestampContainer.setAlignment(Pos.CENTER_RIGHT);
         timestampContainer.getChildren().add(timeLabel);
-        
+
         // Remove the standalone timeLabel and add the container instead
         messageContent.getChildren().remove(timeLabel);
         messageContent.getChildren().add(timestampContainer);
@@ -1985,7 +2076,7 @@ public class ChatController implements Initializable {
         // Create message row with proper alignment (like in demo)
         HBox messageRow = new HBox();
         messageRow.setPadding(new Insets(2, 10, 2, 10));
-        
+
         if (isSentByMe) {
             // Sent message: push to right
             Region spacer = new Region();
@@ -2055,8 +2146,8 @@ public class ChatController implements Initializable {
                             if (spriteSheet != null) {
                                 ImageView emojiView = new ImageView(spriteSheet);
                                 emojiView.setViewport(new javafx.geometry.Rectangle2D(
-                                    emojiData.getX(), emojiData.getY(), 
-                                    emojiData.getWidth(), emojiData.getHeight()));
+                                        emojiData.getX(), emojiData.getY(),
+                                        emojiData.getWidth(), emojiData.getHeight()));
                                 emojiView.setFitWidth(18);
                                 emojiView.setFitHeight(18);
                                 emojiView.setPreserveRatio(true);
@@ -2479,7 +2570,7 @@ public class ChatController implements Initializable {
             if (lastSeenUpdateTimer != null) {
                 lastSeenUpdateTimer.stop();
             }
-            
+
             // Clear sprite sheet cache to free memory
             if (spriteSheetCache != null) {
                 spriteSheetCache.clear();
@@ -2725,7 +2816,8 @@ public class ChatController implements Initializable {
                     messageBox.setSpacing(8);
 
                     Label messageLabel = new Label(item.getLastMessage());
-                    messageLabel.getStyleClass().add(item.hasUnreadMessages() ? "contact-message-unread" : "contact-message");
+                    messageLabel.getStyleClass()
+                            .add(item.hasUnreadMessages() ? "contact-message-unread" : "contact-message");
 
                     // Truncate long messages
                     if (messageLabel.getText().length() > 30) {
@@ -2791,14 +2883,14 @@ public class ChatController implements Initializable {
         categoryContainer.setAlignment(Pos.CENTER);
         categoryContainer.setPadding(new Insets(0));
         categoryContainer.getStyleClass().add("emoji-category-container");
-        
+
         // Main category tabs - will show the first few categories
         HBox categoryTabs = new HBox();
         categoryTabs.setSpacing(4); // Slightly larger spacing for better readability
         categoryTabs.setPadding(new Insets(8, 8, 8, 16)); // More padding on the left side
         categoryTabs.setAlignment(Pos.CENTER_LEFT); // Left align buttons
         categoryTabs.setPrefWidth(390); // Use full available width for better distribution
-        
+
         // More categories dropdown button with context menu
         Button moreButton = new Button("More");
         moreButton.getStyleClass().add("emoji-category-button");
@@ -2807,7 +2899,7 @@ public class ChatController implements Initializable {
         moreButton.setPrefHeight(30);
         moreButton.setPrefWidth(55); // Width for "More" text
         moreButton.setTooltip(new Tooltip("More categories"));
-        
+
         // Create context menu for dropdown functionality
         ContextMenu moreMenu = new ContextMenu();
 
@@ -2825,36 +2917,38 @@ public class ChatController implements Initializable {
 
         // Create category buttons and populate initial view
         Map<String, Button> categoryButtons = new HashMap<>();
-        String[] categories = {"Smileys", "People", "Animals & Nature", "Food", "Activities", "Places", "Objects", "Symbols", "Flags"};
+        String[] categories = { "Smileys", "People", "Animals & Nature", "Food", "Activities", "Places", "Objects",
+                "Symbols", "Flags" };
         // Use abbreviated labels for display to save space
-        String[] shortLabels = {"Smileys", "People", "Animals", "Food", "Activities", "Places", "Objects", "Symbols", "Flags"};
+        String[] shortLabels = { "Smileys", "People", "Animals", "Food", "Activities", "Places", "Objects", "Symbols",
+                "Flags" };
 
         // Show first 5 categories in the main tab bar and add a "More" button
         int visibleCategories = 5;
         // Add Places, Objects, Symbols, Flags to dropdown menu
-        String[] additionalCategories = {"Places", "Objects", "Symbols", "Flags"};
-        
+        String[] additionalCategories = { "Places", "Objects", "Symbols", "Flags" };
+
         // Add the visible category buttons
         for (int i = 0; i < visibleCategories; i++) {
             String category = categories[i];
             String label = shortLabels[i];
             Button categoryBtn = createCategoryButton(label, category);
             categoryButtons.put(category, categoryBtn);
-            
+
             // Set up click handler for category buttons
             categoryBtn.setOnAction(e -> {
                 String actualCategory = (String) categoryBtn.getUserData();
                 selectCategory(actualCategory, categoryButtons, emojiCanvas);
             });
-            
+
             categoryTabs.getChildren().add(categoryBtn);
         }
-        
+
         // Populate the More menu with the remaining categories
         for (int i = 0; i < additionalCategories.length; i++) {
             String additionalCategory = additionalCategories[i];
             String additionalLabel = shortLabels[visibleCategories + i];
-            
+
             MenuItem menuItem = new MenuItem(additionalLabel);
             menuItem.setUserData(additionalCategory);
             menuItem.setOnAction(e -> {
@@ -2863,12 +2957,12 @@ public class ChatController implements Initializable {
             });
             moreMenu.getItems().add(menuItem);
         }
-        
+
         // Set the action to show the context menu
         moreButton.setOnAction(e -> {
             moreMenu.show(moreButton, Side.BOTTOM, 0, 0);
         });
-        
+
         // Add the remaining categories to the buttons map
         for (int i = visibleCategories; i < categories.length; i++) {
             String category = categories[i];
@@ -2877,7 +2971,7 @@ public class ChatController implements Initializable {
             categoryButtons.put(category, categoryBtn);
             // These buttons won't be added to the UI, but will be used for styling
         }
-        
+
         // Add the More button at the end
         categoryTabs.getChildren().add(moreButton);
 
@@ -2903,15 +2997,16 @@ public class ChatController implements Initializable {
 
         // Add categories directly to the container for proper layout
         categoryContainer.getChildren().add(categoryTabs);
-        
+
         // Assemble popup
         mainContainer.getChildren().addAll(searchField, categoryContainer, emojiScrollPane);
-        
+
         // Register the popup with the canvas for later access
         emojiCanvas.setUserData(emojiPopup);
         emojiPopup.getContent().add(mainContainer);
-        
-        // Add event filter to handle clicking outside the popup (since autoHide is disabled)
+
+        // Add event filter to handle clicking outside the popup (since autoHide is
+        // disabled)
         Scene scene = messageInput.getScene();
         if (scene != null) {
             // Create a event handler for mouse clicks outside the popup
@@ -2921,12 +3016,12 @@ public class ChatController implements Initializable {
                     if (emojiPopup.isShowing()) {
                         Node content = emojiPopup.getContent().get(0);
                         Bounds contentBounds = content.localToScreen(content.getBoundsInLocal());
-                        
+
                         // If click is outside the popup's content bounds, hide it
-                        if (contentBounds == null || 
-                                event.getScreenX() < contentBounds.getMinX() || 
+                        if (contentBounds == null ||
+                                event.getScreenX() < contentBounds.getMinX() ||
                                 event.getScreenX() > contentBounds.getMaxX() ||
-                                event.getScreenY() < contentBounds.getMinY() || 
+                                event.getScreenY() < contentBounds.getMinY() ||
                                 event.getScreenY() > contentBounds.getMaxY()) {
                             emojiPopup.hide();
                             scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this);
@@ -2934,7 +3029,7 @@ public class ChatController implements Initializable {
                     }
                 }
             };
-            
+
             scene.addEventFilter(MouseEvent.MOUSE_PRESSED, clickOutsideHandler);
         }
 
@@ -2943,54 +3038,53 @@ public class ChatController implements Initializable {
         if (emojiButton != null) {
             emojiPopup.show(emojiButton,
                     emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinX() - 50,
-                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 410
-            );
+                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 410);
         }
     }
 
     private Button createCategoryButton(String label, String category) {
         Button btn = new Button(label);
-        
+
         // Store the actual category in the user data
         btn.setUserData(category);
-        
+
         // Configure button properties with text labels
         btn.setPrefHeight(30);
         btn.setMinHeight(30);
         btn.setPrefWidth(55); // Fixed width for uniform appearance
         btn.setMinWidth(55);
         // Make buttons more visually appealing
-                    btn.getStyleClass().add("emoji-button");
-            // Remove programmatic font setting to allow CSS to control font size
-        
+        btn.getStyleClass().add("emoji-button");
+        // Remove programmatic font setting to allow CSS to control font size
+
         // Set tooltip to show full category name
         if (!label.equals(category)) {
             btn.setTooltip(new Tooltip(category));
         }
-        
+
         return btn;
     }
 
     private void selectCategory(String category, Map<String, Button> categoryButtons, EmojiCanvas emojiCanvas) {
         System.out.println("DEBUG: Selecting category: " + category);
         activeCategory = category;
-        
+
         // Update button styles
         for (Map.Entry<String, Button> entry : categoryButtons.entrySet()) {
             Button btn = entry.getValue();
             if (entry.getKey().equals(category)) {
-                btn.setStyle("-fx-background-color: #e3f2fd; -fx-border-color: #2196f3; -fx-border-width: 1; " + 
-                            "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 4; -fx-font-weight: bold;");
+                btn.setStyle("-fx-background-color: #e3f2fd; -fx-border-color: #2196f3; -fx-border-width: 1; " +
+                        "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 4; -fx-font-weight: bold;");
             } else {
                 btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; " +
-                            "-fx-background-radius: 6; -fx-padding: 2 4; -fx-font-weight: normal;");
+                        "-fx-background-radius: 6; -fx-padding: 2 4; -fx-font-weight: normal;");
             }
         }
 
         // Load emojis for category
         List<EmojiData> emojis = getCategoryEmojis(category);
         System.out.println("DEBUG: Found " + emojis.size() + " emojis for category: " + category);
-        
+
         // Load the sprite sheet for this category
         Image spriteSheet = loadSpriteSheet(category);
         if (spriteSheet != null) {
@@ -3008,7 +3102,7 @@ public class ChatController implements Initializable {
         // We need to choose an appropriate sprite sheet for the search results
         // Using a general category or "Smileys" as default
         String category = "Smileys"; // Default
-        
+
         // Try to get a specific category if all results belong to the same category
         if (!searchResults.isEmpty()) {
             boolean singleCategory = true;
@@ -3023,7 +3117,7 @@ public class ChatController implements Initializable {
                 category = firstCategory;
             }
         }
-        
+
         // Load sprite sheet and set emojis
         Image spriteSheet = loadSpriteSheet(category);
         if (spriteSheet != null) {
@@ -3034,20 +3128,22 @@ public class ChatController implements Initializable {
     private List<EmojiData> searchEmojis(String query) {
         String lowerQuery = query.toLowerCase();
         return allEmojis.values().stream()
-                .filter(emoji -> emoji.getName() != null && 
-                               emoji.getName().toLowerCase().contains(lowerQuery))
+                .filter(emoji -> emoji.getName() != null &&
+                        emoji.getName().toLowerCase().contains(lowerQuery))
                 .collect(Collectors.toList());
     }
 
-    // We've replaced the old GridPane-based emoji grid with a Canvas-based implementation
-    // that draws emojis directly from sprite sheets without creating hundreds of nodes
+    // We've replaced the old GridPane-based emoji grid with a Canvas-based
+    // implementation
+    // that draws emojis directly from sprite sheets without creating hundreds of
+    // nodes
 
     private Image loadSpriteSheet(String category) {
         // Check cache first
         if (spriteSheetCache.containsKey(category)) {
             return spriteSheetCache.get(category);
         }
-        
+
         try {
             String imagePath = EMOJI_SPRITES_PATH + category + ".png";
             InputStream imageStream = getClass().getResourceAsStream(imagePath);
@@ -3066,11 +3162,11 @@ public class ChatController implements Initializable {
 
     private void insertEmojiIntoMessage(String emojiFilename) {
         String currentText = messageInput.getText();
-        
+
         // Simple approach: always insert at the end of current text
         // This is more reliable than trying to track caret position with focus issues
         int insertPosition = currentText.length();
-        
+
         // Debug output
         System.out.println("DEBUG: Current text: '" + currentText + "'");
         System.out.println("DEBUG: Inserting at position: " + insertPosition);
@@ -3078,15 +3174,15 @@ public class ChatController implements Initializable {
         // Insert emoji placeholder in text
         String emojiPlaceholder = "[EMOJI:" + emojiFilename + "]";
         String newText = currentText + emojiPlaceholder;
-        
+
         messageInput.setText(newText);
-        
+
         // Set caret position after the inserted emoji and request focus
         Platform.runLater(() -> {
             messageInput.requestFocus();
             messageInput.positionCaret(newText.length());
         });
-        
+
         System.out.println("DEBUG: New text: '" + newText + "'");
         System.out.println("DEBUG: Caret positioned at end: " + newText.length());
     }
@@ -3354,7 +3450,7 @@ public class ChatController implements Initializable {
         refreshManagementWindow(memberListView, groupItem);
 
         Button addMemberButton = new Button("Add Member");
-        addMemberButton.setOnAction(e -> showMemberSelectionPopup("Add Member", true, groupItem.getGroupId()));
+        addMemberButton.setOnAction(e -> showMemberSelectionPopup("", true, groupItem.getGroupId()));
 
         HBox bottomBar = new HBox(addMemberButton);
         bottomBar.setAlignment(Pos.CENTER_RIGHT);
@@ -3473,7 +3569,7 @@ public class ChatController implements Initializable {
                     progressCallback = new ProgressCallback() {
                         @Override
                         public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                                     long totalBytes) {
+                                long totalBytes) {
                             double progress = (double) bytesProcessed / totalBytes;
                             Platform.runLater(() -> {
                                 // Use unified progress bar
@@ -3609,47 +3705,55 @@ public class ChatController implements Initializable {
 
         if (mimeType.startsWith("image/"))
             return "file-type-label-image";
-        if (mimeType.startsWith("video/"))
-            return "file-type-label-video";
         if (mimeType.startsWith("audio/"))
             return "file-type-label-audio";
-        if (mimeType.startsWith("text/plain"))
+        if (mimeType.startsWith("video/"))
+            return "file-type-label-video";
+        if (mimeType.startsWith("text/"))
             return "file-type-label-text";
-        if (mimeType.startsWith("text/html") || mimeType.endsWith("html"))
-            return "file-type-label-html";
-        if (mimeType.startsWith("application/json"))
-            return "file-type-label-json";
-        if (mimeType.startsWith("text/xml") || mimeType.endsWith("xml"))
-            return "file-type-label-xml";
-        if (mimeType.startsWith("text/csv") || mimeType.endsWith("csv"))
-            return "file-type-label-csv";
         if (mimeType.equals("application/pdf"))
             return "file-type-label-pdf";
-        if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-                mimeType.startsWith("application/msword"))
-            return "file-type-label-document";
-        if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
-                mimeType.startsWith("application/vnd.ms-excel"))
-            return "file-type-label-spreadsheet";
-        if (mimeType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation") ||
-                mimeType.startsWith("application/vnd.ms-powerpoint"))
-            return "file-type-label-presentation";
-        if (mimeType.startsWith("application/zip") ||
-                mimeType.startsWith("application/x-rar") ||
-                mimeType.startsWith("application/x-7z"))
+        if (mimeType.contains("zip") || mimeType.contains("rar") || mimeType.contains("7z"))
             return "file-type-label-archive";
-            
-        // Add support for executable file types
-        if (mimeType.startsWith("application/x-msdownload") ||
-                mimeType.startsWith("application/x-executable") ||
-                mimeType.endsWith("exe") ||
-                mimeType.endsWith("dll") ||
-                mimeType.endsWith("bat") ||
-                mimeType.endsWith("cmd") ||
-                mimeType.endsWith("sh"))
+        if (mimeType.contains("word"))
+            return "file-type-label-document";
+        if (mimeType.contains("excel") || mimeType.contains("spreadsheet"))
+            return "file-type-label-spreadsheet";
+        if (mimeType.contains("powerpoint") || mimeType.contains("presentation"))
+            return "file-type-label-presentation";
+        if (mimeType.startsWith("application/"))
             return "file-type-label-program";
 
-        return "file-type-label-document";
+        return "file-type-label-other";
+    }
+
+    private String getFileTypeColor(String mimeType) {
+        if (mimeType == null)
+            return "#6B7280"; // Default gray
+
+        String baseType = mimeType.split("/")[0];
+        switch (baseType) {
+            case "image":
+                return "#10B981"; // Green for images
+            case "video":
+                return "#3B82F6"; // Blue for videos
+            case "audio":
+                return "#8B5CF6"; // Purple for audio
+            case "text":
+                return "#F59E0B"; // Amber for text files
+            case "application":
+                if (mimeType.contains("pdf"))
+                    return "#EF4444"; // Red for PDF
+                if (mimeType.contains("zip") || mimeType.contains("tar") || mimeType.contains("rar")) {
+                    return "#6366F1"; // Indigo for archives
+                }
+                if (mimeType.contains("json") || mimeType.contains("xml")) {
+                    return "#F59E0B"; // Amber for data files
+                }
+                return "#6B7280"; // Gray for other applications
+            default:
+                return "#6B7280"; // Default gray
+        }
     }
 
     private String getFileTypeIcon(String mimeType) {
@@ -3682,9 +3786,10 @@ public class ChatController implements Initializable {
             return baseIconPath + "excel_file_icon.png";
         if (mimeType.contains("powerpoint") || mimeType.contains("presentation"))
             return baseIconPath + "ppt_file_icon.png";
-        if (mimeType.contains("zip") || mimeType.contains("rar") || mimeType.contains("7z") || mimeType.contains("archive"))
+        if (mimeType.contains("zip") || mimeType.contains("rar") || mimeType.contains("7z")
+                || mimeType.contains("archive"))
             return baseIconPath + "archive_file_icon.png";
-        if (mimeType.contains("exe") || mimeType.contains("dll") || mimeType.contains("bat") || 
+        if (mimeType.contains("exe") || mimeType.contains("dll") || mimeType.contains("bat") ||
                 mimeType.contains("cmd") || mimeType.contains("sh") || mimeType.contains("executable"))
             return baseIconPath + "exe_file_icon.png";
 
@@ -3762,7 +3867,8 @@ public class ChatController implements Initializable {
         imageContainer.setMaxWidth(340);
         imageContainer.setPadding(new Insets(0));
 
-        // Create the image view with modern styling - clean, minimal border with rounded corners
+        // Create the image view with modern styling - clean, minimal border with
+        // rounded corners
         ImageView imageView = new ImageView();
         imageView.setFitWidth(340);
         imageView.setFitHeight(240);
@@ -3882,16 +3988,71 @@ public class ChatController implements Initializable {
 
         // Get chat window dimensions (adjust these to your actual chat window size)
         double chatWindowWidth = 800;
-        double chatWindowHeight = 600;
+        double chatWindowHeight = 650; // Slightly taller to accommodate toolbar
+        double toolbarHeight = 60; // Height of the toolbar
 
         // Load image
         Image image = new Image(imageFile.toURI().toString());
 
         // Create zoomable and pannable image view
         ZoomableImageView zoomableImageView = new ZoomableImageView(image, fileData);
+        
+        // Set preferred height to exclude toolbar space
+        zoomableImageView.setPrefHeight(chatWindowHeight - toolbarHeight);
+
+        // Create toolbar with download and open buttons (fixed at bottom)
+        HBox toolbar = new HBox(15);
+        toolbar.setAlignment(Pos.CENTER);
+        toolbar.setPadding(new Insets(12));
+        toolbar.setStyle("-fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 1 0 0 0;");
+        toolbar.setPrefHeight(60);
+        toolbar.setMinHeight(60);
+        toolbar.setMaxHeight(60);
+
+        // Download button
+        Button downloadButton = new Button("Download");
+        downloadButton.getStyleClass().add("download-button");
+        downloadButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #3498db; -fx-background-radius: 6; -fx-cursor: hand;");
+        downloadButton.setOnMouseEntered(e -> downloadButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #2980b9; -fx-background-radius: 6; -fx-cursor: hand;"));
+        downloadButton.setOnMouseExited(e -> downloadButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #3498db; -fx-background-radius: 6; -fx-cursor: hand;"));
+        downloadButton.setOnAction(e -> {
+            // Create a copy of the file in downloads folder
+            try {
+                File downloadsDir = new File("downloads");
+                if (!downloadsDir.exists()) {
+                    downloadsDir.mkdirs();
+                }
+                File destFile = new File(downloadsDir, fileData.getOriginalName());
+                Files.copy(imageFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                showAlert("Download Complete", "Image saved to: " + destFile.getAbsolutePath());
+            } catch (Exception ex) {
+                showAlert("Download Error", "Failed to save image: " + ex.getMessage());
+            }
+        });
+
+        // Open button
+        Button openButton = new Button("Open");
+        openButton.getStyleClass().add("open-button");
+        openButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #27ae60; -fx-background-radius: 6; -fx-cursor: hand;");
+        openButton.setOnMouseEntered(e -> openButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #229954; -fx-background-radius: 6; -fx-cursor: hand;"));
+        openButton.setOnMouseExited(e -> openButton.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16 8 16; -fx-background-color: #27ae60; -fx-background-radius: 6; -fx-cursor: hand;"));
+        openButton.setOnAction(e -> {
+            try {
+                Desktop.getDesktop().open(imageFile);
+            } catch (Exception ex) {
+                showAlert("Open Error", "Failed to open image: " + ex.getMessage());
+            }
+        });
+
+        toolbar.getChildren().addAll(downloadButton, openButton);
+
+        // Create main container with image viewer and toolbar
+        VBox mainContainer = new VBox();
+        mainContainer.getChildren().addAll(zoomableImageView, toolbar);
+        VBox.setVgrow(zoomableImageView, Priority.ALWAYS);
 
         // Create scene with chat window size
-        Scene scene = new Scene(zoomableImageView, chatWindowWidth, chatWindowHeight);
+        Scene scene = new Scene(mainContainer, chatWindowWidth, chatWindowHeight);
 
         // Add keyboard shortcuts for zoom
         scene.setOnKeyPressed(e -> {
@@ -3983,8 +4144,7 @@ public class ChatController implements Initializable {
                                 "linear-gradient(45deg, transparent 75%, #e0e0e0 75%), " +
                                 "linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);" +
                                 "-fx-background-size: 20px 20px;" +
-                                "-fx-background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
-                );
+                                "-fx-background-position: 0 0, 0 10px, 10px -10px, -10px 0px;");
             } else {
                 setStyle("-fx-background-color: #2b2b2b;");
             }
@@ -4036,7 +4196,8 @@ public class ChatController implements Initializable {
         }
 
         private void updateImageDisplay() {
-            if (getWidth() <= 0 || getHeight() <= 0) return;
+            if (getWidth() <= 0 || getHeight() <= 0)
+                return;
 
             double containerWidth = getWidth();
             double containerHeight = getHeight();
@@ -4046,9 +4207,8 @@ public class ChatController implements Initializable {
             double scaleY = containerHeight / originalImageHeight;
             double fitScale = Math.min(scaleX, scaleY);
 
-            // If image is smaller than container, use original size (scale = 1)
-            // If image is larger, scale it down to fit
-            double baseScale = Math.min(1.0, fitScale);
+            // Always use fit scale as the base scale (this makes image fit to window initially)
+            double baseScale = fitScale;
 
             // Apply zoom on top of base scale
             double finalScale = baseScale * zoomFactor;
@@ -4143,10 +4303,13 @@ public class ChatController implements Initializable {
     }
 
     // Audio preview design starts
-    private final String PLAY_ICON_PATH = "/com/bakbak/javafx_proj_1_2/icons/play.png"; // Add your play button PNG path here
-    private final String PAUSE_ICON_PATH = "/com/bakbak/javafx_proj_1_2/icons/pause.png"; // Add your pause button PNG path here
+    private final String PLAY_ICON_PATH = "/com/bakbak/javafx_proj_1_2/icons/play.png"; // Add your play button PNG path
+                                                                                        // here
+    private final String PAUSE_ICON_PATH = "/com/bakbak/javafx_proj_1_2/icons/pause.png"; // Add your pause button PNG
+                                                                                          // path here
 
-    // Keep track of currently playing media player to pause it when another one starts
+    // Keep track of currently playing media player to pause it when another one
+    // starts
     private MediaPlayer currentlyPlayingMediaPlayer;
 
     private Node createAudioPreview(FileMessageData fileData) {
@@ -4284,13 +4447,13 @@ public class ChatController implements Initializable {
     }
 
     private void setupAudioPlayerWithDragAnimation(FileMessageData fileData, Button playPauseBtn,
-                                                   StackPane progressStack, Label currentTime, Label totalTime) {
+            StackPane progressStack, Label currentTime, Label totalTime) {
 
-        final MediaPlayer[] mediaPlayer = {null};
-        final boolean[] isPlaying = {false};
-        final boolean[] isDragging = {false};
-        final File[] audioFile = {null};
-        final Timeline[] progressTimeline = {null};
+        final MediaPlayer[] mediaPlayer = { null };
+        final boolean[] isPlaying = { false };
+        final boolean[] isDragging = { false };
+        final File[] audioFile = { null };
+        final Timeline[] progressTimeline = { null };
 
         // Get the progress bar from the stack
         ProgressBar progressBar = null;
@@ -4321,11 +4484,13 @@ public class ChatController implements Initializable {
         }
 
         // Enhanced drag functionality with live animation
-        setupProgressBarDragAnimation(progressStack, progressBar, dragHandle, mediaPlayer, currentTime, totalTime, isDragging, progressTimeline);
+        setupProgressBarDragAnimation(progressStack, progressBar, dragHandle, mediaPlayer, currentTime, totalTime,
+                isDragging, progressTimeline);
     }
 
     private void setupProgressBarDragAnimation(StackPane progressStack, ProgressBar progressBar, Circle dragHandle,
-                                               MediaPlayer[] mediaPlayer, Label currentTime, Label totalTime, boolean[] isDragging, Timeline[] progressTimeline) {
+            MediaPlayer[] mediaPlayer, Label currentTime, Label totalTime, boolean[] isDragging,
+            Timeline[] progressTimeline) {
 
         // Update drag handle position when progress changes
         progressBar.progressProperty().addListener((obs, oldVal, newVal) -> {
@@ -4468,11 +4633,11 @@ public class ChatController implements Initializable {
     }
 
     private void downloadAndPrepareAudio(FileMessageData fileData, Button playPauseBtn,
-                                         StackPane progressStack, Label currentTime, Label totalTime,
-                                         MediaPlayer[] mediaPlayer, boolean[] isPlaying, File[] audioFile,
-                                         boolean[] isDragging, Timeline[] progressTimeline) {
+            StackPane progressStack, Label currentTime, Label totalTime,
+            MediaPlayer[] mediaPlayer, boolean[] isPlaying, File[] audioFile,
+            boolean[] isDragging, Timeline[] progressTimeline) {
 
-        // Get the progress bar from the stack pane
+        // Get the progress bar from the stack
         ProgressBar progressBar = null;
         for (Node node : progressStack.getChildren()) {
             if (node instanceof ProgressBar) {
@@ -4503,6 +4668,9 @@ public class ChatController implements Initializable {
                         String audioPath = audioFile[0].toURI().toString();
                         Media media = new Media(audioPath);
                         mediaPlayer[0] = new MediaPlayer(media);
+                        
+                        // Ensure audio plays only once (no looping)
+                        mediaPlayer[0].setCycleCount(1);
 
                         // Setup media player listeners
                         setupMediaPlayerListeners(mediaPlayer[0], playPauseBtn, finalProgressBar,
@@ -4540,8 +4708,8 @@ public class ChatController implements Initializable {
     }
 
     private void setupMediaPlayerListeners(MediaPlayer mediaPlayer, Button playPauseBtn,
-                                           ProgressBar progressBar, Label currentTime, Label totalTime,
-                                           boolean[] isPlaying, boolean[] isDragging, Timeline[] progressTimeline) {
+            ProgressBar progressBar, Label currentTime, Label totalTime,
+            boolean[] isPlaying, boolean[] isDragging, Timeline[] progressTimeline) {
 
         mediaPlayer.setOnReady(() -> {
             Duration duration = mediaPlayer.getTotalDuration();
@@ -4594,8 +4762,10 @@ public class ChatController implements Initializable {
             isPlaying[0] = false;
             setButtonIcon(playPauseBtn, PLAY_ICON_PATH, 14);
             progressBar.setProgress(0);
-            mediaPlayer.seek(Duration.ZERO);
             currentTime.setText("0:00");
+            
+            // Stop the media player completely instead of seeking to zero
+            mediaPlayer.stop();
 
             // Clear the currently playing reference if this is the one that was playing
             if (currentlyPlayingMediaPlayer == mediaPlayer) {
@@ -4619,11 +4789,12 @@ public class ChatController implements Initializable {
     }
 
     private void togglePlayPause(MediaPlayer mediaPlayer, Button playPauseBtn, boolean[] isPlaying,
-                                 Timeline progressTimeline) {
+            Timeline progressTimeline) {
         // Get the parent of playPauseBtn to find progressBar
         Parent parent = playPauseBtn.getParent();
         while (parent != null && !(parent instanceof VBox)) {
-            if (parent.getParent() == null) break;
+            if (parent.getParent() == null)
+                break;
             parent = parent.getParent();
         }
 
@@ -4696,7 +4867,7 @@ public class ChatController implements Initializable {
     }
 
     private void downloadAndPlayVideo(FileMessageData fileData, Button playButton, Button pauseButton,
-                                      VBox videoContainer) {
+            VBox videoContainer) {
         new Thread(() -> {
             try {
                 // Download the video file
@@ -4754,7 +4925,7 @@ public class ChatController implements Initializable {
                     progressCallback = new ProgressCallback() {
                         @Override
                         public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                                     long totalBytes) {
+                                long totalBytes) {
                             double progress = (double) bytesProcessed / totalBytes;
                             Platform.runLater(() -> {
                                 // Use unified progress bar
@@ -4819,7 +4990,7 @@ public class ChatController implements Initializable {
                         progressCallback = new ProgressCallback() {
                             @Override
                             public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                                         long totalBytes) {
+                                    long totalBytes) {
                                 double progress = (double) bytesProcessed / totalBytes;
                                 Platform.runLater(() -> {
                                     // Use unified progress bar
@@ -5018,4 +5189,318 @@ public class ChatController implements Initializable {
     private ProgressBar unifiedProgressBar;
     private Label unifiedProgressLabel;
     private HBox unifiedProgressContainer;
+
+    // Voice recording fields
+    private TargetDataLine targetDataLine;
+    private Thread recordingThread;
+    private ByteArrayOutputStream audioOutputStream;
+    private boolean isRecording = false;
+    private Stage voiceRecorderStage;
+    private long recordingStartTime;
+
+    @FXML
+    private void handleVoiceMessage() {
+        if (selectedChat == null) {
+            showAlert("Error", "Please select a chat to send a voice message.");
+            return;
+        }
+        showVoiceRecorderDialog();
+    }
+
+    private void showVoiceRecorderDialog() {
+        if (voiceRecorderStage != null && voiceRecorderStage.isShowing()) {
+            voiceRecorderStage.toFront();
+            return;
+        }
+
+        voiceRecorderStage = new Stage();
+        voiceRecorderStage.initModality(Modality.APPLICATION_MODAL);
+        voiceRecorderStage.setTitle("Voice Recorder");
+        voiceRecorderStage.setResizable(false);
+
+        // Create the main container
+        VBox mainContainer = new VBox();
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setSpacing(20);
+        mainContainer.setPadding(new Insets(30));
+        mainContainer.getStyleClass().add("voice-recorder-dialog");
+
+        // Title
+        Label titleLabel = new Label("Voice Message");
+        titleLabel.getStyleClass().add("voice-recorder-title");
+
+        // Recording status container
+        VBox statusContainer = new VBox();
+        statusContainer.setAlignment(Pos.CENTER);
+        statusContainer.setSpacing(15);
+
+        // Recording indicator (animated circle)
+        Circle recordingIndicator = new Circle(8);
+        recordingIndicator.getStyleClass().add("recording-indicator");
+        recordingIndicator.setVisible(false);
+
+        // Timer label
+        Label timerLabel = new Label("00:00");
+        timerLabel.getStyleClass().add("voice-recorder-timer");
+
+        // Status text
+        Label statusLabel = new Label("Tap to start recording");
+        statusLabel.getStyleClass().add("voice-recorder-status");
+
+        statusContainer.getChildren().addAll(recordingIndicator, timerLabel, statusLabel);
+
+        // Main recording button
+        Button recordButton = new Button();
+        recordButton.setPrefSize(80, 80);
+        recordButton.getStyleClass().add("voice-record-button");
+
+        // Microphone icon for record button
+        ImageView micIcon = new ImageView();
+        try {
+            Image micImage = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/voice.png"));
+            micIcon.setImage(micImage);
+            micIcon.setFitWidth(35);
+            micIcon.setFitHeight(35);
+            micIcon.setPreserveRatio(true);
+        } catch (Exception e) {
+            // Fallback text if image not found
+            recordButton.setText("🎤");
+            recordButton.setStyle(recordButton.getStyle() + "-fx-font-size: 30px;");
+        }
+        recordButton.setGraphic(micIcon);
+
+        // Control buttons container
+        HBox controlsContainer = new HBox();
+        controlsContainer.setAlignment(Pos.CENTER);
+        controlsContainer.setSpacing(20);
+
+        // Cancel button
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setPrefSize(100, 40);
+        cancelButton.getStyleClass().addAll("voice-control-button", "voice-cancel-button");
+
+        // Send button
+        Button sendButton = new Button("Send");
+        sendButton.setPrefSize(100, 40);
+        sendButton.getStyleClass().addAll("voice-control-button", "voice-send-button");
+        sendButton.setDisable(true);
+
+        controlsContainer.getChildren().addAll(cancelButton, sendButton);
+
+        // Add all components to main container
+        mainContainer.getChildren().addAll(titleLabel, statusContainer, recordButton, controlsContainer);
+
+        // Create timeline for timer update
+        Timeline timerTimeline = new Timeline();
+        timerTimeline.setCycleCount(Timeline.INDEFINITE);
+
+        // Create pulse animation for recording indicator
+        Timeline pulseTimeline = new Timeline(
+            new KeyFrame(Duration.ZERO, 
+                new KeyValue(recordingIndicator.scaleXProperty(), 1.0),
+                new KeyValue(recordingIndicator.scaleYProperty(), 1.0),
+                new KeyValue(recordingIndicator.opacityProperty(), 1.0)
+            ),
+            new KeyFrame(Duration.seconds(0.5), 
+                new KeyValue(recordingIndicator.scaleXProperty(), 1.3),
+                new KeyValue(recordingIndicator.scaleYProperty(), 1.3),
+                new KeyValue(recordingIndicator.opacityProperty(), 0.7)
+            ),
+            new KeyFrame(Duration.seconds(1.0), 
+                new KeyValue(recordingIndicator.scaleXProperty(), 1.0),
+                new KeyValue(recordingIndicator.scaleYProperty(), 1.0),
+                new KeyValue(recordingIndicator.opacityProperty(), 1.0)
+            )
+        );
+        pulseTimeline.setCycleCount(Timeline.INDEFINITE);
+
+        // Button event handlers
+        recordButton.setOnAction(e -> {
+            if (!isRecording) {
+                startRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
+                             sendButton, timerTimeline, pulseTimeline);
+            } else {
+                stopRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
+                            sendButton, timerTimeline, pulseTimeline);
+            }
+        });
+
+        cancelButton.setOnAction(e -> {
+            if (isRecording) {
+                stopRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
+                            sendButton, timerTimeline, pulseTimeline);
+            }
+            voiceRecorderStage.close();
+        });
+
+        sendButton.setOnAction(e -> {
+            sendVoiceMessage();
+            voiceRecorderStage.close();
+        });
+
+        // Add hover effects to buttons
+        addButtonHoverEffect(cancelButton, "#95a5a6", "#7f8c8d");
+        addButtonHoverEffect(sendButton, "#27ae60", "#219a52");
+        addButtonHoverEffect(recordButton, "#3498db", "#2980b9");
+
+        Scene scene = new Scene(mainContainer, 350, 400);
+        scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        
+        voiceRecorderStage.setScene(scene);
+        voiceRecorderStage.show();
+
+        // Center the stage on the main window
+        voiceRecorderStage.setX((voiceRecorderStage.getOwner().getX() + voiceRecorderStage.getOwner().getWidth() / 2) - 175);
+        voiceRecorderStage.setY((voiceRecorderStage.getOwner().getY() + voiceRecorderStage.getOwner().getHeight() / 2) - 200);
+    }
+
+    private void addButtonHoverEffect(Button button, String normalColor, String hoverColor) {
+        String originalStyle = button.getStyle();
+        button.setOnMouseEntered(e -> 
+            button.setStyle(originalStyle.replace(normalColor, hoverColor))
+        );
+        button.setOnMouseExited(e -> 
+            button.setStyle(originalStyle)
+        );
+    }
+
+    private void startRecording(Button recordButton, Circle indicator, Label timerLabel, 
+                              Label statusLabel, Button sendButton, Timeline timerTimeline, Timeline pulseTimeline) {
+        try {
+            // Audio format configuration
+            AudioFormat format = new AudioFormat(
+                AudioFormat.Encoding.PCM_SIGNED,
+                44100.0f,  // Sample rate
+                16,        // Sample size in bits
+                2,         // Channels (stereo)
+                4,         // Frame size
+                44100.0f,  // Frame rate
+                false      // Big endian
+            );
+
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            
+            if (!AudioSystem.isLineSupported(info)) {
+                showAlert("Error", "Audio recording is not supported on this system.");
+                return;
+            }
+
+            targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+            targetDataLine.open(format);
+            targetDataLine.start();
+
+            audioOutputStream = new ByteArrayOutputStream();
+            isRecording = true;
+            recordingStartTime = System.currentTimeMillis();
+
+            // Update UI
+            recordButton.getStyleClass().remove("voice-record-button");
+            recordButton.getStyleClass().add("voice-record-button-recording");
+            
+            indicator.setVisible(true);
+            statusLabel.setText("Recording... Tap to stop");
+            pulseTimeline.play();
+
+            // Start timer update
+            timerTimeline.getKeyFrames().clear();
+            timerTimeline.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(0.1), e -> updateRecordingTimer(timerLabel))
+            );
+            timerTimeline.play();
+
+            // Start recording thread
+            recordingThread = new Thread(() -> {
+                byte[] buffer = new byte[4096];
+                while (isRecording && !Thread.currentThread().isInterrupted()) {
+                    try {
+                        int bytesRead = targetDataLine.read(buffer, 0, buffer.length);
+                        if (bytesRead > 0) {
+                            audioOutputStream.write(buffer, 0, bytesRead);
+                        }
+                    } catch (Exception e) {
+                        Platform.runLater(() -> {
+                            showAlert("Recording Error", "An error occurred while recording: " + e.getMessage());
+                            stopRecording(recordButton, indicator, timerLabel, statusLabel, sendButton, timerTimeline, pulseTimeline);
+                        });
+                        break;
+                    }
+                }
+            });
+            recordingThread.setDaemon(true);
+            recordingThread.start();
+
+        } catch (Exception e) {
+            showAlert("Recording Error", "Failed to start recording: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void stopRecording(Button recordButton, Circle indicator, Label timerLabel,
+                             Label statusLabel, Button sendButton, Timeline timerTimeline, Timeline pulseTimeline) {
+        isRecording = false;
+        
+        if (recordingThread != null) {
+            recordingThread.interrupt();
+        }
+        
+        if (targetDataLine != null) {
+            targetDataLine.stop();
+            targetDataLine.close();
+        }
+
+        // Stop animations
+        timerTimeline.stop();
+        pulseTimeline.stop();
+
+        // Update UI
+        recordButton.getStyleClass().remove("voice-record-button-recording");
+        recordButton.getStyleClass().add("voice-record-button");
+        
+        indicator.setVisible(false);
+        statusLabel.setText("Recording completed");
+        sendButton.setDisable(false);
+    }
+
+    private void updateRecordingTimer(Label timerLabel) {
+        if (isRecording) {
+            long elapsedTime = System.currentTimeMillis() - recordingStartTime;
+            long seconds = (elapsedTime / 1000) % 60;
+            long minutes = (elapsedTime / (1000 * 60)) % 60;
+            
+            Platform.runLater(() -> {
+                timerLabel.setText(String.format("%02d:%02d", minutes, seconds));
+            });
+        }
+    }
+
+    private void sendVoiceMessage() {
+        if (audioOutputStream == null || audioOutputStream.size() == 0) {
+            showAlert("Error", "No audio recorded. Please record a voice message first.");
+            return;
+        }
+
+        try {
+            // Create temporary WAV file
+            File tempFile = File.createTempFile("voice_message_", ".wav");
+            tempFile.deleteOnExit();
+
+            // Write audio data to WAV file
+            byte[] audioData = audioOutputStream.toByteArray();
+            AudioFormat format = new AudioFormat(44100.0f, 16, 2, true, false);
+            
+            ByteArrayInputStream bais = new ByteArrayInputStream(audioData);
+            AudioInputStream audioInputStream = new AudioInputStream(bais, format, audioData.length / format.getFrameSize());
+            
+            AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, tempFile);
+            
+            // Send the file using existing file sharing mechanism
+            Platform.runLater(() -> {
+                sendFile(tempFile);
+            });
+
+        } catch (Exception e) {
+            showAlert("Error", "Failed to send voice message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
