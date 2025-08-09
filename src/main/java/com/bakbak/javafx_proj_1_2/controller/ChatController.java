@@ -88,6 +88,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.media.MediaException;
@@ -1984,14 +1985,7 @@ public class ChatController implements Initializable {
             // No additional file box styling needed - already handled in styling above
         } else {
             // Create TextFlow with mixed text and emoji content
-            TextFlow textFlow = createTextFlowWithEmojis(message.getContent());
-            
-            // Set text color based on message type (sent vs received)
-            if (isSentByMe) {
-                textFlow.setStyle("-fx-text-fill: white;");
-            } else {
-                textFlow.setStyle("-fx-text-fill: #2c3e50;");
-            }
+            TextFlow textFlow = createTextFlowWithEmojis(message.getContent(), isSentByMe);
             
             messageContent.getChildren().add(textFlow);
         }
@@ -2048,10 +2042,10 @@ public class ChatController implements Initializable {
         // Create timestamp without checkmarks, always right-aligned
         String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
         Label timeLabel = new Label(timeStr);
-        // Apply JetBrains Mono font styling directly in Java
+        // Apply JetBrains Mono font styling directly in Java with smaller font size
         timeLabel.setStyle(
                 "-fx-font-family: 'Inter', 'Monaco', monospace;" +
-                        "-fx-font-size: 8px;" +
+                        "-fx-font-size: 11px;" +
                         "-fx-font-weight: normal;" +
                         "-fx-text-fill: inherit;" +
                         "-fx-padding: 2 0 0 0;" +
@@ -2102,6 +2096,10 @@ public class ChatController implements Initializable {
     }
 
     private TextFlow createTextFlowWithEmojis(String messageContent) {
+        return createTextFlowWithEmojis(messageContent, false);
+    }
+    
+    private TextFlow createTextFlowWithEmojis(String messageContent, boolean isSentByMe) {
         TextFlow textFlow = new TextFlow();
 
         if (messageContent == null || messageContent.isEmpty()) {
@@ -2125,7 +2123,12 @@ public class ChatController implements Initializable {
                 // Add any accumulated text first
                 if (currentText.length() > 0) {
                     Text textNode = new Text(currentText.toString());
-                    // Remove direct font setting to use CSS parent class styling
+                    // Set text color based on message type
+                    if (isSentByMe) {
+                        textNode.setFill(javafx.scene.paint.Color.WHITE);
+                    } else {
+                        textNode.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+                    }
                     textFlow.getChildren().add(textNode);
                     currentText.setLength(0);
                 }
@@ -2162,12 +2165,22 @@ public class ChatController implements Initializable {
                         } else {
                             // Fallback to text emoji
                             Text fallbackEmoji = new Text("📷");
+                            if (isSentByMe) {
+                                fallbackEmoji.setFill(javafx.scene.paint.Color.WHITE);
+                            } else {
+                                fallbackEmoji.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+                            }
                             textFlow.getChildren().add(fallbackEmoji);
                         }
                     } catch (Exception e) {
                         // If emoji image fails to load, show the filename as text
                         Text fallbackText = new Text("[" + emojiFilename + "]");
                         fallbackText.getStyleClass().add("emoji-fallback-text");
+                        if (isSentByMe) {
+                            fallbackText.setFill(javafx.scene.paint.Color.WHITE);
+                        } else {
+                            fallbackText.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+                        }
                         textFlow.getChildren().add(fallbackText);
                     }
 
@@ -2186,13 +2199,23 @@ public class ChatController implements Initializable {
         // Add any remaining text
         if (currentText.length() > 0) {
             Text textNode = new Text(currentText.toString());
-            // Remove direct font setting to use CSS parent class styling
+            // Set text color based on message type
+            if (isSentByMe) {
+                textNode.setFill(javafx.scene.paint.Color.WHITE);
+            } else {
+                textNode.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+            }
             textFlow.getChildren().add(textNode);
         }
 
         // If no content was added, add empty text to prevent layout issues
         if (textFlow.getChildren().isEmpty()) {
             Text emptyText = new Text("");
+            if (isSentByMe) {
+                emptyText.setFill(javafx.scene.paint.Color.WHITE);
+            } else {
+                emptyText.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+            }
             textFlow.getChildren().add(emptyText);
         }
 
@@ -2791,6 +2814,8 @@ public class ChatController implements Initializable {
 
                 Label nameLabel = new Label(item.getName());
                 nameLabel.getStyleClass().add("contact-name");
+                // Force font size to ensure it's applied
+                nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
                 if (!item.hasUnreadMessages()) {
                     nameLabel.getStyleClass().add("contact-name-normal");
                 }
@@ -2814,21 +2839,29 @@ public class ChatController implements Initializable {
                     HBox messageBox = new HBox();
                     messageBox.setAlignment(Pos.CENTER_LEFT);
                     messageBox.setSpacing(8);
+                    messageBox.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                    messageBox.setMaxWidth(Double.MAX_VALUE);
 
                     Label messageLabel = new Label(item.getLastMessage());
                     messageLabel.getStyleClass()
                             .add(item.hasUnreadMessages() ? "contact-message-unread" : "contact-message");
-
-                    // Truncate long messages
-                    if (messageLabel.getText().length() > 30) {
-                        messageLabel.setText(messageLabel.getText().substring(0, 30) + "...");
-                    }
+                    // Force font size to ensure it's applied
+                    messageLabel.setStyle("-fx-font-size: 11px;");
+                    
+                    // Set max width to ensure timestamp is always visible (reserve ~50px for timestamp)
+                    messageLabel.setMaxWidth(150); // Reduced from unlimited to ensure timestamp space
+                    messageLabel.setWrapText(false);
+                    messageLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
                     Region spacer = new Region();
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
                     Label timeLabel = new Label(item.getLastMessageTimestamp());
                     timeLabel.getStyleClass().add("contact-time");
+                    // Force font size to ensure it's applied
+                    timeLabel.setStyle("-fx-font-size: 9px;");
+                    timeLabel.setMinWidth(Region.USE_PREF_SIZE); // Prevent shrinking
+                    timeLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
 
                     messageBox.getChildren().addAll(messageLabel, spacer, timeLabel);
                     content.getChildren().add(messageBox);
@@ -4207,7 +4240,7 @@ public class ChatController implements Initializable {
             double scaleY = containerHeight / originalImageHeight;
             double fitScale = Math.min(scaleX, scaleY);
 
-            // Always use fit scale as the base scale (this makes image fit to window initially)
+            // Always use fit scale - image should resize with window (both up and down)
             double baseScale = fitScale;
 
             // Apply zoom on top of base scale
