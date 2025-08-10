@@ -5,9 +5,11 @@ module com.bakbak.javafx_proj_1_2 {
     requires javafx.media;
 
     requires org.controlsfx.controls;
+    requires com.github.sarxos.webcam;
 
     opens com.bakbak.javafx_proj_1_2 to javafx.fxml;
     opens com.bakbak.javafx_proj_1_2.controller to javafx.fxml;
     exports com.bakbak.javafx_proj_1_2;
     exports com.bakbak.javafx_proj_1_2.controller;
+
 }
