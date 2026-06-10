@@ -45,3 +45,6 @@ build/
 *.ear
 target/
 out/
+
+# Chat Data
+chat_data/

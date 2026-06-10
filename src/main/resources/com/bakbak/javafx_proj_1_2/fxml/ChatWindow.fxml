@@ -18,7 +18,7 @@
 <SplitPane dividerPositions="0.4022531477799867" orientation="HORIZONTAL" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.controller.ChatController">
 
    <!-- Left Sidebar -->
-   <VBox maxWidth="400" minWidth="300" prefWidth="300" style="-fx-border-width: 0 1 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="activeList" >
+   <VBox maxWidth="400" minWidth="300" prefWidth="300" styleClass="activeList" >
 
       <!-- Header -->
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;" stylesheets="@ChatWindowStyle.css">
@@ -66,7 +66,7 @@
       <!-- Chat Header -->
       <top>
          <VBox fx:id="chatHeader" alignment="CENTER_LEFT">
-            <HBox alignment="CENTER_LEFT" prefHeight="60" spacing="15" style="-fx-padding: 15 20 15 20; -fx-border-width: 0 0 1 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="chatBoxHeader" stylesheets="@ChatWindowStyle.css">
+            <HBox alignment="CENTER_LEFT" prefHeight="60" spacing="15" style="-fx-padding: 15 20 15 20;" styleClass="chatBoxHeader" stylesheets="@ChatWindowStyle.css">
 
                <VBox spacing="2" HBox.hgrow="ALWAYS">
                   <Label fx:id="chatNameLabel" styleClass="chatNameLabel" text="Name" />
@@ -74,22 +74,6 @@
                </VBox>
 
                <HBox spacing="5">
-                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent;" styleClass="navigation-button">
-                     <graphic>
-                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/call.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Button minHeight="35" minWidth="35" style="-fx-background-color: transparent;" styleClass="navigation-button">
-                     <graphic>
-                        <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/video.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
                   <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" style="-fx-background-color: transparent;" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
@@ -115,7 +99,7 @@
       <!-- Message Input -->
       <bottom>
          <HBox fx:id="messageInputArea" alignment="CENTER">
-            <VBox style="-fx-padding: 15 20 20 20; -fx-border-width: 1 0 0 0; -fx-border-color: rgba(255,255,255,0.1);" styleClass="chatBoxFooter" stylesheets="@ChatWindowStyle.css" HBox.hgrow="ALWAYS">
+            <VBox style="-fx-padding: 15 20 20 20;" styleClass="chatBoxFooter" stylesheets="@ChatWindowStyle.css" HBox.hgrow="ALWAYS">
                <HBox alignment="CENTER" spacing="12">
                   <Button fx:id="fileButton" minHeight="40" minWidth="40" onAction="#handleSendFile" style="-fx-background-color: transparent;" styleClass="navigation-button">
                      <graphic>

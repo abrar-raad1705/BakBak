@@ -1,99 +1,242 @@
-.background{
-    -fx-background-color: #e5e9f0;
-    -fx-padding: 40;
+/* ==========================================================================
+   BakBak – Server Discovery (Telegram Light Theme)
+   ========================================================================== */
 
-}
-
-.logo:hover{
-    -fx-scale-x: 1.35;
-    -fx-scale-y: 1.35;
-
-}
-
-
+/* Root / Window */
 .root {
     -fx-min-width: 470px;
-    -fx-min-height: 700px;
+    -fx-min-height: 680px;
     -fx-pref-width: 470px;
-    -fx-pref-height: 700px;
+    -fx-pref-height: 680px;
+    -fx-background-color: #eef2f7;
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", Arial, sans-serif;
 }
 
-.titleWhole{
-    -fx-font-size: 40px;
+/* Full-page background */
+.background {
+    -fx-background-color: linear-gradient(to bottom, #dde9f7 0%, #eef2f7 40%, #f4f7fb 100%);
+    -fx-padding: 30 40 30 40;
+    -fx-spacing: 24;
+}
+
+/* ─── Hero / Header ─────────────────────────────────────────── */
+.heroSection {
+    -fx-alignment: center;
+    -fx-spacing: 6;
+}
+
+/* App logo letters */
+.titleLetters {
+    -fx-font-size: 44px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2e3440;
+    -fx-text-fill: #3390ec;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.25), 8, 0, 0, 2);
 }
 
-.label{
-    -fx-font-family: sans-serif;
-    -fx-text-fill: #3f5673;
-    -fx-letter-spacing: 1px;
+/* Subtitle under logo */
+.titleWhole {
+    -fx-alignment: center;
 }
 
-.buttonContainer{
+/* ─── Card container ─────────────────────────────────────────── */
+.buttonContainer {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 20;
+    -fx-border-color: #dde5f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 68, 153, 0.10), 24, 0, 0, 6);
+    -fx-padding: 30 36 30 36;
+    -fx-spacing: 18;
+    -fx-alignment: center;
+    -fx-max-width: 420;
 }
 
-.textBox{
-    -fx-background-color: white;
+/* ─── Section titles inside the card ────────────────────────── */
+.label {
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-text-fill: #1a1a2e;
+}
+
+/* "Server Discovery" title */
+.section-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+    -fx-padding: 0 0 4 0;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.button {
+    -fx-background-color: #3390ec;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-padding: 10 22;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.35), 10, 0, 0, 3);
+}
+.button:hover {
+    -fx-background-color: #2b7ccf;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.50), 14, 0, 0, 4);
+}
+.button:pressed {
+    -fx-background-color: #2268b0;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.20), 6, 0, 0, 1);
+}
+
+/* Localhost helper button */
+#localhostButton {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3390ec;
+    -fx-border-color: #3390ec;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
     -fx-background-radius: 10;
+    -fx-effect: null;
     -fx-font-size: 13px;
 }
-
-
-
-.titleLetters{
-    -fx-font-size: 40px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #434c5e;
+#localhostButton:hover {
+    -fx-background-color: rgba(51, 144, 236, 0.08);
+    -fx-border-color: #2b7ccf;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 
-.button{
-    -fx-background-color: #81a1c1;
+/* ─── Text Fields ────────────────────────────────────────────── */
+.textBox {
+    -fx-background-color: #f1f5fb;
+    -fx-text-fill: #1a1a2e;
+    -fx-prompt-text-fill: #9baab8;
     -fx-background-radius: 10;
+    -fx-border-color: #cdd9ea;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14;
+    -fx-font-size: 13px;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 0, 1);
 }
-.button:hover{
-    -fx-effect: dropshadow(gaussian, rgba(60, 60, 87, 0.49), 0, 0, 3, 4);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-    -fx-background-color: #8ec6d7;
-    -fx-background-insets: 1;
-    -fx-translate-y: -3;
+.textBox:focused {
+    -fx-border-color: #3390ec;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.15), 8, 0, 0, 2);
 }
 
+/* ─── Status Label ───────────────────────────────────────────── */
+#statusLabel {
+    -fx-text-fill: #6b7c93;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ─── Server List ────────────────────────────────────────────── */
 .serverListView {
-    -fx-background-color: #e5e9f0;
+    -fx-background-color: #f7f9fc;
+    -fx-border-color: #cdd9ea;
+    -fx-border-width: 1.5;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
-    -fx-border-color: #81a1c1;
-    -fx-border-width: 2px;
-    -fx-padding: 4 0 4 0;
-    -fx-control-inner-background: #e5e9f0;
-    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    -fx-font-size: 15px;
-    -fx-text-fill: #2e3440;
+    -fx-control-inner-background: #f7f9fc;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 8, 0, 0, 2);
 }
-
 .serverListView .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #2e3440;
-    -fx-font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    -fx-font-size: 15px;
-    -fx-padding: 8 18 8 18;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
+    -fx-text-fill: #1a1a2e;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-size: 13px;
+    -fx-padding: 10 16;
     -fx-border-width: 0 0 1 0;
-    -fx-border-color: #d8dee9;
-    -fx-transition: background-color 0.2s;
+    -fx-border-color: #e8eef6;
 }
-
-.serverListView .list-cell:selected, .serverListView .list-cell:filled:selected, .serverListView .list-cell:filled:selected:focused {
-    -fx-background-color: #8fbcbb;
-    -fx-text-fill: #eceff4;
-    -fx-border-color: #81a1c1;
+.serverListView .list-cell:selected,
+.serverListView .list-cell:filled:selected,
+.serverListView .list-cell:filled:selected:focused {
+    -fx-background-color: #3390ec;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
 }
-
 .serverListView .list-cell:hover {
-    -fx-background-color: #d8dee9;
-    -fx-text-fill: #2e3440;
+    -fx-background-color: #eef4fc;
     -fx-cursor: hand;
+}
+
+/* ─── Separator ──────────────────────────────────────────────── */
+.separator .line {
+    -fx-border-color: #d8e4f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ==========================================================================
+   Dark Mode Overrides (when .dark-mode is added to root)
+   ========================================================================== */
+.dark-mode.root {
+    -fx-background-color: #0e1621;
+}
+.dark-mode .background {
+    -fx-background-color: linear-gradient(to bottom, #0e1621 0%, #121d29 100%);
+}
+.dark-mode .titleLetters {
+    -fx-text-fill: #5288c1;
+    -fx-effect: dropshadow(gaussian, rgba(82, 136, 193, 0.35), 10, 0, 0, 2);
+}
+.dark-mode .buttonContainer {
+    -fx-background-color: #17212b;
+    -fx-border-color: #1e2d3d;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.40), 24, 0, 0, 6);
+}
+.dark-mode .label {
+    -fx-text-fill: #f5f6f7;
+}
+.dark-mode .button {
+    -fx-background-color: #2b5278;
+    -fx-effect: dropshadow(gaussian, rgba(43, 82, 120, 0.50), 10, 0, 0, 3);
+}
+.dark-mode .button:hover {
+    -fx-background-color: #386e9e;
+}
+.dark-mode #localhostButton {
+    -fx-text-fill: #5288c1;
+    -fx-border-color: #2b5278;
+}
+.dark-mode #localhostButton:hover {
+    -fx-background-color: rgba(82, 136, 193, 0.10);
+}
+.dark-mode .textBox {
+    -fx-background-color: #1e2d3d;
+    -fx-text-fill: #f5f6f7;
+    -fx-prompt-text-fill: #7f91a4;
+    -fx-border-color: #2a3f56;
+}
+.dark-mode .textBox:focused {
+    -fx-border-color: #5288c1;
+    -fx-background-color: #24303f;
+}
+.dark-mode #statusLabel {
+    -fx-text-fill: #7f91a4;
+}
+.dark-mode .serverListView {
+    -fx-background-color: #1a2838;
+    -fx-border-color: #2a3f56;
+    -fx-control-inner-background: #1a2838;
+}
+.dark-mode .serverListView .list-cell {
+    -fx-text-fill: #f5f6f7;
+    -fx-border-color: #1e2d3d;
+}
+.dark-mode .serverListView .list-cell:selected {
+    -fx-background-color: #2b5278;
+}
+.dark-mode .serverListView .list-cell:hover {
+    -fx-background-color: #202b36;
+}
+.dark-mode .separator .line {
+    -fx-border-color: #1e2d3d;
 }

@@ -595,6 +595,7 @@ public class ChatController implements Initializable {
 
         // Setup dark mode toggle
         darkModeToggle.setOnAction(e -> handleDarkModeToggle());
+        darkModeToggle.setSelected(false);
 
         // Disable message input initially
         messageInput.setDisable(true);
@@ -636,35 +637,6 @@ public class ChatController implements Initializable {
     }
 
     private void setupHoverEffectsWithRetry() {
-        // Setup hover effects for call button
-        Button callButton = findButtonByImage("call.png");
-        if (callButton != null) {
-            setupButtonHoverEffect(callButton, "call.png", "call2.png");
-        } else {
-            // Retry after a short delay
-            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
-                Button retryButton = findButtonByImage("call.png");
-                if (retryButton != null) {
-                    setupButtonHoverEffect(retryButton, "call.png", "call2.png");
-                }
-            }));
-            retryTimer.play();
-        }
-
-        // Setup hover effects for video button
-        Button videoButton = findButtonByImage("video.png");
-        if (videoButton != null) {
-            setupButtonHoverEffect(videoButton, "video.png", "video2.png");
-        } else {
-            Timeline retryTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
-                Button retryButton = findButtonByImage("video.png");
-                if (retryButton != null) {
-                    setupButtonHoverEffect(retryButton, "video.png", "video2.png");
-                }
-            }));
-            retryTimer.play();
-        }
-
         // Setup hover effects for emoji button
         Button emojiButton = findButtonByImage("emoji.png");
         if (emojiButton != null) {
@@ -1514,10 +1486,10 @@ public class ChatController implements Initializable {
         memberPopup.setAutoHide(true);
 
         VBox popupContent = new VBox();
+        popupContent.getStyleClass().add("group-members-popup");
+        popupContent.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
         popupContent.setSpacing(5);
         popupContent.setPadding(new Insets(10));
-        popupContent.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);");
         popupContent.setPrefWidth(250);
         popupContent.setMaxHeight(300);
         // Title
@@ -1526,6 +1498,7 @@ public class ChatController implements Initializable {
 
         // Members list
         ScrollPane scrollPane = new ScrollPane();
+        scrollPane.getStyleClass().add("group-members-scroll-pane");
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(200);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -1535,6 +1508,7 @@ public class ChatController implements Initializable {
 
         for (String member : groupItem.getGroupMembers()) {
             HBox memberBox = new HBox();
+            memberBox.getStyleClass().add("group-member-row");
             memberBox.setSpacing(5);
             memberBox.setAlignment(Pos.CENTER_LEFT);
             memberBox.setPadding(new Insets(3, 5, 3, 5));
@@ -1858,131 +1832,66 @@ public class ChatController implements Initializable {
         if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
             FileMessageData fileData = message.getFileMessageData();
             VBox fileBox = new VBox(6);
-            fileBox.getStyleClass().add("file-message-box"); // Add a wrapper class for specificity
+            fileBox.getStyleClass().add("file-message-box");
 
-            // Check if this is an image file
-            boolean isImageFile = fileData.getMimeType() != null && fileData.getMimeType().startsWith("image/");
-            boolean isPng = fileData.getMimeType() != null &&
-                    (fileData.getMimeType().equals("image/png") ||
-                            fileData.getOriginalName().toLowerCase().endsWith(".png"));
+            // Standard file message styling for all file types (including images)
+            fileBox.setPadding(new Insets(8));
+            fileBox.setMaxWidth(380);
 
-            if (isImageFile) {
-                // For image files, use completely transparent style - no border, no background
-                fileBox.setPadding(new Insets(0));
-                fileBox.setMaxWidth(360); // Slightly smaller width for a more elegant look
-
-                // Apply completely transparent styling - no border at all
-                fileBox.setStyle(
-                        "-fx-background-color: transparent;" +
-                                "-fx-background-radius: 16;" +
-                                "-fx-padding: 0;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-max-width: 320px;" +
-                                "-fx-max-height: 320px;");
-            } else {
-                // Standard file message styling for non-image files
-                fileBox.setPadding(new Insets(8));
-                fileBox.setMaxWidth(380); // 85% of 450 = ~380
-
-                // Apply file message box styling directly with premium white background
-                fileBox.setStyle(
-                        "-fx-background-color: #FAF9F6;" + // Nice whitish background
-                                "-fx-background-radius: 18;" +
-                                "-fx-border-color: rgba(0,0,0,0.08);" +
-                                "-fx-border-radius: 18;" +
-                                "-fx-border-width: 1;" +
-                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);" +
-                                "-fx-padding: 12;");
-
-                // Removed Platform.runLater to avoid CSS binding conflicts with text fill
-            }
-
-            // Add media preview if supported (takes most space)
-            Node mediaPreview = createMediaPreview(fileData);
-            if (mediaPreview != null) {
-                fileBox.getChildren().add(mediaPreview);
-            }
-
-            // For image files, no buttons in chat bubble - keep it clean
-            if (isImageFile) {
-                // Just add the image file box without any buttons
-                messageContent.getChildren().add(fileBox);
-            } else {
-
-            // Compact file info section (only for non-image files)
+            // File info row: icon + name/size
             HBox fileInfo = new HBox(8);
             fileInfo.setAlignment(Pos.CENTER_LEFT);
             fileInfo.setPadding(new Insets(4, 0, 4, 0));
 
-            // Get appropriate file type icon with larger size
             String iconPath = getFileTypeIcon(fileData.getMimeType());
             ImageView fileIcon = new ImageView(
                     new Image(getClass().getResourceAsStream(iconPath)));
-            fileIcon.setFitWidth(32); // Increased from 24
-            fileIcon.setFitHeight(32); // Increased from 24
+            fileIcon.setFitWidth(32);
+            fileIcon.setFitHeight(32);
 
             VBox fileDetails = new VBox(2);
 
-            // File name with larger, bold styling for better hierarchy
             Label fileName = new Label(fileData.getOriginalName());
-            // Use CSS class for font styling and also add fallback inline styles
             fileName.getStyleClass().add("file-name-label");
-            fileName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000000;");
             fileName.setWrapText(true);
             fileName.setMaxWidth(200);
 
-            // Compact file size with color-coded file type label
             HBox fileMetaInfo = new HBox(4);
             fileMetaInfo.setAlignment(Pos.CENTER_LEFT);
 
-            // File size info with smaller font for details
             Label fileSizeLabel = new Label(fileData.getFormattedFileSize());
-            // Use CSS class for font styling and also add fallback inline styles
             fileSizeLabel.getStyleClass().add("file-size-label");
-            fileSizeLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: normal; -fx-text-fill: #666666;");
 
-            // File type label with smaller font and color accent
             Label fileTypeLabel = new Label(getFileTypeDisplay(fileData.getMimeType()));
-            // Use CSS class for font styling and also add fallback inline styles
             fileTypeLabel.getStyleClass().add("file-type-info-label");
-            fileTypeLabel.getStyleClass().add("file-type-label"); // Add base class for padding/radius
-            fileTypeLabel.setStyle("-fx-font-size: 7px; -fx-font-weight: normal; -fx-text-fill: #666666;");
-
-            // Apply color-specific styling based on file type
+            fileTypeLabel.getStyleClass().add("file-type-label");
             fileTypeLabel.getStyleClass().add(getFileTypeStyleClass(fileData.getMimeType()));
 
             fileMetaInfo.getChildren().addAll(fileSizeLabel, fileTypeLabel);
             fileDetails.getChildren().addAll(fileName, fileMetaInfo);
             fileInfo.getChildren().addAll(fileIcon, fileDetails);
 
-            // Modern download button
+            // Download and Open buttons
             Button downloadButton = new Button("Download");
             downloadButton.getStyleClass().add("download-button");
-            downloadButton.setStyle("-fx-text-fill: white;"); // Ensure text is white on blue background
             downloadButton.setOnAction(e -> downloadFile(fileData));
 
             Button openButton = new Button("Open");
             openButton.getStyleClass().add("open-button");
-            openButton.setStyle("-fx-text-fill: white;"); // Ensure text is white on green background
             openButton.setOnAction(e -> openFile(fileData));
 
-            // Create compact HBox for buttons
             HBox buttonContainer = new HBox(6);
-            buttonContainer.setAlignment(Pos.CENTER_RIGHT); // Align buttons to the right
-            buttonContainer.setPadding(new Insets(0, 0, 0, 0)); // Remove left padding
+            buttonContainer.setAlignment(Pos.CENTER_RIGHT);
             buttonContainer.getChildren().addAll(downloadButton, openButton);
 
-                // Add file info and buttons together in a compact layout
-                VBox compactInfoSection = new VBox(4);
-                compactInfoSection.setPrefWidth(280); // Set preferred width to ensure buttons can align right
-                compactInfoSection.setMaxWidth(Double.MAX_VALUE); // Allow it to fill available space
-                compactInfoSection.getChildren().addAll(fileInfo, buttonContainer);
-                fileBox.getChildren().add(compactInfoSection);
+            VBox compactInfoSection = new VBox(4);
+            compactInfoSection.setPrefWidth(280);
+            compactInfoSection.setMaxWidth(Double.MAX_VALUE);
+            compactInfoSection.getChildren().addAll(fileInfo, buttonContainer);
+            fileBox.getChildren().add(compactInfoSection);
 
-                messageContent.getChildren().add(fileBox);
-            }
+            messageContent.getChildren().add(fileBox);
 
-            // No additional file box styling needed - already handled in styling above
         } else {
             // Create TextFlow with mixed text and emoji content
             TextFlow textFlow = createTextFlowWithEmojis(message.getContent(), isSentByMe);
@@ -1990,67 +1899,18 @@ public class ChatController implements Initializable {
             messageContent.getChildren().add(textFlow);
         }
 
-        // Apply message bubble styles directly in Java (no CSS classes)
+        // Apply message bubble styles using CSS classes
+        messageContent.getStyleClass().add("message-bubble");
         if (isSentByMe) {
-            // Sent message bubble - Blue gradient with rounded corners
-            messageContent.setStyle(
-                    "-fx-background-color: linear-gradient(to bottom right, #4568DC, #3498db);" +
-                            "-fx-background-radius: 22 22 4 22;" +
-                            "-fx-padding: 12 16 12 16;" +
-                            "-fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;" +
-                            "-fx-font-size: 15px;" +
-                            "-fx-font-weight: 600;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);" +
-                            "-fx-max-width: 300px;" +
-                            "-fx-border-width: 0;");
-
-            // Force all text nodes to be white - REMOVED due to CSS binding conflicts
-            // Platform.runLater(() -> {
-            // messageContent.lookupAll(".text").forEach(node -> {
-            // if (node instanceof Text) {
-            // ((Text) node).setFill(Color.WHITE);
-            // }
-            // });
-            // });
+            messageContent.getStyleClass().add("message-bubble-sent");
         } else {
-            // Received message bubble - White background with rounded corners
-            messageContent.setStyle(
-                    "-fx-background-color: white;" +
-                            "-fx-background-radius: 22 22 22 4;" +
-                            "-fx-padding: 12 16 12 16;" +
-                            "-fx-font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;" +
-                            "-fx-font-size: 15px;" +
-                            "-fx-font-weight: 600;" +
-                            "-fx-text-fill: #2c3e50;" +
-                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1);" +
-                            "-fx-max-width: 300px;" +
-                            "-fx-border-color: rgba(0,0,0,0.05);" +
-                            "-fx-border-width: 1;" +
-                            "-fx-border-radius: 22 22 22 4;");
-
-            // Force all text nodes to be dark - REMOVED due to CSS binding conflicts
-            // Platform.runLater(() -> {
-            // messageContent.lookupAll(".text").forEach(node -> {
-            // if (node instanceof Text) {
-            // ((Text) node).setFill(Color.web("#2c3e50"));
-            // }
-            // });
-            // });
+            messageContent.getStyleClass().add("message-bubble-received");
         }
 
         // Create timestamp without checkmarks, always right-aligned
         String timeStr = message.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm"));
         Label timeLabel = new Label(timeStr);
-        // Apply JetBrains Mono font styling directly in Java with smaller font size
-        timeLabel.setStyle(
-                "-fx-font-family: 'Inter', 'Monaco', monospace;" +
-                        "-fx-font-size: 11px;" +
-                        "-fx-font-weight: normal;" +
-                        "-fx-text-fill: inherit;" +
-                        "-fx-padding: 2 0 0 0;" +
-                        "-fx-opacity: 0.8;" +
-                        "-fx-alignment: center-right;");
+        timeLabel.getStyleClass().add("message-time-internal");
 
         // Add timestamp inside the message content (always right-aligned)
         messageContent.getChildren().add(timeLabel);
@@ -2123,12 +1983,7 @@ public class ChatController implements Initializable {
                 // Add any accumulated text first
                 if (currentText.length() > 0) {
                     Text textNode = new Text(currentText.toString());
-                    // Set text color based on message type
-                    if (isSentByMe) {
-                        textNode.setFill(javafx.scene.paint.Color.WHITE);
-                    } else {
-                        textNode.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-                    }
+                    textNode.getStyleClass().add("chat-message-text");
                     textFlow.getChildren().add(textNode);
                     currentText.setLength(0);
                 }
@@ -2137,9 +1992,7 @@ public class ChatController implements Initializable {
                 int endIndex = messageContent.indexOf("]", i);
                 if (endIndex != -1) {
                     String emojiPlaceholder = messageContent.substring(i, endIndex + 1);
-                    String emojiFilename = emojiPlaceholder.substring(7, emojiPlaceholder.length() - 1); // Remove
-                    // [EMOJI: and
-                    // ]
+                    String emojiFilename = emojiPlaceholder.substring(7, emojiPlaceholder.length() - 1); // Remove [EMOJI: and ]
 
                     // Create emoji ImageView using sprite sheet
                     try {
@@ -2160,27 +2013,20 @@ public class ChatController implements Initializable {
                             } else {
                                 // Fallback to text emoji
                                 Text fallbackEmoji = new Text("📷");
+                                fallbackEmoji.getStyleClass().add("chat-message-text");
                                 textFlow.getChildren().add(fallbackEmoji);
                             }
                         } else {
                             // Fallback to text emoji
                             Text fallbackEmoji = new Text("📷");
-                            if (isSentByMe) {
-                                fallbackEmoji.setFill(javafx.scene.paint.Color.WHITE);
-                            } else {
-                                fallbackEmoji.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-                            }
+                            fallbackEmoji.getStyleClass().add("chat-message-text");
                             textFlow.getChildren().add(fallbackEmoji);
                         }
                     } catch (Exception e) {
                         // If emoji image fails to load, show the filename as text
                         Text fallbackText = new Text("[" + emojiFilename + "]");
                         fallbackText.getStyleClass().add("emoji-fallback-text");
-                        if (isSentByMe) {
-                            fallbackText.setFill(javafx.scene.paint.Color.WHITE);
-                        } else {
-                            fallbackText.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-                        }
+                        fallbackText.getStyleClass().add("chat-message-text");
                         textFlow.getChildren().add(fallbackText);
                     }
 
@@ -2199,23 +2045,14 @@ public class ChatController implements Initializable {
         // Add any remaining text
         if (currentText.length() > 0) {
             Text textNode = new Text(currentText.toString());
-            // Set text color based on message type
-            if (isSentByMe) {
-                textNode.setFill(javafx.scene.paint.Color.WHITE);
-            } else {
-                textNode.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-            }
+            textNode.getStyleClass().add("chat-message-text");
             textFlow.getChildren().add(textNode);
         }
 
         // If no content was added, add empty text to prevent layout issues
         if (textFlow.getChildren().isEmpty()) {
             Text emptyText = new Text("");
-            if (isSentByMe) {
-                emptyText.setFill(javafx.scene.paint.Color.WHITE);
-            } else {
-                emptyText.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-            }
+            emptyText.getStyleClass().add("chat-message-text");
             textFlow.getChildren().add(emptyText);
         }
 
@@ -4349,15 +4186,7 @@ public class ChatController implements Initializable {
         HBox audioContainer = new HBox(12);
         audioContainer.setAlignment(Pos.CENTER_LEFT);
         audioContainer.getStyleClass().add("audio-preview");
-        audioContainer.setPadding(new Insets(12));
-        audioContainer.setStyle(
-                "-fx-background-color: #f8f9fa;" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-color: #e9ecef;" +
-                        "-fx-border-radius: 12;" +
-                        "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);" +
-                        "-fx-text-fill: black !important;");
+        audioContainer.setPadding(new Insets(6, 12, 6, 12));
         audioContainer.setMaxWidth(280);
         audioContainer.setPrefWidth(280);
         audioContainer.setMaxHeight(60);
@@ -4431,25 +4260,12 @@ public class ChatController implements Initializable {
     private Button createPlayPauseButton() {
         Button playPauseBtn = new Button();
         playPauseBtn.getStyleClass().add("audio-control-btn");
-        playPauseBtn.setStyle(
-                "-fx-background-color: #3498db;" +
-                        "-fx-background-radius: 50;" +
-                        "-fx-min-width: 32;" +
-                        "-fx-min-height: 32;" +
-                        "-fx-max-width: 32;" +
-                        "-fx-max-height: 32;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-border-width: 0;" +
-                        "-fx-padding: 0;");
+        playPauseBtn.setMinSize(32, 32);
+        playPauseBtn.setMaxSize(32, 32);
+        playPauseBtn.setPrefSize(32, 32);
 
         // Set play icon initially
         setButtonIcon(playPauseBtn, PLAY_ICON_PATH, 14);
-
-        // Hover effect
-        playPauseBtn.setOnMouseEntered(
-                e -> playPauseBtn.setStyle(playPauseBtn.getStyle() + "-fx-background-color: #2980b9;"));
-        playPauseBtn.setOnMouseExited(e -> playPauseBtn.setStyle(
-                playPauseBtn.getStyle().replace("-fx-background-color: #2980b9;", "-fx-background-color: #3498db;")));
 
         return playPauseBtn;
     }
