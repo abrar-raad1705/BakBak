@@ -1,8 +1,8 @@
 # BakBak: A JavaFX Chat Application
 
-Academic Project: CSE-108 (Object Oriented Programming Language Sessional)  
-Semester: Year 1, Semester 2  
-Authors:  
+**Academic Project**: CSE-108 (Object Oriented Programming Language Sessional)  
+**Semester**: Year 1, Semester 2  
+**Authors**:  
 * [Abrar Ryan](https://github.com/abrar-raad1705)  
 * [Farhan Anjum](https://github.com/fanzzum)  
 
