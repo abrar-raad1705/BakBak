@@ -1,56 +1,34 @@
-# 💬 BakBak: A Modern OOP-Based Chat Application
+# BakBak: A JavaFX Chat Application
+
+Academic Project: CSE-108 (Object Oriented Programming Language Sessional)  
+Semester: Year 1, Semester 2  
+Authors:  
+* [Abrar Ryan](https://github.com/abrar-raad1705)  
+* [Farhan Anjum](https://github.com/fanzzum)  
+
+## Project Abstract
 
 **BakBak** is a real-time, multi-client chat application built using **JavaFX** and native **Java Sockets**. It is designed as an **Object-Oriented Programming (OOP) course project** to demonstrate the practical application of software engineering principles, design patterns, multi-threaded networking, and clean MVC architecture.
 
----
+##  Key Features
 
-## 🎓 OOP & Software Design Showcase
-
-This project was built from the ground up to showcase solid Object-Oriented design and robust programming practices.
-
-### 🏛️ 1. Core OOP Principles Applied
-
-*   **Encapsulation**: Entities such as `User`, `Group`, `Message`, and `FileMessageData` encapsulate their fields using strict private access modifiers, exposing data solely through controlled getters, setters, and logical methods. This shields internal state and guarantees state consistency.
-*   **Abstraction**: Interfaces like [ProgressCallback](file:///home/raad/Desktop/BakBak/src/main/java/com/bakbak/javafx_proj_1_2/ProgressCallback.java) decouple progress tracking from the file transmission layers. Network socket communication details are abstracted away from the UI controller logic.
-*   **Inheritance & Polymorphism**:
-    *   Hierarchical custom styling classes inherit defaults and override states dynamically.
-    *   Polymorphic event and message dispatching allows handling distinct types of communication packets seamlessly.
-*   **Single Responsibility Principle (SRP)**: Each class has a single, well-defined purpose:
-    *   `ChatServer` & `ClientHandler`: Server-side socket listening and packet broadcasting.
-    *   `MessageStore`: Atomic, thread-safe persistence layer for message logs.
-    *   `UserManager` & `GroupManager`: Entity state management, security checks, and database emulation.
-
-### 🧩 2. Design Patterns Implemented
-
-*   **Model-View-Controller (MVC)**: Clean architectural separation of:
-    *   **Models**: Domain logic (`User`, `Group`, `Message`, `FileMessageData`).
-    *   **Views**: Declarative JavaFX layouts (`ChatWindow.fxml`, `Login.fxml`, `ServerDiscovery.fxml`).
-    *   **Controllers**: View controllers mapping user inputs to model behaviors (`ChatController`, `LoginController`, `ServerDiscoveryController`).
-*   **Singleton Pattern**: Core system coordinators like `UserManager`, `GroupManager`, and `MessageStore` implement singletons to enforce centralized state tracking and thread-safe data persistence.
-*   **Observer Pattern**: Real-time events (log-ins, log-outs, user status modifications, new messages) are broadcast dynamically to all online clients, prompting reactive UI updates.
-*   **Facade / Manager Pattern**: Clean APIs hide the complexities of handling multi-threaded data transfers, background loading, and offline message queue buffers.
-
----
-
-## 🚀 Key Features
-
-### 🔐 1. Authentication & LAN Server Discovery
+###  1. Authentication & LAN Server Discovery
 *   **LAN Server Discovery**: Automatically scans the Local Area Network (LAN) for active `ChatServer` instances.
 *   **Secure Authentication**: Handles user registration and login with local database storage emulation.
 *   **Session Management**: Maintains connection state, automatically handles unexpected server/client drops, and re-establishes sessions cleanly.
 
-### 💬 2. Real-Time Chat & Emoji System
+###  2. Real-Time Chat & Emoji System
 *   **Private Chats**: Supports instant direct messaging between users.
 *   **Group Chats**: Complete group workflow supporting naming, contact selection, and admin controls.
-*   **Modern Chat Bubbles**: Telegram-inspired light & dark theme styling, displaying user tags, sent/received states, and message timestamps.
+*   **Modern Chat Bubbles**: Light theme styling, displaying user tags, sent/received states, and message timestamps.
 *   **Interactive Emoji Panel**: Fully-featured emoji sprite sheet rendering panel with category navigation, text cursor insertion, and recent emoji tracking.
 
-### 👥 3. Group Administration & Permissions
-*   **Role Hierarchy**: Enforces permissions: **Creator/Owner** → **Admin** → **Member**.
+###  3. Group Administration & Permissions
+*   **Role Hierarchy**: Enforces permissions: **Owner** → **Admin** → **Member**.
 *   **Interactive Member Popups**: Hovering over group names displays a clean popover listing group members, online status, and role badges.
 *   **Administrative Actions**: Right-click context menus allow owners and admins to promote/demote members, remove them, or rename groups in real time.
 
-### 📁 4. Robust File Sharing & Data Persistence
+###  4. Robust File Sharing & Data Persistence
 *   **Polymorphic File Cards**: Share all types of files (images, audio, documents) under a unified premium file-card UI.
 *   **Chunk-Based File Transfer**: Custom file sender/receiver dividing files into sequential byte packets to handle large uploads smoothly without locking the main application thread.
 *   **Download & Progress Bars**: Real-time file transfer progress indicators with localized downloads directory saving.
@@ -64,8 +42,8 @@ This project was built from the ground up to showcase solid Object-Oriented desi
 BakBak Client-Server Topology
 ┌──────────────┐         ┌──────────────┐         ┌──────────────┐
 │  BakBak UI   │         │  ChatServer  │         │ MessageStore │
-│ (JavaFX/MVC) │◄───────►│  (Sockets/   │◄───────►│ (Atomic File │
-│  [Client]    │         │ Multi-Thread)│         │ Persistence) │
+│   (JavaFX)   │◄───────►│  (Sockets/   │◄───────►│ (Atomic File │
+│   [Client]   │         │ Multi-Thread)│         │ Persistence) │
 └──────────────┘         └──────────────┘         └──────────────┘
 ```
 
@@ -123,23 +101,3 @@ src/main/resources/com/bakbak/javafx_proj_1_2/
 3.  **Establish Chat Session**:
     *   Clients automatically discover servers running on the local network.
     *   Create an account, log in, select a contact or create a group, and start chatting.
-
-### **Building & Packaging**
-```bash
-# Compile and clean target folder
-mvn clean compile
-
-# Package application into a runnable JAR
-mvn clean package
-```
-
----
-
-## 📝 Design Patterns Summary Table
-
-| Pattern | Component | Purpose |
-| :--- | :--- | :--- |
-| **Model-View-Controller** | `User/Group/Message` (M), `FXML` (V), `*Controller` (C) | Decouples data representations from graphic layout and behaviors. |
-| **Observer** | `ProgressCallback`, status listener broadcast loops | Automatically notifies user interface and network sockets of asynchronous tasks. |
-| **Singleton** | `UserManager`, `GroupManager`, `MessageStore` | Ensures single instance state, preventing database conflicts and concurrent write errors. |
-| **State Pattern** | User log states (Online / Offline / Last Seen) | Controls messaging access and updates metadata depending on socket states. |
