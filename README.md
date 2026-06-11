@@ -1,4 +1,4 @@
-# BakBak: A JavaFX Chat Application
+# BakBak: A JavaFX LAN Messenger
 
 **Academic Project**: CSE-108 (Object Oriented Programming Language Sessional)  
 **Semester**: Year 1, Semester 2  
