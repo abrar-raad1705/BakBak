@@ -151,6 +151,7 @@ public class GroupManager {
         User user = userManager.getUser(creator);
         if (user != null) {
             user.joinGroup(groupId);
+            userManager.saveUsers();
         }
         return groupId;
     }
@@ -169,7 +170,10 @@ public class GroupManager {
          * }
          */
         group.addMember(username);
-        user.joinGroup(groupId);
+        if (user != null) {
+            user.joinGroup(groupId);
+            userManager.saveUsers();
+        }
         saveGroups(); // Save immediately after joining a group
         return true;
     }
@@ -190,6 +194,7 @@ public class GroupManager {
         User user = userManager.getUser(username);
         if (user != null) {
             user.leaveGroup(groupId);
+            userManager.saveUsers();
         }
         saveGroups(); // Save immediately after leaving a group
         return true;
@@ -208,6 +213,7 @@ public class GroupManager {
                 user.leaveGroup(groupId);
             }
         }
+        userManager.saveUsers();
 
         groups.remove(groupId);
         saveGroups(); // Save immediately after deleting a group
@@ -281,6 +287,12 @@ public class GroupManager {
         }
 
         group.removeMember(targetMember);
+        UserManager userManager = UserManager.getInstance();
+        User user = userManager.getUser(targetMember);
+        if (user != null) {
+            user.leaveGroup(groupId);
+            userManager.saveUsers();
+        }
         saveGroups(); // Save immediately after removing a member
         return true;
     }
@@ -292,6 +304,12 @@ public class GroupManager {
         }
 
         group.addMember(targetMember);
+        UserManager userManager = UserManager.getInstance();
+        User user = userManager.getUser(targetMember);
+        if (user != null) {
+            user.joinGroup(groupId);
+            userManager.saveUsers();
+        }
         saveGroups(); // Save immediately after adding a member
         return true;
     }

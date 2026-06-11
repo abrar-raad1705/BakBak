@@ -751,6 +751,21 @@ public class ClientHandler implements Runnable {
             // It's a private chat history deletion
             messageStore.deletePrivateChatHistory(requestingUser, targetUser);
             System.out.println("Deleted chat history between " + requestingUser + " and " + targetUser);
+
+            // Propagate deletion notification to target user
+            UserManager userManager = UserManager.getInstance();
+            if (userManager.isUserOnline(targetUser)) {
+                ClientHandler targetHandler = userManager.getClientHandler(targetUser);
+                if (targetHandler != null) {
+                    Message deleteNotification = new Message(Message.MessageType.DELETE_HISTORY, requestingUser);
+                    deleteNotification.setRecipient(targetUser);
+                    targetHandler.sendMessage(deleteNotification);
+                }
+            } else {
+                Message deleteNotification = new Message(Message.MessageType.DELETE_HISTORY, requestingUser);
+                deleteNotification.setRecipient(targetUser);
+                messageStore.queueOfflineMessage(targetUser, deleteNotification);
+            }
         } else if (groupId != null && !groupId.isEmpty()) {
             // It's a group chat history deletion for a single user
             // Note: This only removes it from the requesting user's view in a shared file scenario
@@ -937,6 +952,12 @@ public class ClientHandler implements Runnable {
         sendMessage(response);
 
         if (success) {
+            // Delete group message history for all members from server database
+            MessageStore messageStore = MessageStore.getInstance();
+            for (String member : members) {
+                messageStore.deleteGroupChatHistoryForUser(member, groupId);
+            }
+
             UserManager userManager = UserManager.getInstance();
             for (String member : members) {
                 if (userManager.isUserOnline(member)) {

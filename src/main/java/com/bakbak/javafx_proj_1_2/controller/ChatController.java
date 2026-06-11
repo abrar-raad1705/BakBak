@@ -1002,6 +1002,9 @@ public class ChatController implements Initializable {
                 case USER_STATUS_UPDATE:
                     handleUserStatusUpdate(message);
                     break;
+                case DELETE_HISTORY:
+                    handleIncomingDeleteHistory(message);
+                    break;
 
             }
         });
@@ -1286,6 +1289,8 @@ public class ChatController implements Initializable {
 
         // Handle regular group list response
         response = response.replace("Your groups: ", "");
+        Set<String> activeGroupIds = new HashSet<>();
+
         if (!response.trim().isEmpty()) {
             String[] groups = response.split(", ");
             for (String groupInfo : groups) {
@@ -1296,10 +1301,17 @@ public class ChatController implements Initializable {
                         String groupName = groupInfo.substring(0, idIndex);
                         String groupId = groupInfo.substring(idIndex + 6, groupInfo.length() - 1);
 
+                        activeGroupIds.add(groupId);
                         userGroups.put(groupId, groupName);
-                        ChatItem groupItem = new ChatItem(groupName, ChatItem.Type.GROUP, true);
-                        groupItem.setGroupId(groupId);
-                        allChatItems.put(groupName, groupItem);
+                        
+                        ChatItem groupItem = allChatItems.get(groupName);
+                        if (groupItem == null) {
+                            groupItem = new ChatItem(groupName, ChatItem.Type.GROUP, true);
+                            groupItem.setGroupId(groupId);
+                            allChatItems.put(groupName, groupItem);
+                        } else {
+                            groupItem.setGroupId(groupId);
+                        }
 
                         // Request detailed info for this group
                         requestDetailedGroupInfo(groupId);
@@ -1314,8 +1326,42 @@ public class ChatController implements Initializable {
                     }
                 }
             }
-            updateGroupLastMessagesFromHistory();
         }
+
+        // Pruning inactive groups (groups in client but not in server active list)
+        List<ChatItem> groupsToRemove = new ArrayList<>();
+        for (ChatItem item : allChatItems.values()) {
+            if (item.getType() == ChatItem.Type.GROUP) {
+                if (!activeGroupIds.contains(item.getGroupId())) {
+                    groupsToRemove.add(item);
+                }
+            }
+        }
+
+        boolean selectedChatPruned = false;
+        for (ChatItem prunedItem : groupsToRemove) {
+            allChatItems.remove(prunedItem.getName());
+            userGroups.remove(prunedItem.getGroupId());
+            if (selectedChat != null && prunedItem.getGroupId().equals(selectedChat.getGroupId())) {
+                selectedChatPruned = true;
+            }
+            // Clean up local messages history for this pruned group
+            deleteLocalChatHistory(prunedItem);
+        }
+
+        if (selectedChatPruned) {
+            selectedChat = null;
+            userListView.getSelectionModel().clearSelection();
+            showSelectChatMessage();
+            messageInput.setDisable(true);
+            sendButton.setDisable(true);
+            fileButton.setDisable(true);
+            chatNameLabel.setText("Chat");
+            chatStatusLabel.setText("");
+        }
+
+        updateGroupLastMessagesFromHistory();
+        updateChatList();
     }
 
     private void updateGroupLastMessagesFromHistory() {
@@ -1386,6 +1432,11 @@ public class ChatController implements Initializable {
                 chatNameLabel.setText("Chat");
                 chatStatusLabel.setText("");
             }
+
+            // Delete local chat history for this group
+            ChatItem dummyItem = new ChatItem(groupName, ChatItem.Type.GROUP, true);
+            dummyItem.setGroupId(groupId);
+            deleteLocalChatHistory(dummyItem);
 
             updateChatList();
             if (isDeleted) {
@@ -4089,11 +4140,11 @@ public class ChatController implements Initializable {
         );
     }
 
-    private void deleteChatHistory(ChatItem item) {
+    private boolean deleteLocalChatHistory(ChatItem item) {
         String messagesFilePath = "chat_data/messages/" + currentUsername + ".txt";
         File messagesFile = new File(messagesFilePath);
         if (!messagesFile.exists()) {
-            return; // Nothing to delete
+            return true; // Nothing to delete
         }
 
         List<String> linesToKeep = new ArrayList<>();
@@ -4109,18 +4160,20 @@ public class ChatController implements Initializable {
                 boolean keepLine = true;
                 if (item.getType() == ChatItem.Type.USER) {
                     String messageType = parts[0];
-                    if ("PRIVATE_MESSAGE".equals(messageType)) {
+                    if ("PRIVATE_MESSAGE".equals(messageType) || "FILE_MESSAGE".equals(messageType)) {
                         String sender = parts[1];
                         String recipient = parts[2];
-                        if ((sender.equals(currentUsername) && recipient.equals(item.getName())) ||
-                                (sender.equals(item.getName()) && recipient.equals(currentUsername))) {
+                        String groupId = parts.length > 4 ? parts[4] : "";
+                        if ((groupId == null || groupId.isEmpty()) &&
+                            ((sender.equals(currentUsername) && recipient.equals(item.getName())) ||
+                             (sender.equals(item.getName()) && recipient.equals(currentUsername)))) {
                             keepLine = false;
                         }
                     }
                 } else if (item.getType() == ChatItem.Type.GROUP) {
                     String messageType = parts[0];
-                    if ("GROUP_MESSAGE".equals(messageType)) {
-                        String groupId = parts[4];
+                    if ("GROUP_MESSAGE".equals(messageType) || "FILE_MESSAGE".equals(messageType)) {
+                        String groupId = parts.length > 4 ? parts[4] : "";
                         if (item.getGroupId().equals(groupId)) {
                             keepLine = false;
                         }
@@ -4133,8 +4186,7 @@ public class ChatController implements Initializable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Error", "Could not read chat history to delete messages.");
-            return;
+            return false;
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(messagesFile, false))) { // false to overwrite
@@ -4144,7 +4196,15 @@ public class ChatController implements Initializable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Error", "Could not update chat history.");
+            return false;
+        }
+        return true;
+    }
+
+    private void deleteChatHistory(ChatItem item) {
+        boolean success = deleteLocalChatHistory(item);
+        if (!success) {
+            showAlert("Error", "Could not delete local chat history.");
             return;
         }
 
@@ -4175,6 +4235,30 @@ public class ChatController implements Initializable {
         }
 
         loadContacts();
+    }
+
+    private void handleIncomingDeleteHistory(Message message) {
+        String targetUser = message.getSender();
+        if (targetUser != null && !targetUser.isEmpty()) {
+            ChatItem item = allChatItems.get(targetUser);
+            if (item == null) {
+                item = new ChatItem(targetUser, ChatItem.Type.USER, false);
+            }
+            deleteLocalChatHistory(item);
+
+            // Refresh UI if the deleted chat is currently selected
+            if (selectedChat != null && selectedChat.getName().equals(targetUser)) {
+                selectedChat = null;
+                userListView.getSelectionModel().clearSelection();
+                showSelectChatMessage();
+                messageInput.setDisable(true);
+                sendButton.setDisable(true);
+                fileButton.setDisable(true);
+                chatNameLabel.setText("Chat");
+                chatStatusLabel.setText("");
+            }
+            loadContacts();
+        }
     }
 
     private Stage managementStage;
