@@ -45,15 +45,25 @@
 /* ─── SplitPane ──────────────────────────────────────────────── */
 .split-pane {
     -fx-background-color: #f4f7fb;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
 }
 .split-pane > .split-pane-divider {
     -fx-padding: 0 1 0 0;
     -fx-background-color: #dde5f0;
 }
 
+.dark-mode.split-pane,
 .dark-mode .split-pane {
     -fx-background-color: #0e1621;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
 }
+.dark-mode.split-pane > .split-pane-divider,
 .dark-mode .split-pane > .split-pane-divider {
     -fx-background-color: #101921;
 }
@@ -71,6 +81,10 @@
 .list-view {
     -fx-background-color: transparent;
     -fx-control-inner-background: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
 .list-cell {
     -fx-background-color: transparent;
@@ -82,8 +96,8 @@
 
 /* ─── Chats Title ────────────────────────────────────────────── */
 .chatsTitle {
-    -fx-font-family: 'Georgia', 'Palatino Linotype', serif;
-    -fx-font-weight: bold;
+    -fx-font-family: 'Outfit', 'Inter', 'Segoe UI', sans-serif;
+    -fx-font-weight: 800;
     -fx-text-fill: #1a1a2e !important;
     -fx-font-size: 24px !important;
 }
@@ -144,23 +158,23 @@
 
 /* Contact names and metadata */
 .contact-name {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
-    -fx-font-weight: bold;
+    -fx-font-family: 'Outfit', 'Inter', 'Segoe UI', sans-serif;
+    -fx-font-weight: 800;
     -fx-text-fill: #1a1a2e !important;
-    -fx-font-size: 15px;
+    -fx-font-size: 16px;
 }
 .contact-message {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', sans-serif;
     -fx-text-fill: #6b7c93 !important;
-    -fx-font-size: 13px;
+    -fx-font-size: 13.5px;
 }
 .contact-time {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
-    -fx-text-fill: #6b7c93 !important;
-    -fx-font-size: 11px;
+    -fx-font-family: 'Inter', 'Segoe UI', sans-serif;
+    -fx-text-fill: #8a9cae !important;
+    -fx-font-size: 12px;
 }
 .contact-no-message {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', sans-serif;
     -fx-font-style: italic;
     -fx-text-fill: #9baab8 !important;
     -fx-opacity: 0.8;
@@ -213,15 +227,15 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 1, 0);
 }
 .chatNameLabel {
-    -fx-font-family: 'Georgia', 'Palatino Linotype', serif;
-    -fx-font-weight: bold;
+    -fx-font-family: 'Outfit', 'Inter', 'Segoe UI', sans-serif;
+    -fx-font-weight: 800;
     -fx-text-fill: #1a1a2e !important;
     -fx-font-size: 18px;
 }
 .lastSeen {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', sans-serif;
     -fx-text-fill: #6b7c93 !important;
-    -fx-font-size: 12px;
+    -fx-font-size: 12.5px;
 }
 
 .dark-mode .chatBoxHeader {
@@ -330,13 +344,16 @@
 }
 
 /* ─── Main Chat Area Background ──────────────────────────────── */
-.mainChatArea, .chatBoxScreen {
+.mainChatArea {
     -fx-background-color: #eef2f7;
+    -fx-background-image: url("../icons/chat_pattern_light.png");
+    -fx-background-repeat: repeat;
 }
 
-.dark-mode .mainChatArea,
-.dark-mode .chatBoxScreen {
+.dark-mode .mainChatArea {
     -fx-background-color: #0e1621;
+    -fx-background-image: url("../icons/chat_pattern_dark.png");
+    -fx-background-repeat: repeat;
 }
 
 /* ─── Message Bubbles ────────────────────────────────────────── */
@@ -395,14 +412,14 @@
     -fx-alignment: center-right !important;
 }
 .message-bubble-sent .message-time-internal {
-    -fx-text-fill: #4fae4e !important;
+    -fx-text-fill: #3b6b32 !important;
 }
 .message-bubble-received .message-time-internal {
     -fx-text-fill: #6b7c93 !important;
 }
 
 .dark-mode .message-bubble-sent .message-time-internal {
-    -fx-text-fill: #81b3d5 !important;
+    -fx-text-fill: #b6d5f7 !important;
 }
 .dark-mode .message-bubble-received .message-time-internal {
     -fx-text-fill: #7f91a4 !important;
@@ -561,25 +578,25 @@
     -fx-font-size: 10.5px !important;
 }
 .message-bubble-sent .file-size-label {
-    -fx-text-fill: #4fae4e !important;
+    -fx-text-fill: #3b6b32 !important;
 }
 .message-bubble-sent .file-type-label {
-    -fx-text-fill: #50a250 !important;
+    -fx-text-fill: #3b6b32 !important;
 }
 .message-bubble-received .file-size-label {
-    -fx-text-fill: #6b7c93 !important;
+    -fx-text-fill: #5c6b7d !important;
 }
 .message-bubble-received .file-type-label {
-    -fx-text-fill: #8295a5 !important;
+    -fx-text-fill: #5c6b7d !important;
 }
 
 .dark-mode .message-bubble-sent .file-size-label,
 .dark-mode .message-bubble-sent .file-type-label {
-    -fx-text-fill: #a7e3ff !important;
+    -fx-text-fill: #b6d5f7 !important;
 }
 .dark-mode .message-bubble-received .file-size-label,
 .dark-mode .message-bubble-received .file-type-label {
-    -fx-text-fill: #7f91a4 !important;
+    -fx-text-fill: #9bb2c9 !important;
 }
 
 /* ─── File Buttons ───────────────────────────────────────────── */
@@ -876,8 +893,6 @@
 .emoji-category-button:hover {
     -fx-background-color: rgba(51, 144, 236, 0.12);
     -fx-opacity: 1.0;
-    -fx-scale-x: 1.15;
-    -fx-scale-y: 1.15;
 }
 .emoji-category-button.selected {
     -fx-background-color: rgba(51, 144, 236, 0.18);
@@ -1163,5 +1178,50 @@
 }
 .dark-mode .group-management-member-name {
     -fx-text-fill: #ffffff !important;
+}
+
+/* ─── Skeleton Loading UI ────────────────────────────────────── */
+.skeleton-bubble {
+    -fx-background-radius: 12;
+    -fx-padding: 12 16;
+    -fx-pref-height: 50;
+    -fx-min-height: 50;
+    -fx-effect: null;
+}
+.skeleton-bubble-received {
+    -fx-background-color: #e4ecf5;
+}
+.skeleton-bubble-sent {
+    -fx-background-color: #d1e7c4;
+}
+
+.dark-mode .skeleton-bubble-received {
+    -fx-background-color: #1c2a38;
+}
+.dark-mode .skeleton-bubble-sent {
+    -fx-background-color: #243b53;
+}
+
+.skeleton-line {
+    -fx-background-color: rgba(0, 0, 0, 0.06);
+    -fx-background-radius: 4;
+}
+.dark-mode .skeleton-line {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom circular progress ring */
+.circular-progress-ring .track-circle {
+    -fx-stroke: rgba(0, 0, 0, 0.1);
+}
+.circular-progress-ring .progress-arc {
+    -fx-stroke: #3390ec;
+}
+
+.dark-mode .circular-progress-ring .track-circle {
+    -fx-stroke: rgba(255, 255, 255, 0.15);
+}
+.dark-mode .circular-progress-ring .progress-arc {
+    -fx-stroke: #5288c1;
 }
 

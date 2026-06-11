@@ -30,8 +30,14 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.Stop;
 import javafx.geometry.Bounds;
 import javafx.scene.shape.Circle;
 import javafx.scene.effect.DropShadow;
@@ -143,6 +149,11 @@ public class ChatController implements Initializable {
     private ScrollPane chatScrollPane;
     @FXML
     private VBox messagesContainer;
+    private VBox skeletonContainer;
+    private PauseTransition skeletonTimeout;
+    private Timeline shimmerTimeline;
+    private PauseTransition scrollDebouncer;
+    private Map<String, String> unicodeToEmojiFilenameMap = new HashMap<>();
     @FXML
     private TextField messageInput;
     @FXML
@@ -213,6 +224,7 @@ public class ChatController implements Initializable {
         System.out.println("DEBUG: Initializing emoji system...");
         // Load all emoji categories from sprite sheets
         loadEmojiCategories();
+        initializeUnicodeToEmojiFilenameMap();
         System.out.println("DEBUG: Emoji system initialization complete. Total categories: " + emojiCategories.size()
                 + ", Total emojis: " + allEmojis.size());
     }
@@ -604,7 +616,8 @@ public class ChatController implements Initializable {
 
         // Setup dark mode toggle
         darkModeToggle.setOnAction(e -> handleDarkModeToggle());
-        darkModeToggle.setSelected(false);
+        darkModeToggle.setSelected(com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled());
+        Platform.runLater(this::updateIconsForCurrentMode);
 
         // Disable message input initially
         messageInput.setDisable(true);
@@ -618,8 +631,6 @@ public class ChatController implements Initializable {
         setupIconButtonHoverEffects();
 
         // Setup chat screen containers with CSS classes for dark mode
-        messagesContainer.getStyleClass().add("chatBoxScreen");
-        chatScrollPane.getStyleClass().add("chatBoxScreen");
     }
 
     private void setupIconButtonHoverEffects() {
@@ -683,50 +694,28 @@ public class ChatController implements Initializable {
         if (imageView == null)
             return;
 
-        Image normalImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/" + normalImage));
+        boolean isDarkMode = com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled();
+        String imageName = normalImage;
+        if (isDarkMode) {
+            String baseName = normalImage;
+            if (normalImage.endsWith(".png")) {
+                baseName = normalImage.substring(0, normalImage.length() - 4);
+                if (baseName.endsWith("2")) {
+                    baseName = baseName.substring(0, baseName.length() - 1);
+                }
+            }
+            String path2 = "/com/bakbak/javafx_proj_1_2/icons/" + baseName + "2.png";
+            if (getClass().getResource(path2) != null) {
+                imageName = baseName + "2.png";
+            }
+        }
+
+        Image normalImg = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/" + imageName);
         imageView.setImage(normalImg);
-
-        // Add scale transition for premium hover effect
-        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), button);
-        scaleIn.setToX(1.08);
-        scaleIn.setToY(1.08);
-
-        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), button);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        button.setOnMouseEntered(e -> {
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        button.setOnMouseExited(e -> {
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
     }
 
     private void setupButtonHoverScaleOnly(Button button) {
-        if (button == null)
-            return;
-
-        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), button);
-        scaleIn.setToX(1.08);
-        scaleIn.setToY(1.08);
-
-        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), button);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        button.setOnMouseEntered(e -> {
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        button.setOnMouseExited(e -> {
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
+        // Zoom/scale animation disabled
     }
 
     private void setupToggleButtonHoverEffects() {
@@ -734,8 +723,11 @@ public class ChatController implements Initializable {
             return;
 
         // Load sun and night images
-        Image sunImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/sun.png"));
-        Image nightImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/night.png"));
+        boolean isDarkMode = com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled();
+        String sunName = isDarkMode ? "sun2.png" : "sun.png";
+        String nightName = isDarkMode ? "night2.png" : "night.png";
+        Image sunImg = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/" + sunName);
+        Image nightImg = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/" + nightName);
 
         // Set initial state
         if (darkModeToggle.isSelected()) {
@@ -744,33 +736,20 @@ public class ChatController implements Initializable {
             darkModeIcon.setImage(sunImg);
         }
 
-        // Add scale transition for premium hover effect
-        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), darkModeToggle);
-        scaleIn.setToX(1.08);
-        scaleIn.setToY(1.08);
-
-        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), darkModeToggle);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        darkModeToggle.setOnMouseEntered(e -> {
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        darkModeToggle.setOnMouseExited(e -> {
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
-
         // Update icon when toggle state changes
         darkModeToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            boolean currentDark = newValue;
+            String sName = currentDark ? "sun2.png" : "sun.png";
+            String nName = currentDark ? "night2.png" : "night.png";
+            Image sImg = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/" + sName);
+            Image nImg = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/" + nName);
+
             if (newValue) {
                 // Dark mode activated, show night icon
-                darkModeIcon.setImage(nightImg);
+                darkModeIcon.setImage(nImg);
             } else {
                 // Light mode activated, show sun icon
-                darkModeIcon.setImage(sunImg);
+                darkModeIcon.setImage(sImg);
             }
         });
     }
@@ -824,12 +803,123 @@ public class ChatController implements Initializable {
         if (scene != null) {
             if (darkModeToggle.isSelected()) {
                 // Enable dark mode
-                scene.getRoot().getStyleClass().add("dark-mode");
+                if (!scene.getRoot().getStyleClass().contains("dark-mode")) {
+                    scene.getRoot().getStyleClass().add("dark-mode");
+                }
+                com.bakbak.javafx_proj_1_2.ChatApplication.setDarkModeEnabled(true);
             } else {
                 // Disable dark mode
                 scene.getRoot().getStyleClass().remove("dark-mode");
+                com.bakbak.javafx_proj_1_2.ChatApplication.setDarkModeEnabled(false);
+            }
+            updateIconsForCurrentMode();
+        }
+    }
+
+    private void updateIconsForCurrentMode() {
+        boolean isDark = com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled();
+        if (darkModeToggle != null && darkModeToggle.getScene() != null) {
+            updateIconsColor(darkModeToggle.getScene().getRoot(), isDark);
+        }
+    }
+
+    private void updateIconsColor(Node node, boolean isDarkMode) {
+        if (node instanceof ImageView) {
+            ImageView iv = (ImageView) node;
+            if (iv.getImage() != null) {
+                String url = iv.getImage().getUrl();
+                if (url != null) {
+                    // Extract filename from URL (e.g. "/icons/settings.png" -> "settings.png")
+                    int lastSlash = url.lastIndexOf('/');
+                    if (lastSlash != -1) {
+                        String filename = url.substring(lastSlash + 1);
+                        if (filename.endsWith(".png")) {
+                            String baseName = filename.substring(0, filename.length() - 4); // Remove ".png"
+                            
+                            // Normalize baseName by removing trailing "2" if it exists
+                            if (baseName.endsWith("2")) {
+                                baseName = baseName.substring(0, baseName.length() - 1);
+                            }
+                            
+                            String targetImageName = baseName + ".png";
+                            boolean use2Version = false;
+                            
+                            if (isDarkMode) {
+                                // Check if a "2" version exists in resource folder
+                                String path2 = "/com/bakbak/javafx_proj_1_2/icons/" + baseName + "2.png";
+                                if (getClass().getResource(path2) != null) {
+                                    targetImageName = baseName + "2.png";
+                                    use2Version = true;
+                                }
+                            }
+                            
+                            // Load and apply the target image if it is different
+                            if (!filename.equals(targetImageName)) {
+                                String resourcePath = "/com/bakbak/javafx_proj_1_2/icons/" + targetImageName;
+                                try {
+                                    Image newImg = loadResourceImage(resourcePath);
+                                    iv.setImage(newImg);
+                                } catch (Exception e) {
+                                    System.err.println("Failed to load icon: " + resourcePath + " - " + e.getMessage());
+                                }
+                            }
+                            
+                            // For icons using the native dark mode "2" version, set effect to null.
+                            // For other UI icons (including those falling back or not having a "2" version),
+                            // apply the ColorAdjust brightness effect in dark mode.
+                            if (use2Version) {
+                                iv.setEffect(null);
+                            } else {
+                                // Only apply ColorAdjust to non-media UI icons (skip emoji/voice/file icons that are already colored)
+                                boolean isUIIcon = baseName.equals("group")
+                                                || baseName.equals("send")
+                                                || baseName.equals("play")
+                                                || baseName.equals("pause")
+                                                || baseName.equals("symbols")
+                                                || baseName.equals("file_icon");
+                                
+                                if (isUIIcon) {
+                                    if (isDarkMode) {
+                                        javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
+                                        ca.setBrightness(0.9);
+                                        iv.setEffect(ca);
+                                    } else {
+                                        iv.setEffect(null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (node instanceof Parent) {
+            for (Node child : ((Parent) node).getChildrenUnmodifiable()) {
+                updateIconsColor(child, isDarkMode);
             }
         }
+    }
+
+    private Image loadResourceImage(String path) {
+        try {
+            java.net.URL url = getClass().getResource(path);
+            if (url != null) {
+                return new Image(url.toExternalForm());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load image via URL: " + path + " - " + e.getMessage());
+        }
+        
+        // Fallback to safe default file icon if resource is missing
+        try {
+            java.net.URL fallbackUrl = getClass().getResource("/com/bakbak/javafx_proj_1_2/icons/file_icon.png");
+            if (fallbackUrl != null) {
+                return new Image(fallbackUrl.toExternalForm());
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        
+        return new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/file_icon.png"));
     }
 
     private void setupMessageHandler() {
@@ -1521,6 +1611,16 @@ public class ChatController implements Initializable {
         // Clear current messages
         messagesContainer.getChildren().clear();
 
+        // Reset file progress indicators in UI
+        fileIconStacks.clear();
+        fileIconImageViews.clear();
+        fileDownloadButtons.clear();
+        fileOpenButtons.clear();
+        activeSendProgressIndicators.clear();
+        activeSendingMessageNodes.clear();
+
+        showSkeletonLoading();
+
         lastChatSelectTime = System.currentTimeMillis();
 
         // Show messages immediately without animation
@@ -1531,6 +1631,25 @@ public class ChatController implements Initializable {
             showPrivateChat(chatItem.getName());
         } else if (chatItem.getType() == ChatItem.Type.GROUP) {
             showGroupChat(chatItem.getGroupId());
+        }
+
+        // Re-add active sending messages for the selected chat
+        for (Map.Entry<String, Message> entry : activeSendingMessages.entrySet()) {
+            Message msg = entry.getValue();
+            boolean matches = false;
+            if (chatItem.getType() == ChatItem.Type.GROUP) {
+                matches = chatItem.getGroupId() != null && chatItem.getGroupId().equals(msg.getGroupId());
+            } else {
+                matches = chatItem.getName() != null && chatItem.getName().equals(msg.getRecipient());
+            }
+
+            if (matches) {
+                try {
+                    addMessageToUI(msg, true);
+                } catch (Exception e) {
+                    System.err.println("Error re-adding active sending message to UI: " + e.getMessage());
+                }
+            }
         }
     }
 
@@ -1783,6 +1902,9 @@ public class ChatController implements Initializable {
         if (messageText.isEmpty() || selectedChat == null)
             return;
 
+        // Convert Unicode emojis back to [EMOJI:filename] placeholders for the server
+        messageText = convertUnicodeToEmojiPlaceholders(messageText);
+
         // When sending a message to a user from search results, add them to contacts
         if (selectedChat.getType() == ChatItem.Type.USER && !allChatItems.containsKey(selectedChat.getName())) {
             allChatItems.put(selectedChat.getName(), selectedChat);
@@ -1857,6 +1979,7 @@ public class ChatController implements Initializable {
     }
 
     private void addMessageToUI(Message message, boolean isSentByMe) {
+        removeSkeletonLoading();
         VBox fullMessageContainer = new VBox();
         fullMessageContainer.setSpacing(2);
         fullMessageContainer.setPadding(new Insets(2, 10, 2, 10));
@@ -1902,11 +2025,37 @@ public class ChatController implements Initializable {
             fileInfo.setAlignment(Pos.CENTER_LEFT);
             fileInfo.setPadding(new Insets(4, 0, 4, 0));
 
-            String iconPath = getFileTypeIcon(fileData.getMimeType());
-            ImageView fileIcon = new ImageView(
-                    new Image(getClass().getResourceAsStream(iconPath)));
+            StackPane iconStack = new StackPane();
+            iconStack.setPrefSize(32, 32);
+            iconStack.setMinSize(32, 32);
+            iconStack.setMaxSize(32, 32);
+
+            String iconPath = getFileTypeIcon(fileData.getMimeType(), fileData.getOriginalName());
+            System.out.println("DEBUG FILE_ICON: file=" + fileData.getOriginalName() 
+                + ", mime=" + fileData.getMimeType() 
+                + ", path=" + iconPath 
+                + ", isDark=" + com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled());
+            ImageView fileIcon = new ImageView(loadResourceImage(iconPath));
             fileIcon.setFitWidth(32);
             fileIcon.setFitHeight(32);
+            if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled() && iconPath.endsWith("/file_icon.png")) {
+                javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
+                ca.setBrightness(0.9);
+                fileIcon.setEffect(ca);
+            }
+
+            fileIconStacks.put(fileData.getUuidName(), iconStack);
+            fileIconImageViews.put(fileData.getUuidName(), fileIcon);
+
+            boolean isSending = activeSendingFileIds.contains(fileData.getUuidName());
+
+            if (isSending) {
+                CircularProgressRing progressIndicator = new CircularProgressRing();
+                activeSendProgressIndicators.put(fileData.getUuidName(), progressIndicator);
+                iconStack.getChildren().add(progressIndicator);
+            } else {
+                iconStack.getChildren().add(fileIcon);
+            }
 
             VBox fileDetails = new VBox(2);
 
@@ -1928,16 +2077,23 @@ public class ChatController implements Initializable {
 
             fileMetaInfo.getChildren().addAll(fileSizeLabel, fileTypeLabel);
             fileDetails.getChildren().addAll(fileName, fileMetaInfo);
-            fileInfo.getChildren().addAll(fileIcon, fileDetails);
+            fileInfo.getChildren().addAll(iconStack, fileDetails);
 
             // Download and Open buttons
             Button downloadButton = new Button("Download");
             downloadButton.getStyleClass().add("download-button");
             downloadButton.setOnAction(e -> downloadFile(fileData));
+            downloadButton.setDisable(isSending);
 
             Button openButton = new Button("Open");
             openButton.getStyleClass().add("open-button");
             openButton.setOnAction(e -> openFile(fileData));
+            openButton.setDisable(isSending);
+
+            if (isSending) {
+                fileDownloadButtons.put(fileData.getUuidName(), downloadButton);
+                fileOpenButtons.put(fileData.getUuidName(), openButton);
+            }
 
             HBox buttonContainer = new HBox(6);
             buttonContainer.setAlignment(Pos.CENTER_RIGHT);
@@ -2002,18 +2158,218 @@ public class ChatController implements Initializable {
             messageRow.getChildren().addAll(messageContent, spacer);
         }
 
+        if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
+            String fileID = message.getFileMessageData().getUuidName();
+            if (activeSendingFileIds.contains(fileID)) {
+                activeSendingMessageNodes.put(fileID, fullMessageContainer);
+            }
+        }
+
+        // Before adding the new message node, if there are active sending message nodes in the container,
+        // temporarily remove them so they remain at the bottom
+        boolean isCurrentMsgSending = false;
+        if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
+            String fileID = message.getFileMessageData().getUuidName();
+            isCurrentMsgSending = activeSendingFileIds.contains(fileID);
+        }
+
+        List<VBox> activeNodesToMove = new ArrayList<>();
+        if (!isCurrentMsgSending) {
+            for (String fileID : activeSendingFileIds) {
+                VBox node = activeSendingMessageNodes.get(fileID);
+                if (node != null && messagesContainer.getChildren().contains(node)) {
+                    messagesContainer.getChildren().remove(node);
+                    activeNodesToMove.add(node);
+                }
+            }
+        }
+
         fullMessageContainer.getChildren().add(messageRow);
+
+        // Apply dark mode coloring/icons immediately if dark mode is enabled
+        updateIconsColor(fullMessageContainer, com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled());
 
         // Add the complete message container to the messages container
         messagesContainer.getChildren().add(fullMessageContainer);
+
+        // Re-append active sending message nodes to the bottom
+        if (!isCurrentMsgSending) {
+            for (VBox node : activeNodesToMove) {
+                messagesContainer.getChildren().add(node);
+            }
+        }
 
         // No entrance animation for messages
 
         // Update last message sender for grouping
         lastMessageSender = message.getSender();
 
-        // Auto-scroll to bottom
-        Platform.runLater(() -> chatScrollPane.setVvalue(1.0));
+        // Auto-scroll to bottom (debounced to prevent jumpy layout during batch message loads)
+        if (scrollDebouncer != null) {
+            scrollDebouncer.stop();
+        }
+        scrollDebouncer = new PauseTransition(Duration.millis(50));
+        scrollDebouncer.setOnFinished(e -> {
+            chatScrollPane.layout();
+            chatScrollPane.setVvalue(1.0);
+        });
+        scrollDebouncer.play();
+    }
+
+    private void showSkeletonLoading() {
+        if (skeletonContainer == null) {
+            skeletonContainer = new VBox(10);
+            skeletonContainer.setPadding(new Insets(10));
+            
+            // Create some mock skeleton bubbles
+            HBox bubble1 = createSkeletonBubble(false, 200, 2);
+            HBox bubble2 = createSkeletonBubble(true, 150, 1);
+            HBox bubble3 = createSkeletonBubble(false, 250, 3);
+            HBox bubble4 = createSkeletonBubble(true, 100, 1);
+            
+            skeletonContainer.getChildren().addAll(bubble1, bubble2, bubble3, bubble4);
+        }
+        
+        // Add to messagesContainer
+        messagesContainer.getChildren().add(skeletonContainer);
+        
+        // Start moving gradient shimmer timeline
+        if (shimmerTimeline != null) {
+            shimmerTimeline.stop();
+        }
+        
+        DoubleProperty gradientOffset = new SimpleDoubleProperty(0.0);
+        shimmerTimeline = new Timeline(
+            new KeyFrame(Duration.ZERO, new KeyValue(gradientOffset, 0.0)),
+            new KeyFrame(Duration.millis(1200), new KeyValue(gradientOffset, 2.0))
+        );
+        shimmerTimeline.setCycleCount(Timeline.INDEFINITE);
+        
+        gradientOffset.addListener((obs, oldVal, newVal) -> {
+            double offset = newVal.doubleValue();
+            if (skeletonContainer != null) {
+                for (Node child : skeletonContainer.getChildren()) {
+                    if (child instanceof HBox) {
+                        for (Node inner : ((HBox) child).getChildren()) {
+                            if (inner.getStyleClass().contains("skeleton-bubble")) {
+                                boolean isSent = inner.getStyleClass().contains("skeleton-bubble-sent");
+                                applyShimmerBackground((VBox) inner, isSent, offset);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        shimmerTimeline.play();
+        
+        // Start a timeout of 800ms to clear the skeleton in case no messages arrive
+        if (skeletonTimeout != null) {
+            skeletonTimeout.stop();
+        }
+        skeletonTimeout = new PauseTransition(Duration.millis(800));
+        skeletonTimeout.setOnFinished(e -> removeSkeletonLoading());
+        skeletonTimeout.play();
+    }
+    
+    private void applyShimmerBackground(VBox bubble, boolean isSent, double offset) {
+        boolean isDarkMode = darkModeToggle != null && darkModeToggle.isSelected();
+        Color baseColor;
+        Color highlightColor;
+        
+        if (isDarkMode) {
+            if (isSent) {
+                baseColor = Color.web("#2b5278");
+                highlightColor = Color.web("#3b6a99");
+            } else {
+                baseColor = Color.web("#182533");
+                highlightColor = Color.web("#25374a");
+            }
+        } else {
+            if (isSent) {
+                baseColor = Color.web("#d8f5b0");
+                highlightColor = Color.web("#eafce0");
+            } else {
+                baseColor = Color.web("#ffffff");
+                highlightColor = Color.web("#f3f7fa");
+            }
+        }
+        
+        LinearGradient gradient = new LinearGradient(
+            -1.0 + offset, 0, offset, 0,
+            true, CycleMethod.NO_CYCLE,
+            new Stop(0.0, baseColor),
+            new Stop(0.5, highlightColor),
+            new Stop(1.0, baseColor)
+        );
+        
+        bubble.setBackground(new Background(new BackgroundFill(gradient, new CornerRadii(12), Insets.EMPTY)));
+    }
+    
+    private HBox createSkeletonBubble(boolean isSent, double width, int lines) {
+        HBox row = new HBox();
+        row.setPadding(new Insets(4, 10, 4, 10));
+        
+        VBox bubble = new VBox(6);
+        bubble.setPrefWidth(width);
+        bubble.setMaxWidth(width);
+        bubble.getStyleClass().add("skeleton-bubble");
+        if (isSent) {
+            bubble.getStyleClass().add("skeleton-bubble-sent");
+        } else {
+            bubble.getStyleClass().add("skeleton-bubble-received");
+        }
+        
+        applyShimmerBackground(bubble, isSent, 0.0);
+        
+        for (int i = 0; i < lines; i++) {
+            Region line = new Region();
+            line.setPrefHeight(10);
+            line.getStyleClass().add("skeleton-line");
+            if (i == lines - 1 && lines > 1) {
+                line.setPrefWidth(width * 0.6);
+                line.setMaxWidth(width * 0.6);
+            } else {
+                line.setPrefWidth(width * 0.85);
+                line.setMaxWidth(width * 0.85);
+            }
+            bubble.getChildren().add(line);
+        }
+        
+        // Add timestamp skeleton
+        Region timeLine = new Region();
+        timeLine.setPrefHeight(8);
+        timeLine.setPrefWidth(30);
+        timeLine.setMaxWidth(30);
+        timeLine.getStyleClass().add("skeleton-line");
+        HBox timeContainer = new HBox(timeLine);
+        timeContainer.setAlignment(Pos.CENTER_RIGHT);
+        bubble.getChildren().add(timeContainer);
+        
+        if (isSent) {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            row.getChildren().addAll(spacer, bubble);
+        } else {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            row.getChildren().addAll(bubble, spacer);
+        }
+        
+        return row;
+    }
+    
+    private void removeSkeletonLoading() {
+        if (shimmerTimeline != null) {
+            shimmerTimeline.stop();
+            shimmerTimeline = null;
+        }
+        if (skeletonContainer != null && messagesContainer.getChildren().contains(skeletonContainer)) {
+            messagesContainer.getChildren().remove(skeletonContainer);
+        }
+        if (skeletonTimeout != null) {
+            skeletonTimeout.stop();
+        }
     }
 
     private TextFlow createTextFlowWithEmojis(String messageContent) {
@@ -2708,7 +3064,7 @@ public class ChatController implements Initializable {
                 Label nameLabel = new Label(item.getName());
                 nameLabel.getStyleClass().add("contact-name");
                 // Force font size to ensure it's applied
-                nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+                nameLabel.setStyle("-fx-font-family: 'Outfit', 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 16px; -fx-font-weight: 800;");
                 if (!item.hasUnreadMessages()) {
                     nameLabel.getStyleClass().add("contact-name-normal");
                 }
@@ -2739,7 +3095,7 @@ public class ChatController implements Initializable {
                     messageLabel.getStyleClass()
                             .add(item.hasUnreadMessages() ? "contact-message-unread" : "contact-message");
                     // Force font size to ensure it's applied
-                    messageLabel.setStyle("-fx-font-size: 11px;");
+                    messageLabel.setStyle("-fx-font-family: 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 13px;");
                     
                     // Set max width to ensure timestamp is always visible (reserve ~50px for timestamp)
                     messageLabel.setMaxWidth(150); // Reduced from unlimited to ensure timestamp space
@@ -2752,7 +3108,7 @@ public class ChatController implements Initializable {
                     Label timeLabel = new Label(item.getLastMessageTimestamp());
                     timeLabel.getStyleClass().add("contact-time");
                     // Force font size to ensure it's applied
-                    timeLabel.setStyle("-fx-font-size: 9px;");
+                    timeLabel.setStyle("-fx-font-family: 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 11.5px;");
                     timeLabel.setMinWidth(Region.USE_PREF_SIZE); // Prevent shrinking
                     timeLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
 
@@ -2764,36 +3120,6 @@ public class ChatController implements Initializable {
                     noMessageLabel.getStyleClass().add("contact-no-message");
                     content.getChildren().add(noMessageLabel);
                 }
-
-                // Add premium animations to name list cells
-                ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), content);
-                scaleIn.setToX(1.03);
-                scaleIn.setToY(1.03);
-
-                ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), content);
-                scaleOut.setToX(1.0);
-                scaleOut.setToY(1.0);
-
-                content.setOnMouseEntered(e -> {
-                    scaleOut.stop();
-                    scaleIn.playFromStart();
-                });
-
-                content.setOnMouseExited(e -> {
-                    scaleIn.stop();
-                    scaleOut.playFromStart();
-                });
-
-                content.setOnMouseClicked(e -> {
-                    ScaleTransition clickBounce = new ScaleTransition(Duration.millis(100), content);
-                    clickBounce.setFromX(1.0);
-                    clickBounce.setFromY(1.0);
-                    clickBounce.setToX(0.96);
-                    clickBounce.setToY(0.96);
-                    clickBounce.setAutoReverse(true);
-                    clickBounce.setCycleCount(2);
-                    clickBounce.play();
-                });
 
                 setGraphic(content);
 
@@ -3079,9 +3405,13 @@ public class ChatController implements Initializable {
         System.out.println("DEBUG: Current text: '" + currentText + "'");
         System.out.println("DEBUG: Inserting at position: " + insertPosition);
 
-        // Insert emoji placeholder in text
-        String emojiPlaceholder = "[EMOJI:" + emojiFilename + "]";
-        String newText = currentText + emojiPlaceholder;
+        // Convert filename to Unicode emoji character
+        String unicodeEmoji = getUnicodeFromEmojiFilename(emojiFilename);
+        if (unicodeEmoji == null || unicodeEmoji.isEmpty()) {
+            unicodeEmoji = "[EMOJI:" + emojiFilename + "]";
+        }
+
+        String newText = currentText + unicodeEmoji;
 
         messageInput.setText(newText);
 
@@ -3093,6 +3423,60 @@ public class ChatController implements Initializable {
 
         System.out.println("DEBUG: New text: '" + newText + "'");
         System.out.println("DEBUG: Caret positioned at end: " + newText.length());
+    }
+
+    private String getUnicodeFromEmojiFilename(String filename) {
+        try {
+            String hex = filename;
+            if (hex.endsWith(".png")) {
+                hex = hex.substring(0, hex.length() - 4);
+            }
+            String[] parts = hex.split("-");
+            StringBuilder sb = new StringBuilder();
+            for (String part : parts) {
+                int codePoint = Integer.parseInt(part, 16);
+                sb.appendCodePoint(codePoint);
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void initializeUnicodeToEmojiFilenameMap() {
+        if (unicodeToEmojiFilenameMap.isEmpty() && allEmojis != null) {
+            for (String filename : allEmojis.keySet()) {
+                String unicode = getUnicodeFromEmojiFilename(filename);
+                if (unicode != null && !unicode.isEmpty()) {
+                    unicodeToEmojiFilenameMap.put(unicode, filename);
+                }
+            }
+        }
+    }
+
+    private String convertUnicodeToEmojiPlaceholders(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        initializeUnicodeToEmojiFilenameMap();
+        if (unicodeToEmojiFilenameMap.isEmpty()) {
+            return text;
+        }
+
+        // Sort keys by length in descending order to avoid partial replacement of sequences
+        List<String> sortedUnicodes = new ArrayList<>(unicodeToEmojiFilenameMap.keySet());
+        sortedUnicodes.sort((a, b) -> Integer.compare(b.length(), a.length()));
+
+        String result = text;
+        for (String unicode : sortedUnicodes) {
+            if (result.contains(unicode)) {
+                String filename = unicodeToEmojiFilenameMap.get(unicode);
+                result = result.replace(unicode, "[EMOJI:" + filename + "]");
+            }
+        }
+
+        return result;
     }
 
     @FXML
@@ -3230,11 +3614,7 @@ public class ChatController implements Initializable {
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        com.bakbak.javafx_proj_1_2.ChatApplication.showToast(message);
     }
 
     private void promptToDeleteChat(ChatItem item) {
@@ -3505,116 +3885,147 @@ public class ChatController implements Initializable {
     }
 
     private void sendFile(File file) {
+        String mimeType = null;
+        try {
+            mimeType = Files.probeContentType(file.toPath());
+            if (mimeType == null) {
+                mimeType = "application/octet-stream";
+            }
+        } catch (Exception e) {
+            mimeType = "application/octet-stream";
+        }
+
+        String originalName = file.getName();
+        String fileID = java.util.UUID.randomUUID().toString();
+        long fileSize = file.length();
+        String finalMimeType = mimeType;
+
+        FileMessageData fileMessageData = new FileMessageData(originalName, fileID, fileSize, finalMimeType);
+
+        // Create the file message
+        Message fileMessage = new Message(Message.MessageType.FILE_MESSAGE, currentUsername);
+        if (selectedChat.getType() == ChatItem.Type.GROUP) {
+            fileMessage.setGroupId(selectedChat.getGroupId()); // Use groupId for group messages
+        } else {
+            fileMessage.setRecipient(selectedChat.getName()); // Use recipient for private messages
+        }
+        fileMessage.setFileMessageData(fileMessageData);
+        fileMessage.setContent(fileMessageData.toString()); // Set the content field for serialization
+        fileMessage.setTimestamp(LocalDateTime.now());
+
+        // Mark this file ID as actively sending
+        activeSendingFileIds.add(fileID);
+        activeSendingMessages.put(fileID, fileMessage);
+
+        // Add to UI immediately (optimistic update)
+        Platform.runLater(() -> {
+            try {
+                addMessageToUI(fileMessage, true);
+
+                // Update the chat list with file message info
+                String displayMessage = "File: " + fileMessageData.getOriginalName();
+                selectedChat.setLastMessage("You: " + displayMessage);
+                selectedChat.setHasUnreadMessages(false);
+                updateChatList();
+            } catch (Exception e) {
+                System.err.println("Error updating UI before file send: " + e.getMessage());
+            }
+        });
+
+        // Start background thread for file upload
         new Thread(() -> {
             try {
                 FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
 
-                // Check if it's a video file to show progress
-                String mimeType = null;
-                try {
-                    mimeType = Files.probeContentType(file.toPath());
-                    if (mimeType == null) {
-                        mimeType = "application/octet-stream";
+                ProgressCallback progressCallback = new ProgressCallback() {
+                    @Override
+                    public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed, long totalBytes) {
+                        double progress = (double) bytesProcessed / totalBytes;
+                        Platform.runLater(() -> {
+                            CircularProgressRing pi = activeSendProgressIndicators.get(fileID);
+                            if (pi != null) {
+                                pi.setProgress(progress);
+                            }
+                        });
                     }
-                } catch (Exception e) {
-                    mimeType = "application/octet-stream";
-                }
 
-                boolean isVideo = mimeType != null && mimeType.startsWith("video/");
-                ProgressCallback progressCallback = null;
+                    @Override
+                    public void onTransferComplete() {
+                        Platform.runLater(() -> {
+                            activeSendingFileIds.remove(fileID);
+                            activeSendingMessages.remove(fileID);
+                            activeSendProgressIndicators.remove(fileID);
 
-                if (isVideo) {
-                    // Create progress callback for video files
-                    progressCallback = new ProgressCallback() {
-                        @Override
-                        public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                long totalBytes) {
-                            double progress = (double) bytesProcessed / totalBytes;
-                            Platform.runLater(() -> {
-                                // Use unified progress bar
-                                showUnifiedProgress(progress,
-                                        "Sending video... " + String.format("%d%%", (int) (progress * 100)));
-                            });
-                        }
+                            // Send the message to server now that file is fully uploaded
+                            new Thread(() -> {
+                                try {
+                                    chatClient.sendMessage(fileMessage);
+                                } catch (Exception e) {
+                                    System.err.println("Error sending message to server: " + e.getMessage());
+                                }
+                            }).start();
 
-                        @Override
-                        public void onTransferComplete() {
-                            Platform.runLater(() -> {
-                                // Hide unified progress bar
-                                hideUnifiedProgress();
-                            });
-                        }
+                            // Restore the normal icon in the UI
+                            restoreFileIcon(fileID);
+                        });
+                    }
 
-                        @Override
-                        public void onTransferError(String error) {
-                            Platform.runLater(() -> {
-                                hideUnifiedProgress();
-                                showAlert("Upload Error", "Failed to upload video: " + error);
-                            });
-                        }
-                    };
-                }
+                    @Override
+                    public void onTransferError(String error) {
+                        Platform.runLater(() -> {
+                            activeSendingFileIds.remove(fileID);
+                            activeSendingMessages.remove(fileID);
+                            activeSendProgressIndicators.remove(fileID);
+                            showAlert("Upload Error", "Failed to upload file: " + error);
+                            restoreFileIcon(fileID);
+                        });
+                    }
+                };
 
-                CompletableFuture<String> uploadFuture = chunkSender.sendFile(file, progressCallback);
-                String fileID = uploadFuture.get(); // Wait for completion
+                CompletableFuture<String> uploadFuture = chunkSender.sendFile(file, fileID, progressCallback);
+                String uploadedFileID = uploadFuture.get(); // Wait for completion
 
-                if (fileID == null) {
+                if (uploadedFileID == null) {
                     Platform.runLater(() -> {
                         resetSendButton();
                         showAlert("Error", "Failed to upload file.");
+                        activeSendingFileIds.remove(fileID);
+                        activeSendingMessages.remove(fileID);
+                        activeSendProgressIndicators.remove(fileID);
+                        restoreFileIcon(fileID);
                     });
-                    return;
                 }
-
-                String originalName = file.getName();
-                String extension = "";
-                int i = originalName.lastIndexOf('.');
-                if (i > 0) {
-                    extension = originalName.substring(i);
-                }
-                String uuidName = fileID; // Use just the UUID without extension
-                long fileSize = file.length();
-                String finalMimeType = mimeType;
-
-                FileMessageData fileMessageData = new FileMessageData(originalName, uuidName, fileSize, finalMimeType);
-
-                // Create and send the file message
-                Message fileMessage = new Message(Message.MessageType.FILE_MESSAGE, currentUsername);
-                if (selectedChat.getType() == ChatItem.Type.GROUP) {
-                    fileMessage.setGroupId(selectedChat.getGroupId()); // Use groupId for group messages
-                } else {
-                    fileMessage.setRecipient(selectedChat.getName()); // Use recipient for private messages
-                }
-                fileMessage.setFileMessageData(fileMessageData);
-                fileMessage.setContent(fileMessageData.toString()); // Set the content field for serialization
-                fileMessage.setTimestamp(LocalDateTime.now());
-
-                // Send the message to server
-                chatClient.sendMessage(fileMessage);
-
-                // Add to UI immediately (optimistic update)
-                Platform.runLater(() -> {
-                    try {
-                        addMessageToUI(fileMessage, true);
-
-                        // Update the chat list with file message info
-                        String displayMessage = "File: " + fileMessageData.getOriginalName();
-                        selectedChat.setLastMessage("You: " + displayMessage);
-                        selectedChat.setHasUnreadMessages(false);
-                        updateChatList();
-
-                    } catch (Exception e) {
-                        System.err.println("Error updating UI after file send: " + e.getMessage());
-                    }
-                });
 
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     resetSendButton();
                     showAlert("Error", "Failed to send file: " + e.getMessage());
+                    activeSendingFileIds.remove(fileID);
+                    activeSendingMessages.remove(fileID);
+                    activeSendProgressIndicators.remove(fileID);
+                    restoreFileIcon(fileID);
                 });
             }
         }).start();
+    }
+
+    private void restoreFileIcon(String fileID) {
+        Platform.runLater(() -> {
+            StackPane iconStack = fileIconStacks.get(fileID);
+            ImageView fileIcon = fileIconImageViews.get(fileID);
+            if (iconStack != null && fileIcon != null) {
+                iconStack.getChildren().clear();
+                iconStack.getChildren().add(fileIcon);
+            }
+            Button downloadBtn = fileDownloadButtons.remove(fileID);
+            if (downloadBtn != null) {
+                downloadBtn.setDisable(false);
+            }
+            Button openBtn = fileOpenButtons.remove(fileID);
+            if (openBtn != null) {
+                openBtn.setDisable(false);
+            }
+        });
     }
 
     private String getFileTypeDisplay(String mimeType) {
@@ -3715,43 +4126,61 @@ public class ChatController implements Initializable {
         }
     }
 
-    private String getFileTypeIcon(String mimeType) {
+    private String getFileTypeIcon(String mimeType, String filename) {
         String baseIconPath = "/com/bakbak/javafx_proj_1_2/icons/";
-
-        if (mimeType == null)
-            return baseIconPath + "file_icon.png";
-
-        if (mimeType.startsWith("image/"))
-            return baseIconPath + "image_file_icon.png";
-        if (mimeType.startsWith("video/"))
-            return baseIconPath + "video_file_icon.png";
-        if (mimeType.startsWith("audio/"))
-            return baseIconPath + "audio_file_icon.png";
-        if (mimeType.startsWith("text/plain"))
-            return baseIconPath + "txt_file_icon.png";
-        if (mimeType.startsWith("text/html"))
-            return baseIconPath + "html_file_icon.png";
-        if (mimeType.startsWith("application/json"))
-            return baseIconPath + "json_file_icon.png";
-        if (mimeType.contains("xml"))
-            return baseIconPath + "xml_file_icon.png";
-        if (mimeType.contains("csv"))
-            return baseIconPath + "csv_file_icon.png";
-        if (mimeType.equals("application/pdf"))
-            return baseIconPath + "pdf_file_icon.png";
-        if (mimeType.contains("word") || mimeType.contains("document"))
+        
+        // Normalize mimeType and filename
+        String mime = (mimeType != null) ? mimeType.toLowerCase() : "";
+        String file = (filename != null) ? filename.toLowerCase() : "";
+        
+        // 1. Check specific document types FIRST to avoid matching generic XML
+        if (mime.contains("word") || mime.contains("document") || file.endsWith(".doc") || file.endsWith(".docx") || file.endsWith(".odt")) {
             return baseIconPath + "doc_file_icon.png";
-        if (mimeType.contains("excel") || mimeType.contains("spreadsheet"))
+        }
+        
+        // PDF
+        if (mime.contains("pdf") || file.endsWith(".pdf")) {
+            return baseIconPath + "pdf_file_icon.png";
+        }
+        
+        // Spreadsheet / Excel
+        if (mime.contains("excel") || mime.contains("spreadsheet") || file.endsWith(".xls") || file.endsWith(".xlsx") || file.endsWith(".ods")) {
             return baseIconPath + "excel_file_icon.png";
-        if (mimeType.contains("powerpoint") || mimeType.contains("presentation"))
+        }
+        
+        // Presentation / PowerPoint
+        if (mime.contains("powerpoint") || mime.contains("presentation") || file.endsWith(".ppt") || file.endsWith(".pptx") || file.endsWith(".odp")) {
             return baseIconPath + "ppt_file_icon.png";
-        if (mimeType.contains("zip") || mimeType.contains("rar") || mimeType.contains("7z")
-                || mimeType.contains("archive"))
+        }
+        
+        // Archives
+        if (mime.contains("zip") || mime.contains("rar") || mime.contains("7z") || mime.contains("tar") || mime.contains("gzip") || mime.contains("archive")
+                || file.endsWith(".zip") || file.endsWith(".rar") || file.endsWith(".7z") || file.endsWith(".tar") || file.endsWith(".gz") || file.endsWith(".bz2") || file.endsWith(".xz")) {
             return baseIconPath + "archive_file_icon.png";
-        if (mimeType.contains("exe") || mimeType.contains("dll") || mimeType.contains("bat") ||
-                mimeType.contains("cmd") || mimeType.contains("sh") || mimeType.contains("executable"))
-            return baseIconPath + "exe_file_icon.png";
-
+        }
+        
+        // Images
+        if (mime.startsWith("image/") || file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg") || file.endsWith(".gif") || file.endsWith(".bmp") || file.endsWith(".webp") || file.endsWith(".svg")) {
+            return baseIconPath + "image_file_icon.png";
+        }
+        
+        // Video
+        if (mime.startsWith("video/") || file.endsWith(".mp4") || file.endsWith(".avi") || file.endsWith(".mov") || file.endsWith(".mkv") || file.endsWith(".wmv") || file.endsWith(".webm") || file.endsWith(".flv") || file.endsWith(".3gp")) {
+            return baseIconPath + "video_file_icon.png";
+        }
+        
+        // Audio
+        if (mime.startsWith("audio/") || file.endsWith(".mp3") || file.endsWith(".wav") || file.endsWith(".flac") || file.endsWith(".ogg") || file.endsWith(".m4a") || file.endsWith(".aac") || file.endsWith(".wma")) {
+            return baseIconPath + "audio_file_icon.png";
+        }
+        
+        // Text / Data (Map missing XML/JSON/HTML/CSV/EXE icons to existing colored/gray icons)
+        if (mime.startsWith("text/plain") || mime.startsWith("text/html") || mime.startsWith("application/json") || mime.contains("xml") || mime.contains("csv")
+                || file.endsWith(".txt") || file.endsWith(".log") || file.endsWith(".ini") || file.endsWith(".conf") || file.endsWith(".html") || file.endsWith(".htm") || file.endsWith(".json") || file.endsWith(".xml") || file.endsWith(".csv")) {
+            return baseIconPath + "txt_file_icon.png";
+        }
+        
+        // Default / Generic (Also matches exe/dll/bat/sh/deb since no exe_file_icon.png exists)
         return baseIconPath + "file_icon.png";
     }
 
@@ -4368,6 +4797,11 @@ public class ChatController implements Initializable {
                 imageView.setFitHeight(size);
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);
+                if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled()) {
+                    javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
+                    ca.setBrightness(0.9);
+                    imageView.setEffect(ca);
+                }
                 button.setGraphic(imageView);
                 button.setText("");
             } catch (Exception e) {
@@ -5039,7 +5473,12 @@ public class ChatController implements Initializable {
 
             progressContainer.getChildren().addAll(downloadProgressLabel, downloadProgressBar);
 
+            progressContainer.getStyleClass().add("dialog-pane");
             Scene scene = new Scene(progressContainer);
+            scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+            if (darkModeToggle != null && darkModeToggle.isSelected()) {
+                scene.getRoot().getStyleClass().add("dark-mode");
+            }
             downloadProgressStage.setScene(scene);
             downloadProgressStage.show();
         } else {
@@ -5067,6 +5506,7 @@ public class ChatController implements Initializable {
         unifiedProgressContainer
                 .setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #e9ecef; -fx-border-width: 0 0 1 0;");
         unifiedProgressContainer.setVisible(false);
+        unifiedProgressContainer.managedProperty().bind(unifiedProgressContainer.visibleProperty());
 
         // Create progress bar
         unifiedProgressBar = new ProgressBar(0);
@@ -5122,6 +5562,16 @@ public class ChatController implements Initializable {
 
     // File cache to avoid redundant downloads
     private Map<String, File> downloadedFilesCache = new HashMap<>();
+
+    // Active sending file fields
+    private final Set<String> activeSendingFileIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Map<String, Message> activeSendingMessages = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, CircularProgressRing> activeSendProgressIndicators = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, StackPane> fileIconStacks = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, ImageView> fileIconImageViews = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, Button> fileDownloadButtons = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, Button> fileOpenButtons = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, VBox> activeSendingMessageNodes = new java.util.concurrent.ConcurrentHashMap<>();
 
     // Unified progress bar below title bar
     private ProgressBar unifiedProgressBar;
@@ -5195,11 +5645,16 @@ public class ChatController implements Initializable {
         // Microphone icon for record button
         ImageView micIcon = new ImageView();
         try {
-            Image micImage = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/voice.png"));
+            Image micImage = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/voice.png");
             micIcon.setImage(micImage);
             micIcon.setFitWidth(35);
             micIcon.setFitHeight(35);
             micIcon.setPreserveRatio(true);
+            if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled()) {
+                javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
+                ca.setBrightness(0.9);
+                micIcon.setEffect(ca);
+            }
         } catch (Exception e) {
             // Fallback text if image not found
             recordButton.setText("🎤");
@@ -5283,6 +5738,9 @@ public class ChatController implements Initializable {
 
         Scene scene = new Scene(mainContainer, 350, 400);
         scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        if (darkModeToggle != null && darkModeToggle.isSelected()) {
+            scene.getRoot().getStyleClass().add("dark-mode");
+        }
         
         voiceRecorderStage.setScene(scene);
         voiceRecorderStage.show();
@@ -5485,6 +5943,47 @@ public class ChatController implements Initializable {
             chatClient.sendMessage(message);
         } catch (IOException e) {
             System.err.println("Failed to send delete group request: " + e.getMessage());
+        }
+    }
+
+    // Custom circular progress ring showing hollow border spinner
+    private static class CircularProgressRing extends StackPane {
+        private final javafx.scene.shape.Circle track;
+        private final javafx.scene.shape.Arc progressArc;
+
+        public CircularProgressRing() {
+            track = new javafx.scene.shape.Circle();
+            track.setRadius(12);
+            track.setFill(Color.TRANSPARENT);
+            track.setStrokeWidth(2.5);
+            track.getStyleClass().add("track-circle");
+            track.setManaged(false);
+            track.setCenterX(16.0);
+            track.setCenterY(16.0);
+
+            progressArc = new javafx.scene.shape.Arc();
+            progressArc.setRadiusX(12.0f);
+            progressArc.setRadiusY(12.0f);
+            progressArc.setStartAngle(90.0f);
+            progressArc.setLength(0.0f);
+            progressArc.setType(javafx.scene.shape.ArcType.OPEN);
+            progressArc.setFill(Color.TRANSPARENT);
+            progressArc.setStrokeWidth(2.5);
+            progressArc.getStyleClass().add("progress-arc");
+            progressArc.setManaged(false);
+            progressArc.setCenterX(16.0);
+            progressArc.setCenterY(16.0);
+
+            getChildren().addAll(track, progressArc);
+            getStyleClass().add("circular-progress-ring");
+            
+            setPrefSize(32, 32);
+            setMinSize(32, 32);
+            setMaxSize(32, 32);
+        }
+
+        public void setProgress(double progress) {
+            progressArc.setLength(-360.0 * Math.max(0.0, Math.min(1.0, progress)));
         }
     }
 }

@@ -4,6 +4,9 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -15,15 +18,24 @@
    <!-- Header with back button -->
    <top>
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 20 10 20;">
-         <Button fx:id="backButton" onAction="#handleBack" style="-fx-font-size: 13px;" text="← Back" />
+         <Button fx:id="backButton" onAction="#handleBack" text="← Back" />
          <Region HBox.hgrow="ALWAYS" />
-         <Label style="-fx-font-size: 12px; -fx-opacity: 0.7;" text="Connected to Server" />
+         <Label fx:id="serverStatusLabel" text="Connected to Server" />
+         <ToggleButton fx:id="darkModeToggle" minHeight="40" minWidth="40" style="-fx-background-color: transparent; -fx-cursor: hand;" styleClass="navigation-button">
+            <graphic>
+               <ImageView fx:id="darkModeIcon" fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../icons/sun.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </ToggleButton>
       </HBox>
    </top>
    
    <!-- Main login form -->
-   <center>
-      <VBox alignment="CENTER" maxWidth="400" spacing="25" style="-fx-padding: 40;">
+    <center>
+      <VBox alignment="TOP_CENTER" maxWidth="400" spacing="25" style="-fx-padding: 100 40 40 40;">
          
          <!-- Header -->
          <VBox alignment="CENTER" spacing="8">
@@ -32,7 +44,6 @@
                   <Font name="System Bold" size="32.0" />
                </font>
             </Label>
-            <Label style="-fx-font-size: 14px; -fx-opacity: 0.8;" text="Sign in to your account or create a new one" textAlignment="CENTER" />
          </VBox>
          
          <!-- Login Form -->
@@ -55,11 +66,6 @@
                <Button fx:id="registerButton" onAction="#handleRegister" prefHeight="40" prefWidth="280" style="-fx-font-size: 13px;" text="Create Account" />
             </VBox>
             
-         </VBox>
-         
-         <!-- Help Text -->
-         <VBox alignment="CENTER" spacing="5">
-            <Label style="-fx-font-size: 11px; -fx-opacity: 0.6;" text="First time? Create an account to get started" />
          </VBox>
          
       </VBox>

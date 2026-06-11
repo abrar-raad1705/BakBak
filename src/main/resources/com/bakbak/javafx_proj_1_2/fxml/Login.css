@@ -61,20 +61,28 @@
     -fx-alignment: center;
 }
 
-/* ─── Top navigation bar ─────────────────────────────────────── */
 #backButton {
     -fx-background-color: transparent;
     -fx-text-fill: #3390ec;
-    -fx-font-size: 13px;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
     -fx-font-family: 'Segoe UI', system-ui, sans-serif;
     -fx-cursor: hand;
-    -fx-padding: 6 10;
+    -fx-padding: 6 12;
     -fx-background-radius: 8;
     -fx-effect: null;
 }
 #backButton:hover {
     -fx-background-color: rgba(51, 144, 236, 0.08);
     -fx-border-color: transparent;
+}
+
+#serverStatusLabel {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6b7c93;
+    -fx-opacity: 0.85;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 /* ─── Text Fields ────────────────────────────────────────────── */
@@ -151,6 +159,7 @@
    Dark Mode Overrides (when .dark-mode is added to root)
    ========================================================================== */
 .dark-mode.root,
+.dark-mode.background,
 .dark-mode .background {
     -fx-background-color: #0e1621;
 }
@@ -204,4 +213,24 @@
 }
 .dark-mode #backButton:hover {
     -fx-background-color: rgba(82, 136, 193, 0.10);
+}
+.dark-mode #serverStatusLabel {
+    -fx-text-fill: #7f91a4;
+    -fx-opacity: 0.9;
+}
+
+/* ─── Navigation Button Hover Effects ────────────────────────── */
+.navigation-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-padding: 6;
+}
+
+.navigation-button:hover {
+    -fx-background-color: rgba(51, 144, 236, 0.08);
+}
+
+.dark-mode .navigation-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
 }

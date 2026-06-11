@@ -24,9 +24,9 @@
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;" stylesheets="@ChatWindowStyle.css">
          <Label styleClass="chatsTitle" text="Chats" />
          <Region HBox.hgrow="ALWAYS" />
-         <ToggleButton fx:id="darkModeToggle" visible="false" managed="false" minHeight="25" minWidth="30" style="-fx-background-color: transparent;" styleClass="navigation-button">
+         <ToggleButton fx:id="darkModeToggle" minHeight="40" minWidth="40" style="-fx-background-color: transparent;" styleClass="navigation-button">
             <graphic>
-               <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+               <ImageView fx:id="darkModeIcon" fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                      <Image url="@../icons/sun.png" />
                   </image>

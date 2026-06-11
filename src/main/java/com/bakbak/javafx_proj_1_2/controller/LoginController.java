@@ -12,6 +12,10 @@ import javafx.scene.control.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
+import javafx.scene.Scene;
+import javafx.scene.control.ToggleButton;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +27,8 @@ public class LoginController implements Initializable {
     @FXML private Label statusLabel;
     @FXML private Button loginButton;
     @FXML private Button registerButton;
+    @FXML private ToggleButton darkModeToggle;
+    @FXML private ImageView darkModeIcon;
 
     private ChatClient chatClient;
     private CompletableFuture<Message> pendingResponse;
@@ -35,28 +41,17 @@ public class LoginController implements Initializable {
         setupButtonHoverScale(backButton);
         setupButtonHoverScale(loginButton);
         setupButtonHoverScale(registerButton);
+        
+        if (darkModeToggle != null) {
+            boolean isDark = ChatApplication.isDarkModeEnabled();
+            darkModeToggle.setSelected(isDark);
+            updateDarkModeIcon(isDark);
+            darkModeToggle.setOnAction(e -> handleDarkModeToggle());
+        }
     }
 
     private void setupButtonHoverScale(Button button) {
-        if (button == null) return;
-
-        javafx.animation.ScaleTransition scaleIn = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
-        scaleIn.setToX(1.08);
-        scaleIn.setToY(1.08);
-
-        javafx.animation.ScaleTransition scaleOut = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        button.setOnMouseEntered(e -> {
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        button.setOnMouseExited(e -> {
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
+        // Zoom/scale animation disabled
     }
 
     private void setupUI() {
@@ -276,18 +271,39 @@ public class LoginController implements Initializable {
 
     private void showError(String message) {
         statusLabel.setText("Error: " + message);
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("Operation Failed");
-        alert.setContentText(message);
-        alert.showAndWait();
+        ChatApplication.showToast(message);
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText("Success");
-        alert.setContentText(message);
-        alert.showAndWait();
+        ChatApplication.showToast(message);
+    }
+
+    private void handleDarkModeToggle() {
+        if (darkModeToggle == null) return;
+        boolean enabled = darkModeToggle.isSelected();
+        ChatApplication.setDarkModeEnabled(enabled);
+        
+        Scene scene = darkModeToggle.getScene();
+        if (scene != null) {
+            if (enabled) {
+                if (!scene.getRoot().getStyleClass().contains("dark-mode")) {
+                    scene.getRoot().getStyleClass().add("dark-mode");
+                }
+            } else {
+                scene.getRoot().getStyleClass().remove("dark-mode");
+            }
+        }
+        updateDarkModeIcon(enabled);
+    }
+
+    private void updateDarkModeIcon(boolean isDark) {
+        if (darkModeIcon != null) {
+            String imagePath = isDark ? "/com/bakbak/javafx_proj_1_2/icons/night2.png" : "/com/bakbak/javafx_proj_1_2/icons/sun.png";
+            try {
+                darkModeIcon.setImage(new Image(getClass().getResourceAsStream(imagePath)));
+            } catch (Exception e) {
+                System.err.println("Failed to update dark mode icon: " + e.getMessage());
+            }
+        }
     }
 }

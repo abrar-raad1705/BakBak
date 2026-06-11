@@ -17,9 +17,12 @@ public class FileChunkSender {
     }
 
     public CompletableFuture<String> sendFile(File file, ProgressCallback progressCallback) {
+        return sendFile(file, UUID.randomUUID().toString(), progressCallback);
+    }
+
+    public CompletableFuture<String> sendFile(File file, String fileID, ProgressCallback progressCallback) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String fileID = UUID.randomUUID().toString();
                 long fileSize = file.length();
                 int totalChunks = (int) Math.ceil((double) fileSize / CHUNK_SIZE);
 

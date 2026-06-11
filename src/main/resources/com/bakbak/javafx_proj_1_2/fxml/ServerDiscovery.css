@@ -15,7 +15,7 @@
 /* Full-page background */
 .background {
     -fx-background-color: linear-gradient(to bottom, #dde9f7 0%, #eef2f7 40%, #f4f7fb 100%);
-    -fx-padding: 30 40 30 40;
+    -fx-padding: 0 40 30 40;
     -fx-spacing: 24;
 }
 
@@ -185,10 +185,8 @@
 /* ==========================================================================
    Dark Mode Overrides (when .dark-mode is added to root)
    ========================================================================== */
-.dark-mode.root {
-    -fx-background-color: #0e1621;
-}
-
+.dark-mode.root,
+.dark-mode.background,
 .dark-mode .background {
     -fx-background-color: linear-gradient(to bottom, #0e1621 0%, #121d29 100%);
 }
@@ -263,4 +261,20 @@
 
 .dark-mode .separator .line {
     -fx-border-color: #1e2d3d;
+}
+
+/* ─── Navigation Button Hover Effects ────────────────────────── */
+.navigation-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-padding: 6;
+}
+
+.navigation-button:hover {
+    -fx-background-color: rgba(51, 144, 236, 0.08);
+}
+
+.dark-mode .navigation-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
 }

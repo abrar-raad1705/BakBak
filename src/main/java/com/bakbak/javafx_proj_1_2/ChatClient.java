@@ -29,7 +29,8 @@ public class ChatClient {
 
     public boolean connect() {
         try {
-            socket = new Socket(host, port);
+            socket = new Socket();
+            socket.connect(new java.net.InetSocketAddress(host, port), 2000); // 2 seconds fast connection timeout
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
             isConnected = true;

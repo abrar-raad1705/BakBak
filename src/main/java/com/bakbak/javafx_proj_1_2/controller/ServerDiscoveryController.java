@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
+import javafx.scene.Scene;
 
 import static com.bakbak.javafx_proj_1_2.ChatServer.PORT;
 
@@ -22,9 +25,10 @@ public class ServerDiscoveryController implements Initializable {
     @FXML private Button scanButton;
     @FXML private Label statusLabel;
     @FXML private ListView<String> serverListView;
-    @FXML private Button localhostButton;
     @FXML private TextField ipField;
     @FXML private Button connectButton;
+    @FXML private ToggleButton darkModeToggle;
+    @FXML private ImageView darkModeIcon;
 
     private ChatClient chatClient;
 
@@ -32,30 +36,18 @@ public class ServerDiscoveryController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupUI();
         setupButtonHoverScale(scanButton);
-        setupButtonHoverScale(localhostButton);
         setupButtonHoverScale(connectButton);
+        
+        if (darkModeToggle != null) {
+            boolean isDark = ChatApplication.isDarkModeEnabled();
+            darkModeToggle.setSelected(isDark);
+            updateDarkModeIcon(isDark);
+            darkModeToggle.setOnAction(e -> handleDarkModeToggle());
+        }
     }
 
     private void setupButtonHoverScale(Button button) {
-        if (button == null) return;
-
-        javafx.animation.ScaleTransition scaleIn = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
-        scaleIn.setToX(1.08);
-        scaleIn.setToY(1.08);
-
-        javafx.animation.ScaleTransition scaleOut = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        button.setOnMouseEntered(e -> {
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        button.setOnMouseExited(e -> {
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
+        // Zoom/scale animation disabled
     }
 
     private void setupUI() {
@@ -81,6 +73,7 @@ public class ServerDiscoveryController implements Initializable {
     @FXML
     private void handleScan() {
         scanButton.setDisable(true);
+        statusLabel.setStyle(""); // Reset error coloring
         statusLabel.setText("Scanning for servers...");
         serverListView.getItems().clear();
         serverListView.setVisible(false);
@@ -105,8 +98,6 @@ public class ServerDiscoveryController implements Initializable {
                         serverListView.setVisible(true);
                         serverListView.setManaged(true);
                         
-                        // Auto-resize window to accommodate the server list
-                        resizeWindowForServerList();
                     }
                     scanButton.setDisable(false);
                 });
@@ -125,11 +116,6 @@ public class ServerDiscoveryController implements Initializable {
     }
 
     @FXML
-    private void handleLocalhost() {
-        connectToServer("localhost");
-    }
-
-    @FXML
     private void handleConnect() {
         String serverIP = ipField.getText().trim();
         if (!serverIP.isEmpty()) {
@@ -139,8 +125,8 @@ public class ServerDiscoveryController implements Initializable {
 
     private void connectToServer(String serverAddress) {
         connectButton.setDisable(true);
-        localhostButton.setDisable(true);
         scanButton.setDisable(true);
+        statusLabel.setStyle(""); // Reset error coloring
         statusLabel.setText("Connecting to " + serverAddress + "...");
 
         Task<Boolean> connectionTask = new Task<Boolean>() {
@@ -184,54 +170,50 @@ public class ServerDiscoveryController implements Initializable {
     }
 
     private void showConnectionError(String message) {
-        statusLabel.setText(message);
+        statusLabel.setStyle("-fx-text-fill: #d9534f; -fx-font-weight: bold;");
+        statusLabel.setText("IP doesn't exist or can't be reached. Please check the address.");
         connectButton.setDisable(false);
-        localhostButton.setDisable(false);
         scanButton.setDisable(false);
-        
-        // Show alert
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Connection Error");
-        alert.setHeaderText("Failed to connect to server");
-        alert.setContentText(message + "\n\nPlease check:\n• Server is running\n• IP address is correct\n• Network connectivity");
-        alert.showAndWait();
+        ChatApplication.showToast("Connection failed: IP doesn't exist or can't be reached.");
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("An error occurred");
-        alert.setContentText(message);
-        alert.showAndWait();
+        ChatApplication.showToast(message);
         
+        statusLabel.setStyle("");
         statusLabel.setText("Ready to scan for servers");
         connectButton.setDisable(false);
-        localhostButton.setDisable(false);
         scanButton.setDisable(false);
     }
 
-    private void resizeWindowForServerList() {
-        // Get the stage (window) from any scene node
-        Stage stage = (Stage) serverListView.getScene().getWindow();
+    private void handleDarkModeToggle() {
+        if (darkModeToggle == null) return;
+        boolean enabled = darkModeToggle.isSelected();
+        ChatApplication.setDarkModeEnabled(enabled);
         
-        // Store current dimensions
-        double currentWidth = stage.getWidth();
-        double currentHeight = stage.getHeight();
-        
-        // Calculate required height based on number of servers
-        int serverCount = serverListView.getItems().size();
-        double listItemHeight = 24; // Approximate height per list item
-        double listPadding = 40; // Padding and borders
-        double requiredListHeight = Math.min(serverCount * listItemHeight + listPadding, 150); // Cap at 150px
-        
-        // Calculate new window height (add extra space for the list)
-        double additionalHeight = requiredListHeight + 20; // Extra margin
-        double newHeight = Math.max(currentHeight + additionalHeight, 500); // Minimum height of 500
-        
-        // Smoothly resize the window
-        stage.setHeight(newHeight);
-        
-        // Center the window on screen after resize
-        stage.centerOnScreen();
+        Scene scene = darkModeToggle.getScene();
+        if (scene != null) {
+            if (enabled) {
+                if (!scene.getRoot().getStyleClass().contains("dark-mode")) {
+                    scene.getRoot().getStyleClass().add("dark-mode");
+                }
+            } else {
+                scene.getRoot().getStyleClass().remove("dark-mode");
+            }
+        }
+        updateDarkModeIcon(enabled);
     }
+
+    private void updateDarkModeIcon(boolean isDark) {
+        if (darkModeIcon != null) {
+            String imagePath = isDark ? "/com/bakbak/javafx_proj_1_2/icons/night2.png" : "/com/bakbak/javafx_proj_1_2/icons/sun.png";
+            try {
+                darkModeIcon.setImage(new Image(getClass().getResourceAsStream(imagePath)));
+            } catch (Exception e) {
+                System.err.println("Failed to update dark mode icon: " + e.getMessage());
+            }
+        }
+    }
+
+
 }
