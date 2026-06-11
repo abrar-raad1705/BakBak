@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <SplitPane dividerPositions="0.4022531477799867" orientation="HORIZONTAL" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bakbak.javafx_proj_1_2.controller.ChatController">
@@ -62,7 +63,7 @@
    </VBox>
 
    <!-- Main Chat Area -->
-   <BorderPane styleClass="mainChatArea">
+   <BorderPane fx:id="mainChatArea" styleClass="mainChatArea">
       <!-- Chat Header -->
       <top>
          <VBox fx:id="chatHeader" alignment="CENTER_LEFT">
@@ -89,11 +90,13 @@
 
       <!-- Messages Area -->
       <center>
-         <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
-            <content>
-               <VBox fx:id="messagesContainer" spacing="8" style="-fx-padding: 20;" />
-            </content>
-         </ScrollPane>
+         <StackPane fx:id="chatAreaStack">
+            <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+               <content>
+                  <VBox fx:id="messagesContainer" spacing="8" style="-fx-padding: 20;" />
+               </content>
+            </ScrollPane>
+         </StackPane>
       </center>
 
       <!-- Message Input -->

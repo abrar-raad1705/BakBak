@@ -142,6 +142,7 @@ public class ClientHandler implements Runnable {
 
             // Send blocked users list immediately after login
             sendBlockedUsersList(username);
+            sendBlockedByUsersList(username);
 
             sendOfflineMessages(username, messageStore);
         } else {
@@ -222,6 +223,7 @@ public class ClientHandler implements Runnable {
             String newGroupName = content.substring("CHANGE_GROUP_NAME:".length());
             Group group = groupManager.getGroup(groupId);
             if (group != null) {
+                String oldGroupName = group.getGroupName();
                 group.setGroupName(newGroupName);
                 groupManager.saveGroups(); // Persist the change
 
@@ -236,6 +238,9 @@ public class ClientHandler implements Runnable {
                         }
                     }
                 }
+                
+                // Log name change event!
+                logAndBroadcastGroupEvent(groupId, username + " changed the group name from \"" + oldGroupName + "\" to \"" + newGroupName + "\"", groupManager);
             }
             return; // Do not treat as a normal group message
         }
@@ -335,6 +340,7 @@ public class ClientHandler implements Runnable {
                 if (!memberName.isEmpty() && !memberName.equals(username)) {
                     groupManager.joinGroup(groupId, memberName);
                     System.out.println("Added " + memberName + " to group " + groupName);
+                    logAndBroadcastGroupEvent(groupId, username + " added " + memberName + " to the group", groupManager);
                 }
             }
         }
@@ -361,6 +367,9 @@ public class ClientHandler implements Runnable {
                     }
                 }
             }
+            
+            // Log creation event!
+            logAndBroadcastGroupEvent(groupId, username + " created the group \"" + groupName + "\"", groupManager);
         }
     }
 
@@ -402,18 +411,30 @@ public class ClientHandler implements Runnable {
         sendMessage(response);
         
         // If successful and adding another user, notify that user about the new group
-        if (success && !userToAdd.equals(username)) {
+        if (success) {
             Group group = groupManager.getGroup(groupId);
             if (group != null) {
                 UserManager userManager = UserManager.getInstance();
-                if (userManager.isUserOnline(userToAdd)) {
-                    ClientHandler memberHandler = userManager.getClientHandler(userToAdd);
-                    if (memberHandler != null) {
-                        // Send group notification to the newly added member
-                        Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
-                        groupNotification.setContent("GROUP_ADDED:" + group.getGroupName() + "|" + groupId + "|" + group.getCreator());
-                        memberHandler.sendMessage(groupNotification);
+                if (!userToAdd.equals(username)) {
+                    if (userManager.isUserOnline(userToAdd)) {
+                        ClientHandler memberHandler = userManager.getClientHandler(userToAdd);
+                        if (memberHandler != null) {
+                            // Send group notification to the newly added member
+                            Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                            groupNotification.setContent("GROUP_ADDED:" + group.getGroupName() + "|" + groupId + "|" + group.getCreator());
+                            memberHandler.sendMessage(groupNotification);
+                        }
                     }
+                }
+                
+                // Notify all group members to refresh group info
+                notifyGroupMembersOfChange(groupId, groupManager);
+                
+                // Log join/add event!
+                if (userToAdd.equals(username)) {
+                    logAndBroadcastGroupEvent(groupId, username + " joined the group", groupManager);
+                } else {
+                    logAndBroadcastGroupEvent(groupId, username + " added " + userToAdd + " to the group", groupManager);
                 }
             }
         }
@@ -441,12 +462,43 @@ public class ClientHandler implements Runnable {
         }
 
         // Regular user leaving the group
+        Group group = groupManager.getGroup(groupId);
+        Set<String> membersBeforeLeave = group != null ? new java.util.HashSet<>(group.getMembers()) : null;
+
         boolean success = groupManager.leaveGroup(groupId, username);
 
         Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
         response.setSuccess(success);
         response.setContent(success ? "Left group successfully" : "Failed to leave group");
         sendMessage(response);
+
+        if (success && membersBeforeLeave != null) {
+            // Log leave event to other members
+            Message eventMessage = new Message(Message.MessageType.GROUP_MESSAGE, "System");
+            eventMessage.setGroupId(groupId);
+            eventMessage.setContent(username + " left the group");
+            eventMessage.setTimestamp(java.time.LocalDateTime.now());
+            
+            Group currentGroup = groupManager.getGroup(groupId);
+            if (currentGroup != null) {
+                MessageStore.getInstance().storeGroupMessage(eventMessage, currentGroup.getMembers());
+                
+                // Broadcast to online current members
+                UserManager userManager = UserManager.getInstance();
+                for (String member : currentGroup.getMembers()) {
+                    if (userManager.isUserOnline(member)) {
+                        ClientHandler memberHandler = userManager.getClientHandler(member);
+                        if (memberHandler != null) {
+                            memberHandler.sendMessage(eventMessage);
+                        }
+                    } else {
+                        MessageStore.getInstance().queueOfflineMessage(member, eventMessage);
+                    }
+                }
+                
+                notifyGroupMembersOfChange(groupId, groupManager);
+            }
+        }
     }
     
     private void handlePromoteAdmin(Message message, GroupManager groupManager) {
@@ -457,6 +509,7 @@ public class ClientHandler implements Runnable {
         boolean success = groupManager.promoteToAdmin(groupId, requestingUser, targetUser);
         if (success) {
             notifyGroupMembersOfChange(groupId, groupManager);
+            logAndBroadcastGroupEvent(groupId, requestingUser + " promoted " + targetUser + " to admin", groupManager);
         }
     }
 
@@ -468,6 +521,7 @@ public class ClientHandler implements Runnable {
         boolean success = groupManager.demoteAdmin(groupId, requestingUser, targetUser);
         if (success) {
             notifyGroupMembersOfChange(groupId, groupManager);
+            logAndBroadcastGroupEvent(groupId, requestingUser + " demoted " + targetUser + " to member", groupManager);
         }
     }
 
@@ -476,19 +530,45 @@ public class ClientHandler implements Runnable {
         String requestingUser = message.getSender();
         String targetUser = message.getRecipient();
 
-        boolean success = groupManager.removeMember(groupId, requestingUser, targetUser);
-        if (success) {
-            notifyGroupMembersOfChange(groupId, groupManager);
-            
-            // Also notify the removed user that they've been removed
-            UserManager userManager = UserManager.getInstance();
-            if (userManager.isUserOnline(targetUser)) {
-                ClientHandler removedUserHandler = userManager.getClientHandler(targetUser);
-                if (removedUserHandler != null) {
-                    Group group = groupManager.getGroup(groupId);
-                    Message removalNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
-                    removalNotification.setContent("REMOVED_FROM_GROUP:" + group.getGroupName() + "|" + groupId);
-                    removedUserHandler.sendMessage(removalNotification);
+        Group group = groupManager.getGroup(groupId);
+        if (group != null) {
+            boolean success = groupManager.removeMember(groupId, requestingUser, targetUser);
+            if (success) {
+                // Log event to other members
+                Message eventMessage = new Message(Message.MessageType.GROUP_MESSAGE, "System");
+                eventMessage.setGroupId(groupId);
+                eventMessage.setContent(requestingUser + " removed " + targetUser + " from the group");
+                eventMessage.setTimestamp(java.time.LocalDateTime.now());
+                
+                Group currentGroup = groupManager.getGroup(groupId);
+                if (currentGroup != null) {
+                    MessageStore.getInstance().storeGroupMessage(eventMessage, currentGroup.getMembers());
+                    
+                    // Broadcast to online members
+                    UserManager userManager = UserManager.getInstance();
+                    for (String member : currentGroup.getMembers()) {
+                        if (userManager.isUserOnline(member)) {
+                            ClientHandler memberHandler = userManager.getClientHandler(member);
+                            if (memberHandler != null) {
+                                memberHandler.sendMessage(eventMessage);
+                            }
+                        } else {
+                            MessageStore.getInstance().queueOfflineMessage(member, eventMessage);
+                        }
+                    }
+                }
+                
+                notifyGroupMembersOfChange(groupId, groupManager);
+                
+                // Also notify the removed user that they've been removed
+                UserManager userManager = UserManager.getInstance();
+                if (userManager.isUserOnline(targetUser)) {
+                    ClientHandler removedUserHandler = userManager.getClientHandler(targetUser);
+                    if (removedUserHandler != null) {
+                        Message removalNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                        removalNotification.setContent("REMOVED_FROM_GROUP:" + group.getGroupName() + "|" + groupId);
+                        removedUserHandler.sendMessage(removalNotification);
+                    }
                 }
             }
         }
@@ -502,9 +582,36 @@ public class ClientHandler implements Runnable {
                 if (userManager.isUserOnline(member)) {
                     ClientHandler memberHandler = userManager.getClientHandler(member);
                     if (memberHandler != null) {
-                        sendDetailedGroupInfo(group, groupManager);
+                        memberHandler.sendDetailedGroupInfo(group, groupManager);
                     }
                 }
+            }
+        }
+    }
+
+    private void logAndBroadcastGroupEvent(String groupId, String content, GroupManager groupManager) {
+        Group group = groupManager.getGroup(groupId);
+        if (group == null) return;
+
+        // Create a system message manually
+        Message eventMessage = new Message(Message.MessageType.GROUP_MESSAGE, "System");
+        eventMessage.setGroupId(groupId);
+        eventMessage.setContent(content);
+        eventMessage.setTimestamp(java.time.LocalDateTime.now());
+
+        // Store group message for all members in MessageStore
+        MessageStore.getInstance().storeGroupMessage(eventMessage, group.getMembers());
+
+        // Broadcast to online members, queue for offline members
+        UserManager userManager = UserManager.getInstance();
+        for (String member : group.getMembers()) {
+            if (userManager.isUserOnline(member)) {
+                ClientHandler memberHandler = userManager.getClientHandler(member);
+                if (memberHandler != null) {
+                    memberHandler.sendMessage(eventMessage);
+                }
+            } else {
+                MessageStore.getInstance().queueOfflineMessage(member, eventMessage);
             }
         }
     }
@@ -726,8 +833,29 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void sendBlockedByUsersList(String username) {
+        UserManager userManager = UserManager.getInstance();
+        List<String> blockers = new java.util.ArrayList<>();
+        for (String otherUser : userManager.getAllUsers()) {
+            User u = userManager.getUser(otherUser);
+            if (u != null && u.isUserBlocked(username)) {
+                blockers.add(otherUser);
+            }
+        }
+        if (!blockers.isEmpty()) {
+            Message msg = new Message(Message.MessageType.BLOCKED_BY_USER, "SERVER");
+            msg.setContent(String.join(",", blockers));
+            sendMessage(msg);
+        }
+    }
+
     private void handleBlockUser(Message message, UserManager userManager) {
         String userToBlock = message.getRecipient();
+        if ("GET_LISTS".equals(userToBlock)) {
+            sendBlockedUsersList(username);
+            sendBlockedByUsersList(username);
+            return;
+        }
         User user = userManager.getUser(username);
         if (user != null && userToBlock != null && !userToBlock.isEmpty()) {
             user.blockUser(userToBlock);
@@ -736,11 +864,26 @@ public class ClientHandler implements Runnable {
             // Send updated list back to the blocker client
             sendBlockedUsersList(username);
             System.out.println("User " + username + " blocked " + userToBlock);
+
+            // Notify the blocked user in real-time
+            if (userManager.isUserOnline(userToBlock)) {
+                ClientHandler blockedHandler = userManager.getClientHandler(userToBlock);
+                if (blockedHandler != null) {
+                    Message blockNotification = new Message(Message.MessageType.BLOCKED_BY_USER, username);
+                    blockNotification.setRecipient(userToBlock);
+                    blockedHandler.sendMessage(blockNotification);
+                }
+            }
         }
     }
 
     private void handleUnblockUser(Message message, UserManager userManager) {
         String userToUnblock = message.getRecipient();
+        if ("GET_LISTS".equals(userToUnblock)) {
+            sendBlockedUsersList(username);
+            sendBlockedByUsersList(username);
+            return;
+        }
         User user = userManager.getUser(username);
         if (user != null && userToUnblock != null && !userToUnblock.isEmpty()) {
             user.unblockUser(userToUnblock);
@@ -749,6 +892,16 @@ public class ClientHandler implements Runnable {
             // Send updated list back to the blocker client
             sendBlockedUsersList(username);
             System.out.println("User " + username + " unblocked " + userToUnblock);
+
+            // Notify the unblocked user in real-time
+            if (userManager.isUserOnline(userToUnblock)) {
+                ClientHandler blockedHandler = userManager.getClientHandler(userToUnblock);
+                if (blockedHandler != null) {
+                    Message unblockNotification = new Message(Message.MessageType.UNBLOCKED_BY_USER, username);
+                    unblockNotification.setRecipient(userToUnblock);
+                    blockedHandler.sendMessage(unblockNotification);
+                }
+            }
         }
     }
 

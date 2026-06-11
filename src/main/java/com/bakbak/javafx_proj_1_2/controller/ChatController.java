@@ -165,6 +165,10 @@ public class ChatController implements Initializable {
     @FXML
     private HBox messageInputArea;
     @FXML
+    private BorderPane mainChatArea;
+    @FXML
+    private StackPane chatAreaStack;
+    @FXML
     private Button fileButton;
     @FXML
     private Button voiceButton;
@@ -177,10 +181,32 @@ public class ChatController implements Initializable {
     private Set<String> onlineUsers = new HashSet<>();
     private Map<String, String> userGroups = new HashMap<>(); // groupId -> groupName
     private Map<String, ChatItem> allChatItems = new HashMap<>();
+    private final Map<String, List<Message>> pendingGroupMessages = new HashMap<>();
     private CompletableFuture<Message> pendingResponse;
     private Timeline lastSeenUpdateTimer;
     private String lastMessageSender = null; // Track last sender for message grouping
     private Set<String> blockedUsers = new HashSet<>();
+    private Set<String> blockedByUsers = new HashSet<>();
+
+    private boolean isBlockedByUser(String name) {
+        if (name == null) return false;
+        for (String u : blockedByUsers) {
+            if (name.equalsIgnoreCase(u)) return true;
+        }
+        return false;
+    }
+
+    private boolean isUserBlockedByMe(String name) {
+        if (name == null) return false;
+        for (String u : blockedUsers) {
+            if (name.equalsIgnoreCase(u)) return true;
+        }
+        return false;
+    }
+    private VBox activeOptionsPanel = null;
+    private Region activeDismissOverlay = null;
+    private VBox activeEmojiPanel = null;
+    private Region activeEmojiDismissOverlay = null;
     private ListView<HBox> managementMemberListView;
     private ChatItem managementGroupItem;
     private final Map<String, String> unicodeToFilename = new HashMap<>();
@@ -364,7 +390,11 @@ public class ChatController implements Initializable {
 
                 // Draw background/highlight if hovered
                 if (emoji == hoveredEmoji) {
-                    gc.setFill(javafx.scene.paint.Color.valueOf("#f0f0f0"));
+                    if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled()) {
+                        gc.setFill(javafx.scene.paint.Color.valueOf("#2b5278"));
+                    } else {
+                        gc.setFill(javafx.scene.paint.Color.valueOf("#f0f0f0"));
+                    }
                     gc.fillRoundRect(x, y, emojiSize, emojiSize, 6, 6);
                 }
 
@@ -624,9 +654,6 @@ public class ChatController implements Initializable {
         sendButton.setDisable(true);
         fileButton.setDisable(true);
 
-        // Setup unified progress bar below chat header
-        setupUnifiedProgressBar();
-
         // Setup hover effects for icon buttons
         setupIconButtonHoverEffects();
 
@@ -875,8 +902,7 @@ public class ChatController implements Initializable {
                                                 || baseName.equals("send")
                                                 || baseName.equals("play")
                                                 || baseName.equals("pause")
-                                                || baseName.equals("symbols")
-                                                || baseName.equals("file_icon");
+                                                || baseName.equals("symbols");
                                 
                                 if (isUIIcon) {
                                     if (isDarkMode) {
@@ -943,6 +969,12 @@ public class ChatController implements Initializable {
                     break;
                 case BLOCK_USER:
                     handleBlockedUsersList(message);
+                    break;
+                case BLOCKED_BY_USER:
+                    handleBlockedByUsersMessage(message);
+                    break;
+                case UNBLOCKED_BY_USER:
+                    handleUnblockedByUsersMessage(message);
                     break;
                 case PRIVATE_MESSAGE:
                     handleIncomingPrivateMessage(message);
@@ -1017,6 +1049,8 @@ public class ChatController implements Initializable {
                         String processedContent = convertEmojiPlaceholdersToDisplay(messageContent);
                         if (sender.equals(currentUsername)) {
                             displayMessage = "You: " + processedContent;
+                        } else if ("System".equals(sender)) {
+                            displayMessage = processedContent;
                         } else {
                             displayMessage = sender + ": " + processedContent;
                         }
@@ -1269,6 +1303,14 @@ public class ChatController implements Initializable {
 
                         // Request detailed info for this group
                         requestDetailedGroupInfo(groupId);
+
+                        // Process any pending messages for this group that arrived before group list was loaded
+                        List<Message> pending = pendingGroupMessages.remove(groupId);
+                        if (pending != null) {
+                            for (Message pendingMsg : pending) {
+                                handleIncomingGroupMessage(pendingMsg);
+                            }
+                        }
                     }
                 }
             }
@@ -1392,10 +1434,20 @@ public class ChatController implements Initializable {
             ChatItem groupItem = new ChatItem(groupName, ChatItem.Type.GROUP, true);
             groupItem.setGroupId(groupId);
             groupItem.setGroupCreator(creator);
+            groupItem.setLastMessage("👥 Group created", LocalDateTime.now());
+            groupItem.setHasUnreadMessages(true);
             allChatItems.put(groupName, groupItem);
 
             // Request detailed group information
             requestDetailedGroupInfo(groupId);
+
+            // Process any pending messages for this group that arrived before group list was loaded
+            List<Message> pending = pendingGroupMessages.remove(groupId);
+            if (pending != null) {
+                for (Message pendingMsg : pending) {
+                    handleIncomingGroupMessage(pendingMsg);
+                }
+            }
 
             updateChatList();
         }
@@ -1560,11 +1612,33 @@ public class ChatController implements Initializable {
     }
 
     private void selectChat(ChatItem chatItem) {
+        if (isRecording) {
+            cancelRecording();
+        }
         selectedChat = chatItem;
+        closeOptionsPanel();
+        closeEmojiPanel();
 
         // Make chat header and input visible
         chatHeader.setVisible(true);
-        messageInputArea.setVisible(true);
+
+        if (chatItem.getType() == ChatItem.Type.USER && isUserBlockedByMe(chatItem.getName())) {
+            HBox unblockBar = createUnblockBar(chatItem.getName());
+            if (mainChatArea != null) {
+                mainChatArea.setBottom(unblockBar);
+            }
+        } else if (chatItem.getType() == ChatItem.Type.USER && isBlockedByUser(chatItem.getName())) {
+            HBox blockedBanner = createBlockedBanner(chatItem.getName());
+            if (mainChatArea != null) {
+                mainChatArea.setBottom(blockedBanner);
+            }
+        } else {
+            if (mainChatArea != null) {
+                mainChatArea.setBottom(messageInputArea);
+            }
+            messageInputArea.setVisible(true);
+            messageInputArea.setManaged(true);
+        }
 
         // Reset last message sender for proper grouping in new chat
         lastMessageSender = null;
@@ -1855,6 +1929,9 @@ public class ChatController implements Initializable {
 
         // Hide chat-specific controls
         chatHeader.setVisible(false);
+        if (mainChatArea != null) {
+            mainChatArea.setBottom(messageInputArea);
+        }
         messageInputArea.setVisible(false);
 
         Label selectLabel = new Label("Select a chat to start messaging");
@@ -1901,6 +1978,15 @@ public class ChatController implements Initializable {
         String messageText = messageInput.getText().trim();
         if (messageText.isEmpty() || selectedChat == null)
             return;
+
+        if (selectedChat.getType() == ChatItem.Type.USER && isBlockedByUser(selectedChat.getName())) {
+            showAlert("Blocked", "You cannot send messages to this user because they have blocked you.");
+            return;
+        }
+        if (selectedChat.getType() == ChatItem.Type.USER && isUserBlockedByMe(selectedChat.getName())) {
+            showAlert("Blocked", "You have blocked this user. Please unblock them to send messages.");
+            return;
+        }
 
         // Convert Unicode emojis back to [EMOJI:filename] placeholders for the server
         messageText = convertUnicodeToEmojiPlaceholders(messageText);
@@ -1980,6 +2066,29 @@ public class ChatController implements Initializable {
 
     private void addMessageToUI(Message message, boolean isSentByMe) {
         removeSkeletonLoading();
+        if ("System".equals(message.getSender())) {
+            HBox centerRow = new HBox();
+            centerRow.setAlignment(Pos.CENTER);
+            centerRow.setPadding(new Insets(6, 10, 6, 10));
+            
+            Label systemLabel = new Label(message.getContent());
+            systemLabel.getStyleClass().add("system-message-label");
+            
+            centerRow.getChildren().add(systemLabel);
+            messagesContainer.getChildren().add(centerRow);
+            
+            if (scrollDebouncer != null) {
+                scrollDebouncer.stop();
+            }
+            scrollDebouncer = new PauseTransition(Duration.millis(50));
+            scrollDebouncer.setOnFinished(e -> {
+                chatScrollPane.layout();
+                chatScrollPane.setVvalue(1.0);
+            });
+            scrollDebouncer.play();
+            return;
+        }
+
         VBox fullMessageContainer = new VBox();
         fullMessageContainer.setSpacing(2);
         fullMessageContainer.setPadding(new Insets(2, 10, 2, 10));
@@ -2013,8 +2122,14 @@ public class ChatController implements Initializable {
 
         if (message.getType() == Message.MessageType.FILE_MESSAGE && message.getFileMessageData() != null) {
             FileMessageData fileData = message.getFileMessageData();
-            VBox fileBox = new VBox(6);
-            fileBox.getStyleClass().add("file-message-box");
+            if (isVoiceMessage(fileData)) {
+                Node audioPlayer = createAudioPreview(fileData);
+                messageContent.getChildren().add(audioPlayer);
+                messageContent.setMaxWidth(270);
+                messageContent.setPrefWidth(270);
+            } else {
+                VBox fileBox = new VBox(6);
+                fileBox.getStyleClass().add("file-message-box");
 
             // Standard file message styling for all file types (including images)
             fileBox.setPadding(new Insets(8));
@@ -2038,24 +2153,14 @@ public class ChatController implements Initializable {
             ImageView fileIcon = new ImageView(loadResourceImage(iconPath));
             fileIcon.setFitWidth(32);
             fileIcon.setFitHeight(32);
-            if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled() && iconPath.endsWith("/file_icon.png")) {
-                javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
-                ca.setBrightness(0.9);
-                fileIcon.setEffect(ca);
-            }
+            // Let the generic file icon render with its original details (light-grey fill, dark outline)
+            // which is highly visible on both light and dark backgrounds.
 
             fileIconStacks.put(fileData.getUuidName(), iconStack);
             fileIconImageViews.put(fileData.getUuidName(), fileIcon);
 
             boolean isSending = activeSendingFileIds.contains(fileData.getUuidName());
-
-            if (isSending) {
-                CircularProgressRing progressIndicator = new CircularProgressRing();
-                activeSendProgressIndicators.put(fileData.getUuidName(), progressIndicator);
-                iconStack.getChildren().add(progressIndicator);
-            } else {
-                iconStack.getChildren().add(fileIcon);
-            }
+            boolean isDownloading = activeDownloadingFileIds.contains(fileData.getUuidName());
 
             VBox fileDetails = new VBox(2);
 
@@ -2083,17 +2188,27 @@ public class ChatController implements Initializable {
             Button downloadButton = new Button("Download");
             downloadButton.getStyleClass().add("download-button");
             downloadButton.setOnAction(e -> downloadFile(fileData));
-            downloadButton.setDisable(isSending);
 
             Button openButton = new Button("Open");
             openButton.getStyleClass().add("open-button");
             openButton.setOnAction(e -> openFile(fileData));
-            openButton.setDisable(isSending);
 
-            if (isSending) {
-                fileDownloadButtons.put(fileData.getUuidName(), downloadButton);
-                fileOpenButtons.put(fileData.getUuidName(), openButton);
+            if (isSending || isDownloading) {
+                CircularProgressRing progressIndicator = new CircularProgressRing();
+                if (isSending) {
+                    activeSendProgressIndicators.put(fileData.getUuidName(), progressIndicator);
+                } else {
+                    activeDownloadProgressIndicators.put(fileData.getUuidName(), progressIndicator);
+                }
+                iconStack.getChildren().add(progressIndicator);
+                downloadButton.setDisable(true);
+                openButton.setDisable(true);
+            } else {
+                iconStack.getChildren().add(fileIcon);
             }
+
+            fileDownloadButtons.put(fileData.getUuidName(), downloadButton);
+            fileOpenButtons.put(fileData.getUuidName(), openButton);
 
             HBox buttonContainer = new HBox(6);
             buttonContainer.setAlignment(Pos.CENTER_RIGHT);
@@ -2106,6 +2221,7 @@ public class ChatController implements Initializable {
             fileBox.getChildren().add(compactInfoSection);
 
             messageContent.getChildren().add(fileBox);
+            }
 
         } else {
             // Create TextFlow with mixed text and emoji content
@@ -2544,6 +2660,11 @@ public class ChatController implements Initializable {
             }
         }
 
+        if (groupItem == null) {
+            pendingGroupMessages.computeIfAbsent(groupId, k -> new java.util.ArrayList<>()).add(message);
+            return;
+        }
+
         if (groupItem != null) {
             String sender = message.getSender();
             String displayMessage;
@@ -2557,6 +2678,8 @@ public class ChatController implements Initializable {
 
             if (sender.equals(currentUsername)) {
                 displayMessage = "You: " + displayMessage;
+            } else if ("System".equals(sender)) {
+                // Keep the displayMessage as is (no prefix)
             } else {
                 displayMessage = sender + ": " + displayMessage;
             }
@@ -2619,63 +2742,212 @@ public class ChatController implements Initializable {
     }
 
     private void showGroupCreationWorkflow() {
-        // Create a custom dialog for group creation
         Stage dialogStage = new Stage();
         dialogStage.initModality(Modality.APPLICATION_MODAL);
         dialogStage.setTitle("Create New Group");
         dialogStage.setResizable(false);
 
-        VBox mainContainer = new VBox(20);
-        mainContainer.setPadding(new Insets(25));
-        mainContainer.setPrefSize(400, 200);
-        mainContainer.getStyleClass().add("group-creation-dialog");
+        VBox root = new VBox(10);
+        root.setPrefSize(450, 580);
+        root.getStyleClass().add("group-creation-root");
+        if (darkModeToggle != null && darkModeToggle.isSelected()) {
+            root.getStyleClass().add("dark-mode");
+        }
 
-        // Group name input
+        StackPane pagesContainer = new StackPane();
+        pagesContainer.setPrefHeight(500);
+
+        // Page Indicator Dots
+        HBox indicators = new HBox(8);
+        indicators.setAlignment(Pos.CENTER);
+        indicators.setPadding(new Insets(0, 0, 20, 0));
+        Circle dot1 = new Circle(4, Color.web("#3390ec"));
+        Circle dot2 = new Circle(4, Color.web("#9baab8"));
+        indicators.getChildren().addAll(dot1, dot2);
+
+        // --- PAGE 1: GROUP NAME ---
+        VBox page1 = new VBox(20);
+        page1.setPadding(new Insets(25));
+        page1.getStyleClass().add("group-creation-page");
+
+        Label titleLabel1 = new Label("Create New Group");
+        titleLabel1.getStyleClass().add("dialog-header");
+        
+        Label subLabel1 = new Label("Step 1: Choose a name for your group");
+        subLabel1.getStyleClass().add("dialog-subheader");
+        subLabel1.setStyle("-fx-text-fill: #6b7c93; -fx-font-size: 13.5px; -fx-font-family: 'Inter';");
+
         Label nameLabel = new Label("Group Name:");
         nameLabel.getStyleClass().add("dialog-label");
 
         TextField nameField = new TextField();
         nameField.setPromptText("Enter group name...");
-        nameField.setPrefHeight(35);
+        nameField.setPrefHeight(40);
         nameField.getStyleClass().add("dialog-text-field");
 
-        // Buttons
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        Region spacer1 = new Region();
+        VBox.setVgrow(spacer1, Priority.ALWAYS);
 
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefWidth(80);
-        cancelButton.getStyleClass().add("dialog-cancel-button");
-        cancelButton.setOnAction(e -> dialogStage.close());
+        HBox buttonBox1 = new HBox(15);
+        buttonBox1.setAlignment(Pos.CENTER_RIGHT);
 
-        Button createButton = new Button("Create");
-        createButton.setPrefWidth(80);
-        createButton.getStyleClass().add("dialog-create-button");
-        createButton.setOnAction(e -> {
-            String groupName = nameField.getText().trim();
-            if (!groupName.isEmpty()) {
-                dialogStage.close();
-                showMemberSelectionPopup(groupName, false, null);
+        Button cancelButton1 = new Button("Cancel");
+        cancelButton1.setPrefWidth(100);
+        cancelButton1.getStyleClass().add("dialog-cancel-button");
+        cancelButton1.setOnAction(e -> dialogStage.close());
+
+        Button nextButton = new Button("Next  →");
+        nextButton.setPrefWidth(100);
+        nextButton.getStyleClass().add("dialog-create-button");
+
+        buttonBox1.getChildren().addAll(cancelButton1, nextButton);
+        page1.getChildren().addAll(titleLabel1, subLabel1, nameLabel, nameField, spacer1, buttonBox1);
+
+        // --- PAGE 2: MEMBER SELECTION ---
+        VBox page2 = new VBox(20);
+        page2.setPadding(new Insets(25));
+        page2.getStyleClass().add("group-creation-page");
+        page2.setVisible(false);
+
+        Label titleLabel2 = new Label("Select Members");
+        titleLabel2.getStyleClass().add("dialog-header");
+
+        Label subLabel2 = new Label("Step 2: Choose members to add");
+        subLabel2.getStyleClass().add("dialog-subheader");
+        subLabel2.setStyle("-fx-text-fill: #6b7c93; -fx-font-size: 13.5px; -fx-font-family: 'Inter';");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search contacts...");
+        searchField.setPrefHeight(40);
+        searchField.getStyleClass().add("member-selection-search-field");
+
+        ListView<CheckBox> contactListView = new ListView<>();
+        contactListView.setPrefHeight(280);
+
+        ObservableList<CheckBox> contactCheckBoxes = FXCollections.observableArrayList();
+        for (ChatItem item : allChatItems.values()) {
+            if (item.getType() == ChatItem.Type.USER) {
+                String contactName = item.getName();
+                if (!contactName.equals(currentUsername)) {
+                    CheckBox contactCheckBox = new CheckBox(contactName);
+                    contactCheckBox.getStyleClass().add("member-selection-checkbox");
+                    contactCheckBoxes.add(contactCheckBox);
+                }
+            }
+        }
+        contactListView.setItems(contactCheckBoxes);
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.trim().isEmpty()) {
+                contactListView.setItems(contactCheckBoxes);
+            } else {
+                String searchText = newValue.toLowerCase();
+                ObservableList<CheckBox> filteredList = FXCollections.observableArrayList();
+                for (CheckBox checkBox : contactCheckBoxes) {
+                    if (checkBox.getText().toLowerCase().contains(searchText)) {
+                        filteredList.add(checkBox);
+                    }
+                }
+                contactListView.setItems(filteredList);
             }
         });
 
-        buttonBox.getChildren().addAll(cancelButton, createButton);
+        Region spacer2 = new Region();
+        VBox.setVgrow(spacer2, Priority.ALWAYS);
 
-        mainContainer.getChildren().addAll(nameLabel, nameField, buttonBox);
+        HBox buttonBox2 = new HBox(15);
+        buttonBox2.setAlignment(Pos.CENTER_RIGHT);
 
-        Scene dialogScene = new Scene(mainContainer);
+        Button backButton = new Button("←  Back");
+        backButton.setPrefWidth(100);
+        backButton.getStyleClass().add("dialog-cancel-button");
+
+        Button createButton = new Button("Create Group");
+        createButton.setPrefWidth(120);
+        createButton.getStyleClass().add("dialog-create-button");
+
+        buttonBox2.getChildren().addAll(backButton, createButton);
+        page2.getChildren().addAll(titleLabel2, subLabel2, searchField, contactListView, spacer2, buttonBox2);
+
+        // Add both pages to stack
+        pagesContainer.getChildren().addAll(page2, page1);
+
+        // Next Button Actions
+        nextButton.setOnAction(e -> {
+            String groupName = nameField.getText().trim();
+            if (!groupName.isEmpty()) {
+                slideTransition(page1, page2, true);
+                dot1.setFill(Color.web("#9baab8"));
+                dot2.setFill(Color.web("#3390ec"));
+            } else {
+                nameField.setStyle("-fx-border-color: #e06c75; -fx-border-width: 1px; -fx-border-radius: 4px;");
+            }
+        });
+
+        // Back Button Actions
+        backButton.setOnAction(e -> {
+            slideTransition(page2, page1, false);
+            dot1.setFill(Color.web("#3390ec"));
+            dot2.setFill(Color.web("#9baab8"));
+        });
+
+        // Create Button Action
+        createButton.setOnAction(e -> {
+            Set<String> selectedMembers = new HashSet<>();
+            for (CheckBox checkBox : contactCheckBoxes) {
+                if (checkBox.isSelected()) {
+                    selectedMembers.add(checkBox.getText());
+                }
+            }
+            createGroupWithMembers(nameField.getText().trim(), selectedMembers);
+            dialogStage.close();
+        });
+
+        root.getChildren().addAll(pagesContainer, indicators);
+
+        Scene dialogScene = new Scene(root);
         dialogScene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
         if (darkModeToggle != null && darkModeToggle.isSelected()) {
             dialogScene.getRoot().getStyleClass().add("dark-mode");
+            dialogScene.setFill(Color.web("#17212b"));
+        } else {
+            dialogScene.setFill(Color.WHITE);
         }
         dialogStage.setScene(dialogScene);
         dialogStage.showAndWait();
     }
 
+    private void slideTransition(Pane fromPage, Pane toPage, boolean forward) {
+        toPage.setVisible(true);
+
+        double width = 450;
+        double startXFrom = 0;
+        double endXFrom = forward ? -width : width;
+
+        double startXTo = forward ? width : -width;
+        double endXTo = 0;
+
+        fromPage.setTranslateX(startXFrom);
+        toPage.setTranslateX(startXTo);
+
+        TranslateTransition outTransition = new TranslateTransition(Duration.millis(250), fromPage);
+        outTransition.setToX(endXFrom);
+
+        TranslateTransition inTransition = new TranslateTransition(Duration.millis(250), toPage);
+        inTransition.setToX(endXTo);
+
+        ParallelTransition parallelTransition = new ParallelTransition(outTransition, inTransition);
+        parallelTransition.setOnFinished(e -> {
+            fromPage.setVisible(false);
+            fromPage.setTranslateX(0); // Reset
+        });
+        parallelTransition.play();
+    }
+
     private void showMemberSelectionPopup(String groupName, boolean isAddingMembers, String existingGroupId) {
         Stage memberSelectionStage = new Stage();
         memberSelectionStage.initModality(Modality.APPLICATION_MODAL);
-        memberSelectionStage.setTitle(isAddingMembers ? "Add Members" : "Select Members");
+        memberSelectionStage.setTitle("Add Members");
         memberSelectionStage.setResizable(false);
 
         VBox mainContainer = new VBox(20);
@@ -2683,25 +2955,19 @@ public class ChatController implements Initializable {
         mainContainer.setPrefSize(450, 550);
         mainContainer.getStyleClass().add("member-selection-dialog");
 
-        // Title (only shown when adding members to existing group)
         Label titleLabel = new Label("Add Members to Group");
         titleLabel.getStyleClass().add("dialog-header");
-        titleLabel.setVisible(isAddingMembers);
-        titleLabel.setManaged(isAddingMembers);
 
-        // Search field
         TextField searchField = new TextField();
         searchField.setPromptText("Search contacts...");
         searchField.setPrefHeight(40);
         searchField.getStyleClass().add("member-selection-search-field");
 
-        // Contact list with checkboxes
         ListView<CheckBox> contactListView = new ListView<>();
         contactListView.setPrefHeight(350);
 
-        // Load contacts into the list, excluding existing group members
         Set<String> existingMembers = new HashSet<>();
-        if (isAddingMembers && existingGroupId != null) {
+        if (existingGroupId != null) {
             for (ChatItem item : allChatItems.values()) {
                 if (item.getType() == ChatItem.Type.GROUP && existingGroupId.equals(item.getGroupId())) {
                     existingMembers.addAll(item.getGroupMembers());
@@ -2723,7 +2989,6 @@ public class ChatController implements Initializable {
         }
         contactListView.setItems(contactCheckBoxes);
 
-        // Search functionality
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.trim().isEmpty()) {
                 contactListView.setItems(contactCheckBoxes);
@@ -2739,7 +3004,6 @@ public class ChatController implements Initializable {
             }
         });
 
-        // Buttons
         HBox buttonBox = new HBox(15);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -2748,33 +3012,30 @@ public class ChatController implements Initializable {
         cancelButton.getStyleClass().add("dialog-cancel-button");
         cancelButton.setOnAction(e -> memberSelectionStage.close());
 
-        Button createButton = new Button(isAddingMembers ? "Add Members" : "Create Group");
-        createButton.setPrefWidth(120);
-        createButton.getStyleClass().add("dialog-create-button");
-        createButton.setOnAction(e -> {
+        Button addButton = new Button("Add Members");
+        addButton.setPrefWidth(120);
+        addButton.getStyleClass().add("dialog-create-button");
+        addButton.setOnAction(e -> {
             Set<String> selectedMembers = new HashSet<>();
             for (CheckBox checkBox : contactCheckBoxes) {
                 if (checkBox.isSelected()) {
                     selectedMembers.add(checkBox.getText());
                 }
             }
-
-            if (isAddingMembers) {
-                addMembersToGroup(existingGroupId, selectedMembers);
-            } else {
-                createGroupWithMembers(groupName, selectedMembers);
-            }
+            addMembersToGroup(existingGroupId, selectedMembers);
             memberSelectionStage.close();
         });
 
-        buttonBox.getChildren().addAll(cancelButton, createButton);
-
+        buttonBox.getChildren().addAll(cancelButton, addButton);
         mainContainer.getChildren().addAll(titleLabel, searchField, contactListView, buttonBox);
 
         Scene scene = new Scene(mainContainer);
         scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
         if (darkModeToggle != null && darkModeToggle.isSelected()) {
             scene.getRoot().getStyleClass().add("dark-mode");
+            scene.setFill(Color.web("#17212b"));
+        } else {
+            scene.setFill(Color.WHITE);
         }
         memberSelectionStage.setScene(scene);
         memberSelectionStage.show();
@@ -2870,6 +3131,15 @@ public class ChatController implements Initializable {
         // Now that username is set, load contacts from message history
         System.out.println("DEBUG: Username set to " + username + ", loading contacts...");
         loadContacts();
+
+        // Request blocked users and blockers list from server
+        try {
+            Message req = new Message(Message.MessageType.BLOCK_USER, currentUsername);
+            req.setRecipient("GET_LISTS");
+            chatClient.sendMessage(req);
+        } catch (IOException e) {
+            System.err.println("Failed to request block lists: " + e.getMessage());
+        }
     }
 
     // Inner classes for chat item management
@@ -3051,11 +3321,23 @@ public class ChatController implements Initializable {
             if (empty || item == null) {
                 setGraphic(null);
                 setContextMenu(null);
+                getStyleClass().remove("cell-unread");
             } else {
+                if (item.hasUnreadMessages()) {
+                    if (!getStyleClass().contains("cell-unread")) {
+                        getStyleClass().add("cell-unread");
+                    }
+                } else {
+                    getStyleClass().remove("cell-unread");
+                }
+
                 VBox content = new VBox();
                 content.setSpacing(3);
                 content.setPadding(new Insets(8, 10, 8, 10));
                 content.getStyleClass().add("contact-cell");
+                if (item.hasUnreadMessages()) {
+                    content.getStyleClass().add("contact-cell-unread");
+                }
 
                 HBox nameBox = new HBox();
                 nameBox.setAlignment(Pos.CENTER_LEFT);
@@ -3063,8 +3345,7 @@ public class ChatController implements Initializable {
 
                 Label nameLabel = new Label(item.getName());
                 nameLabel.getStyleClass().add("contact-name");
-                // Force font size to ensure it's applied
-                nameLabel.setStyle("-fx-font-family: 'Outfit', 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 16px; -fx-font-weight: 800;");
+                nameLabel.setStyle("");
                 if (!item.hasUnreadMessages()) {
                     nameLabel.getStyleClass().add("contact-name-normal");
                 }
@@ -3078,6 +3359,12 @@ public class ChatController implements Initializable {
                     if (item.isOnline()) {
                         Circle statusCircle = new Circle(4, Color.web("#a3be8c"));
                         nameBox.getChildren().add(statusCircle);
+                    }
+                    if (isUserBlockedByMe(item.getName())) {
+                        Label blockedBadge = new Label("🚫");
+                        blockedBadge.getStyleClass().add("blocked-indicator");
+                        blockedBadge.setStyle("-fx-text-fill: #e06c75; -fx-font-size: 14px;");
+                        nameBox.getChildren().add(blockedBadge);
                     }
                 }
 
@@ -3094,8 +3381,7 @@ public class ChatController implements Initializable {
                     Label messageLabel = new Label(item.getLastMessage());
                     messageLabel.getStyleClass()
                             .add(item.hasUnreadMessages() ? "contact-message-unread" : "contact-message");
-                    // Force font size to ensure it's applied
-                    messageLabel.setStyle("-fx-font-family: 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 13px;");
+                    messageLabel.setStyle("");
                     
                     // Set max width to ensure timestamp is always visible (reserve ~50px for timestamp)
                     messageLabel.setMaxWidth(150); // Reduced from unlimited to ensure timestamp space
@@ -3107,12 +3393,20 @@ public class ChatController implements Initializable {
 
                     Label timeLabel = new Label(item.getLastMessageTimestamp());
                     timeLabel.getStyleClass().add("contact-time");
-                    // Force font size to ensure it's applied
-                    timeLabel.setStyle("-fx-font-family: 'Inter', 'Segoe UI', sans-serif; -fx-font-size: 11.5px;");
+                    timeLabel.setStyle("");
                     timeLabel.setMinWidth(Region.USE_PREF_SIZE); // Prevent shrinking
                     timeLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
 
-                    messageBox.getChildren().addAll(messageLabel, spacer, timeLabel);
+                    if (item.hasUnreadMessages()) {
+                        Circle unreadDot = new Circle(4, Color.web("#3390ec"));
+                        unreadDot.getStyleClass().add("unread-indicator-dot");
+                        HBox rightSideBox = new HBox(5);
+                        rightSideBox.setAlignment(Pos.CENTER_RIGHT);
+                        rightSideBox.getChildren().addAll(timeLabel, unreadDot);
+                        messageBox.getChildren().addAll(messageLabel, spacer, rightSideBox);
+                    } else {
+                        messageBox.getChildren().addAll(messageLabel, spacer, timeLabel);
+                    }
                     content.getChildren().add(messageBox);
                 } else {
                     // Show "No messages yet" for contacts without messages
@@ -3136,21 +3430,26 @@ public class ChatController implements Initializable {
     // Emoji picker functionality
     @FXML
     private void handleEmojiPicker() {
-        showModernEmojiPicker();
+        if (activeEmojiPanel != null) {
+            closeEmojiPanel();
+        } else {
+            closeOptionsPanel();
+            showModernEmojiPicker();
+        }
     }
 
     private void showModernEmojiPicker() {
-        // Create main popup
-        Popup emojiPopup = new Popup();
-        emojiPopup.setAutoHide(false); // Prevent auto-hiding so multiple emojis can be selected
-        emojiPopup.setHideOnEscape(true); // Allow closing with Escape key
+        // Close if already open
+        if (activeEmojiPanel != null) {
+            closeEmojiPanel();
+            return;
+        }
 
         // Main container with modern styling
         VBox mainContainer = new VBox();
         mainContainer.setSpacing(0);
-        mainContainer.setPrefSize(390, 400); // Increased width to accommodate 6 categories
+        mainContainer.setPrefSize(390, 400); // Fixed size bounds
         mainContainer.getStyleClass().addAll("emoji-picker-popup", "modern-emoji-picker");
-        // Remove inline styles to allow CSS to control styling
 
         // Search bar
         TextField searchField = new TextField();
@@ -3224,7 +3523,7 @@ public class ChatController implements Initializable {
                     selectCategory("Smileys", categoryButtons, emojiCanvas);
                 } else {
                     // Show search results
-                    showSearchResults(newValue, emojiCanvas, emojiPopup);
+                    showSearchResults(newValue, emojiCanvas);
                 }
             }));
             searchDebouncer.play();
@@ -3233,48 +3532,62 @@ public class ChatController implements Initializable {
         // Add categories directly to the container for proper layout
         categoryContainer.getChildren().add(categoryTabs);
 
-        // Assemble popup
+        // Assemble panel content
         mainContainer.getChildren().addAll(searchField, categoryContainer, emojiScrollPane);
 
-        // Register the popup with the canvas for later access
-        emojiCanvas.setUserData(emojiPopup);
-        emojiPopup.getContent().add(mainContainer);
+        activeEmojiPanel = mainContainer;
 
-        // Add event filter to handle clicking outside the popup (since autoHide is
-        // disabled)
-        Scene scene = messageInput.getScene();
-        if (scene != null) {
-            // Create a event handler for mouse clicks outside the popup
-            javafx.event.EventHandler<MouseEvent> clickOutsideHandler = new javafx.event.EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if (emojiPopup.isShowing()) {
-                        Node content = emojiPopup.getContent().get(0);
-                        Bounds contentBounds = content.localToScreen(content.getBoundsInLocal());
+        // Position emoji panel at the bottom right of the messages area
+        mainContainer.setMinWidth(390);
+        mainContainer.setPrefWidth(390);
+        mainContainer.setMaxWidth(390);
+        mainContainer.setMinHeight(400);
+        mainContainer.setPrefHeight(400);
+        mainContainer.setMaxHeight(400);
+        StackPane.setAlignment(mainContainer, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(mainContainer, new Insets(0, 10, 10, 0));
 
-                        // If click is outside the popup's content bounds, hide it
-                        if (contentBounds == null ||
-                                event.getScreenX() < contentBounds.getMinX() ||
-                                event.getScreenX() > contentBounds.getMaxX() ||
-                                event.getScreenY() < contentBounds.getMinY() ||
-                                event.getScreenY() > contentBounds.getMaxY()) {
-                            emojiPopup.hide();
-                            scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this);
-                        }
-                    }
-                }
-            };
+        // Create transparent dismiss overlay to cover the chatAreaStack
+        activeEmojiDismissOverlay = new Region();
+        activeEmojiDismissOverlay.setStyle("-fx-background-color: transparent;");
+        activeEmojiDismissOverlay.setMaxWidth(Double.MAX_VALUE);
+        activeEmojiDismissOverlay.setMaxHeight(Double.MAX_VALUE);
+        activeEmojiDismissOverlay.setOnMouseClicked(e -> closeEmojiPanel());
 
-            scene.addEventFilter(MouseEvent.MOUSE_PRESSED, clickOutsideHandler);
+        // Keyboard support: Escape closes the picker
+        searchField.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                closeEmojiPanel();
+            }
+        });
+        mainContainer.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                closeEmojiPanel();
+            }
+        });
+
+        // Add to stack pane
+        if (chatAreaStack != null) {
+            chatAreaStack.getChildren().addAll(activeEmojiDismissOverlay, mainContainer);
         }
 
-        // Position popup
-        Button emojiButton = (Button) messageInput.getParent().lookup("#emojiButton");
-        if (emojiButton != null) {
-            emojiPopup.show(emojiButton,
-                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinX() - 50,
-                    emojiButton.localToScreen(emojiButton.getBoundsInLocal()).getMinY() - 410);
-        }
+        // Apply animations: slide up and fade in
+        mainContainer.setOpacity(0.0);
+        mainContainer.setTranslateY(30);
+
+        activeEmojiDismissOverlay.setOpacity(0.0);
+
+        FadeTransition fadeInOverlay = new FadeTransition(Duration.millis(250), activeEmojiDismissOverlay);
+        fadeInOverlay.setToValue(1.0);
+
+        FadeTransition fadeInPanel = new FadeTransition(Duration.millis(250), mainContainer);
+        fadeInPanel.setToValue(1.0);
+
+        TranslateTransition slideInPanel = new TranslateTransition(Duration.millis(250), mainContainer);
+        slideInPanel.setToY(0);
+
+        ParallelTransition openAnim = new ParallelTransition(fadeInOverlay, fadeInPanel, slideInPanel);
+        openAnim.play();
     }
 
     private Button createCategoryButton(String label, String category) {
@@ -3331,7 +3644,7 @@ public class ChatController implements Initializable {
         return emojiCategories.getOrDefault(category, new ArrayList<>());
     }
 
-    private void showSearchResults(String query, EmojiCanvas emojiCanvas, Popup popup) {
+    private void showSearchResults(String query, EmojiCanvas emojiCanvas) {
         List<EmojiData> searchResults = searchEmojis(query);
         // We need to choose an appropriate sprite sheet for the search results
         // Using a general category or "Smileys" as default
@@ -3484,64 +3797,103 @@ public class ChatController implements Initializable {
         if (selectedChat == null)
             return;
 
-        ContextMenu chatMenu = new ContextMenu();
+        if (activeOptionsPanel != null) {
+            closeOptionsPanel();
+            return;
+        }
+
+        // Create active dismiss overlay
+        activeDismissOverlay = new Region();
+        activeDismissOverlay.setStyle("-fx-background-color: transparent;");
+        activeDismissOverlay.setOnMouseClicked(e -> closeOptionsPanel());
+
+        // Create options panel
+        VBox optionsPanel = new VBox();
+        optionsPanel.getStyleClass().add("chat-options-panel");
+        optionsPanel.setMaxWidth(200);
+        optionsPanel.setMaxHeight(Region.USE_PREF_SIZE);
 
         if (selectedChat.getType() == ChatItem.Type.GROUP) {
-            // Debug logging
-            System.out.println("DEBUG: Chat menu for group " + selectedChat.getName());
-            System.out.println("DEBUG: Current user: " + currentUsername);
-            System.out.println("DEBUG: Group creator: " + selectedChat.getGroupCreator());
-            System.out.println("DEBUG: Group admins: " + selectedChat.getGroupAdmins());
-            System.out.println("DEBUG: Is current user admin: " + selectedChat.isGroupAdmin(currentUsername));
-            System.out.println("DEBUG: Is current user creator: " + selectedChat.isGroupCreator(currentUsername));
+            HBox addMembersItem = createOptionItem("Add members", e -> {
+                closeOptionsPanel();
+                showMemberSelectionPopup("", true, selectedChat.getGroupId());
+            });
+            optionsPanel.getChildren().add(addMembersItem);
 
-            // Group-specific options
-            MenuItem addMembersItem = new MenuItem("Add members");
-            addMembersItem.setOnAction(e -> showMemberSelectionPopup("", true, selectedChat.getGroupId()));
-            chatMenu.getItems().add(addMembersItem); // <-- Always add for group members
-
-            // Only show 'Change group name' to admins and owner
             if (selectedChat.isGroupAdmin(currentUsername) || selectedChat.isGroupCreator(currentUsername)) {
-                MenuItem changeNameItem = new MenuItem("Change group name");
-                changeNameItem.setOnAction(e -> showChangeGroupNameDialog());
-                chatMenu.getItems().add(changeNameItem);
-                System.out.println("DEBUG: Added admin/owner menu items");
+                HBox changeNameItem = createOptionItem("Change group name", e -> {
+                    closeOptionsPanel();
+                    showChangeGroupNameDialog();
+                });
+                optionsPanel.getChildren().add(changeNameItem);
             }
 
-            // Leave group option (everyone except owner)
             if (!selectedChat.isGroupCreator(currentUsername)) {
-                MenuItem leaveGroupItem = new MenuItem("Leave group");
-                leaveGroupItem.setOnAction(e -> leaveGroup());
-                chatMenu.getItems().add(leaveGroupItem);
-                System.out.println("DEBUG: Added leave group option");
-            } else {
-                System.out.println("DEBUG: User is creator, not showing leave group option");
+                HBox leaveGroupItem = createOptionItem("Leave group", e -> {
+                    closeOptionsPanel();
+                    leaveGroup();
+                });
+                optionsPanel.getChildren().add(leaveGroupItem);
             }
 
+            if (selectedChat.isGroupCreator(currentUsername)) {
+                HBox deleteGroupItem = createOptionItem("Delete group", e -> {
+                    closeOptionsPanel();
+                    showDeleteGroupConfirmationDialog(selectedChat);
+                });
+                optionsPanel.getChildren().add(deleteGroupItem);
+            }
+
+            HBox deleteChatItem = createOptionItem("Delete chat", e -> {
+                closeOptionsPanel();
+                promptToDeleteChat(selectedChat);
+            });
+            optionsPanel.getChildren().add(deleteChatItem);
         } else {
-            // User-specific options
             String targetUser = selectedChat.getName();
-            boolean isBlocked = blockedUsers.contains(targetUser);
-            MenuItem blockUserItem = new MenuItem(isBlocked ? "Unblock user" : "Block user");
-            blockUserItem.setOnAction(e -> {
+            boolean isBlocked = isUserBlockedByMe(targetUser);
+            HBox blockUserItem = createOptionItem(isBlocked ? "Unblock user" : "Block user", e -> {
+                closeOptionsPanel();
                 if (isBlocked) {
                     unblockUser(targetUser);
                 } else {
                     blockUser(targetUser);
                 }
             });
-            chatMenu.getItems().add(blockUserItem);
+            optionsPanel.getChildren().add(blockUserItem);
+
+            HBox deleteChatItem = createOptionItem("Delete chat", e -> {
+                closeOptionsPanel();
+                promptToDeleteChat(selectedChat);
+            });
+            optionsPanel.getChildren().add(deleteChatItem);
         }
 
-        if (!chatMenu.getItems().isEmpty()) {
-            // Apply CSS styling to the context menu
-            chatMenu.setStyle(
-                    "-fx-background-color: #eceff4; -fx-background-radius: 8; -fx-border-color: #d8dee9; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 2);");
+        activeOptionsPanel = optionsPanel;
 
-            chatMenu.show(chatMenuButton, javafx.geometry.Side.BOTTOM, 0, 0);
-        } else {
-            System.out.println("DEBUG: No menu items to show");
+        // Position options panel - set a wider layout so text is not truncated
+        optionsPanel.setMinWidth(180);
+        optionsPanel.setPrefWidth(220);
+        StackPane.setAlignment(optionsPanel, Pos.TOP_RIGHT);
+        StackPane.setMargin(optionsPanel, new Insets(10, 20, 0, 0));
+
+        // Add to stack pane
+        if (chatAreaStack != null) {
+            chatAreaStack.getChildren().addAll(activeDismissOverlay, optionsPanel);
         }
+
+        // Slide down animation
+        optionsPanel.setTranslateY(-20);
+        optionsPanel.setOpacity(0.0);
+
+        TranslateTransition translate = new TranslateTransition(Duration.millis(150), optionsPanel);
+        translate.setToY(0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(150), optionsPanel);
+        fade.setToValue(1.0);
+
+        ParallelTransition parallel = new ParallelTransition(translate, fade);
+        parallel.play();
     }
 
     private void showChangeGroupNameDialog() {
@@ -3617,16 +3969,124 @@ public class ChatController implements Initializable {
         com.bakbak.javafx_proj_1_2.ChatApplication.showToast(message);
     }
 
-    private void promptToDeleteChat(ChatItem item) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Chat");
-        alert.setHeaderText("Delete chat with " + item.getName());
-        alert.setContentText("Are you sure you want to delete this chat history? This action cannot be undone.");
+    private void showInWindowConfirmationDialog(String title, String description, Runnable onConfirm) {
+        closeEmojiPanel();
+        closeOptionsPanel();
 
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            deleteChatHistory(item);
+        Region dimOverlay = new Region();
+        dimOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4);");
+        dimOverlay.setMaxWidth(Double.MAX_VALUE);
+        dimOverlay.setMaxHeight(Double.MAX_VALUE);
+
+        VBox dialogCard = new VBox(15);
+        dialogCard.setPadding(new Insets(20));
+        dialogCard.setMaxWidth(350);
+        dialogCard.setMaxHeight(Region.USE_PREF_SIZE);
+        dialogCard.setAlignment(Pos.TOP_LEFT);
+
+        boolean isDark = com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled();
+        String cardStyle = "-fx-background-radius: 12; -fx-border-radius: 12; -fx-border-width: 1; "
+                + (isDark 
+                    ? "-fx-background-color: #17212b; -fx-border-color: #101921;" 
+                    : "-fx-background-color: #ffffff; -fx-border-color: #dde5f0;");
+        dialogCard.setStyle(cardStyle);
+        dialogCard.setEffect(new DropShadow(15, 0, 5, Color.rgb(0, 0, 0, 0.25)));
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold;" 
+                + (isDark ? "-fx-text-fill: #ffffff;" : "-fx-text-fill: #1a1a2e;"));
+
+        Label descLabel = new Label(description);
+        descLabel.setWrapText(true);
+        descLabel.setMaxWidth(310);
+        descLabel.setStyle("-fx-font-size: 14px;" 
+                + (isDark ? "-fx-text-fill: #a0acba;" : "-fx-text-fill: #5c6c7d;"));
+
+        HBox buttonBox = new HBox(12);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(5, 0, 0, 0));
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setStyle("-fx-background-color: " + (isDark ? "#2c3847;" : "#e9ecef;") 
+                + "-fx-text-fill: " + (isDark ? "#a0acba;" : "#495057;") 
+                + "-fx-background-radius: 8; -fx-padding: 8 16; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        Button confirmButton = new Button("Delete");
+        confirmButton.setStyle("-fx-background-color: #e06c75; -fx-text-fill: white; "
+                + "-fx-background-radius: 8; -fx-padding: 8 16; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        buttonBox.getChildren().addAll(cancelButton, confirmButton);
+        dialogCard.getChildren().addAll(titleLabel, descLabel, buttonBox);
+
+        StackPane alignmentWrapper = new StackPane(dialogCard);
+        alignmentWrapper.setAlignment(Pos.CENTER);
+        alignmentWrapper.setMaxWidth(Double.MAX_VALUE);
+        alignmentWrapper.setMaxHeight(Double.MAX_VALUE);
+
+        StackPane overlayContainer = new StackPane();
+        overlayContainer.getChildren().addAll(dimOverlay, alignmentWrapper);
+        overlayContainer.setMaxWidth(Double.MAX_VALUE);
+        overlayContainer.setMaxHeight(Double.MAX_VALUE);
+
+        Runnable closeDialog = () -> {
+            FadeTransition fadeOutOverlay = new FadeTransition(Duration.millis(150), overlayContainer);
+            fadeOutOverlay.setToValue(0.0);
+            
+            ScaleTransition scaleOutCard = new ScaleTransition(Duration.millis(150), dialogCard);
+            scaleOutCard.setFromX(1.0);
+            scaleOutCard.setFromY(1.0);
+            scaleOutCard.setToX(0.9);
+            scaleOutCard.setToY(0.9);
+
+            ParallelTransition closeAnim = new ParallelTransition(fadeOutOverlay, scaleOutCard);
+            closeAnim.setOnFinished(ev -> {
+                if (chatAreaStack != null) {
+                    chatAreaStack.getChildren().remove(overlayContainer);
+                }
+            });
+            closeAnim.play();
+        };
+
+        cancelButton.setOnAction(ev -> closeDialog.run());
+        confirmButton.setOnAction(ev -> {
+            closeDialog.run();
+            onConfirm.run();
+        });
+
+        overlayContainer.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                closeDialog.run();
+            }
+        });
+
+        if (chatAreaStack != null) {
+            chatAreaStack.getChildren().add(overlayContainer);
+            overlayContainer.requestFocus();
         }
+
+        overlayContainer.setOpacity(0.0);
+        dialogCard.setScaleX(0.9);
+        dialogCard.setScaleY(0.9);
+
+        FadeTransition fadeInOverlay = new FadeTransition(Duration.millis(200), overlayContainer);
+        fadeInOverlay.setToValue(1.0);
+
+        ScaleTransition scaleInCard = new ScaleTransition(Duration.millis(200), dialogCard);
+        scaleInCard.setFromX(0.9);
+        scaleInCard.setFromY(0.9);
+        scaleInCard.setToX(1.0);
+        scaleInCard.setToY(1.0);
+
+        ParallelTransition openAnim = new ParallelTransition(fadeInOverlay, scaleInCard);
+        openAnim.play();
+    }
+
+    private void promptToDeleteChat(ChatItem item) {
+        showInWindowConfirmationDialog(
+            "Delete Chat",
+            "Are you sure you want to delete this chat history? This action cannot be undone.",
+            () -> deleteChatHistory(item)
+        );
     }
 
     private void deleteChatHistory(ChatItem item) {
@@ -3757,32 +4217,7 @@ public class ChatController implements Initializable {
         bottomBar.setSpacing(10);
         HBox.setHgrow(bottomBar, Priority.ALWAYS);
 
-        if (groupItem.isGroupCreator(currentUsername)) {
-            Button deleteGroupButton = new Button("Delete Group");
-            deleteGroupButton.getStyleClass().add("dialog-cancel-button");
-            deleteGroupButton.setOnAction(e -> {
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Delete Group");
-                confirm.setHeaderText("Delete Group: " + groupItem.getName());
-                confirm.setContentText("Are you sure you want to permanently delete this group? This action cannot be undone.");
-
-                // Style confirmation dialog
-                confirm.getDialogPane().getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
-                if (darkModeToggle != null && darkModeToggle.isSelected()) {
-                    confirm.getDialogPane().getStyleClass().add("dark-mode");
-                }
-
-                confirm.showAndWait().ifPresent(response -> {
-                    if (response == ButtonType.OK) {
-                        deleteGroup(groupItem.getGroupId());
-                        managementStage.close();
-                    }
-                });
-            });
-            bottomBar.getChildren().addAll(deleteGroupButton, addMemberButton);
-        } else {
-            bottomBar.getChildren().add(addMemberButton);
-        }
+        bottomBar.getChildren().add(addMemberButton);
 
         layout.getChildren().addAll(title, managementMemberListView, bottomBar);
 
@@ -3790,6 +4225,9 @@ public class ChatController implements Initializable {
         scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
         if (darkModeToggle != null && darkModeToggle.isSelected()) {
             scene.getRoot().getStyleClass().add("dark-mode");
+            scene.setFill(Color.web("#17212b"));
+        } else {
+            scene.setFill(Color.WHITE);
         }
         managementStage.setScene(scene);
         managementStage.show();
@@ -3912,6 +4350,9 @@ public class ChatController implements Initializable {
         fileMessage.setFileMessageData(fileMessageData);
         fileMessage.setContent(fileMessageData.toString()); // Set the content field for serialization
         fileMessage.setTimestamp(LocalDateTime.now());
+
+        // Cache the local file immediately so playback/actions know it's available locally
+        cacheDownloadedFile(fileID, file);
 
         // Mark this file ID as actively sending
         activeSendingFileIds.add(fileID);
@@ -4701,14 +5142,14 @@ public class ChatController implements Initializable {
     private MediaPlayer currentlyPlayingMediaPlayer;
 
     private Node createAudioPreview(FileMessageData fileData) {
-        HBox audioContainer = new HBox(12);
+        HBox audioContainer = new HBox(10);
         audioContainer.setAlignment(Pos.CENTER_LEFT);
         audioContainer.getStyleClass().add("audio-preview");
-        audioContainer.setPadding(new Insets(6, 12, 6, 12));
-        audioContainer.setMaxWidth(280);
-        audioContainer.setPrefWidth(280);
-        audioContainer.setMaxHeight(60);
-        audioContainer.setPrefHeight(60);
+        audioContainer.setPadding(new Insets(2, 6, 2, 6));
+        audioContainer.setMaxWidth(250);
+        audioContainer.setPrefWidth(250);
+        audioContainer.setMaxHeight(40);
+        audioContainer.setPrefHeight(40);
 
         // Play/Pause button with custom PNG
         Button playPauseBtn = createPlayPauseButton();
@@ -4719,19 +5160,14 @@ public class ChatController implements Initializable {
 
         // Create a StackPane to hold the progress bar and the drag handle
         StackPane progressStack = new StackPane();
-        progressStack.setPrefWidth(180);
+        progressStack.setPrefWidth(150);
         progressStack.setPrefHeight(14); // Make it a bit taller to accommodate the drag handle
 
         // Progress bar with custom styling
         ProgressBar progressBar = new ProgressBar(0);
-        progressBar.setPrefWidth(180);
+        progressBar.setPrefWidth(150);
         progressBar.setPrefHeight(6);
-        // Make sure JavaFX applies our CSS properly
-        progressBar.setStyle(""); // Clear any default inline styles
-        progressBar.getStyleClass().clear(); // Clear default style classes
-        progressBar.getStyleClass().add("progress-bar"); // Re-add the base class
         progressBar.getStyleClass().add("custom-progress-bar");
-        progressBar.getStyleClass().add("progress-bar-normal");
 
         // Create the drag handle (circle)
         Circle dragHandle = new Circle(5);
@@ -5028,11 +5464,16 @@ public class ChatController implements Initializable {
 
         new Thread(() -> {
             try {
-                // Download the audio file
-                FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
-                CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(),
-                        fileData.getOriginalName());
-                audioFile[0] = downloadFuture.get();
+                if (isFileDownloaded(fileData.getUuidName())) {
+                    audioFile[0] = getDownloadedFile(fileData.getUuidName());
+                } else {
+                    // Download the audio file
+                    FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
+                    CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(),
+                            fileData.getOriginalName());
+                    audioFile[0] = downloadFuture.get();
+                    cacheDownloadedFile(fileData.getUuidName(), audioFile[0]);
+                }
 
                 Platform.runLater(() -> {
                     try {
@@ -5280,48 +5721,71 @@ public class ChatController implements Initializable {
     private void downloadFile(FileMessageData fileData) {
         new Thread(() -> {
             try {
+                String fileID = fileData.getUuidName();
                 // Check if file is already downloaded
-                if (isFileDownloaded(fileData.getUuidName())) {
+                if (isFileDownloaded(fileID)) {
                     // File already downloaded, no popup needed
                     return;
                 }
+
+                // Add to active downloading set
+                activeDownloadingFileIds.add(fileID);
+
+                // Update UI: show spinner on the file icon, disable buttons
+                Platform.runLater(() -> {
+                    StackPane iconStack = fileIconStacks.get(fileID);
+                    if (iconStack != null) {
+                        CircularProgressRing progressIndicator = new CircularProgressRing();
+                        activeDownloadProgressIndicators.put(fileID, progressIndicator);
+                        iconStack.getChildren().clear();
+                        iconStack.getChildren().add(progressIndicator);
+                    }
+                    Button downloadBtn = fileDownloadButtons.get(fileID);
+                    if (downloadBtn != null) {
+                        downloadBtn.setDisable(true);
+                    }
+                    Button openBtn = fileOpenButtons.get(fileID);
+                    if (openBtn != null) {
+                        openBtn.setDisable(true);
+                    }
+                });
 
                 FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(), FileChunkReceiver.CHUNK_PORT);
 
                 // Check if it's a video file to show progress
                 boolean isVideo = fileData.getMimeType() != null && fileData.getMimeType().startsWith("video/");
-                ProgressCallback progressCallback = null;
+                ProgressCallback progressCallback = new ProgressCallback() {
+                    @Override
+                    public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
+                            long totalBytes) {
+                        double progress = (double) bytesProcessed / totalBytes;
+                        Platform.runLater(() -> {
+                            CircularProgressRing pi = activeDownloadProgressIndicators.get(fileID);
+                            if (pi != null) {
+                                pi.setProgress(progress);
+                            }
+                        });
+                    }
 
-                if (isVideo) {
-                    // Create progress callback for video files
-                    progressCallback = new ProgressCallback() {
-                        @Override
-                        public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                long totalBytes) {
-                            double progress = (double) bytesProcessed / totalBytes;
-                            Platform.runLater(() -> {
-                                // Use unified progress bar
-                                showUnifiedProgress(progress,
-                                        "Downloading video... " + String.format("%d%%", (int) (progress * 100)));
-                            });
-                        }
+                    @Override
+                    public void onTransferComplete() {
+                        Platform.runLater(() -> {
+                            activeDownloadingFileIds.remove(fileID);
+                            activeDownloadProgressIndicators.remove(fileID);
+                            restoreFileIcon(fileID);
+                        });
+                    }
 
-                        @Override
-                        public void onTransferComplete() {
-                            Platform.runLater(() -> {
-                                hideUnifiedProgress();
-                            });
-                        }
-
-                        @Override
-                        public void onTransferError(String error) {
-                            Platform.runLater(() -> {
-                                hideUnifiedProgress();
-                                showAlert("Download Error", "Failed to download video: " + error);
-                            });
-                        }
-                    };
-                }
+                    @Override
+                    public void onTransferError(String error) {
+                        Platform.runLater(() -> {
+                            activeDownloadingFileIds.remove(fileID);
+                            activeDownloadProgressIndicators.remove(fileID);
+                            restoreFileIcon(fileID);
+                            showAlert("Download Error", "Failed to download file: " + error);
+                        });
+                    }
+                };
 
                 CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(),
                         fileData.getOriginalName(), progressCallback);
@@ -5331,8 +5795,11 @@ public class ChatController implements Initializable {
                 cacheDownloadedFile(fileData.getUuidName(), downloadedFile);
 
             } catch (Exception e) {
+                String fileID = fileData.getUuidName();
                 Platform.runLater(() -> {
-                    hideUnifiedProgress();
+                    activeDownloadingFileIds.remove(fileID);
+                    activeDownloadProgressIndicators.remove(fileID);
+                    restoreFileIcon(fileID);
                     showAlert("Download Error", "Failed to download file: " + e.getMessage());
                 });
             }
@@ -5343,50 +5810,73 @@ public class ChatController implements Initializable {
         new Thread(() -> {
             try {
                 File fileToOpen;
+                String fileID = fileData.getUuidName();
 
                 // Check if file is already downloaded
-                if (isFileDownloaded(fileData.getUuidName())) {
-                    fileToOpen = getDownloadedFile(fileData.getUuidName());
+                if (isFileDownloaded(fileID)) {
+                    fileToOpen = getDownloadedFile(fileID);
                     System.out.println("Using cached file: " + fileToOpen.getAbsolutePath());
                 } else {
+                    // Add to active downloading set
+                    activeDownloadingFileIds.add(fileID);
+
+                    // Update UI: show spinner on the file icon, disable buttons
+                    Platform.runLater(() -> {
+                        StackPane iconStack = fileIconStacks.get(fileID);
+                        if (iconStack != null) {
+                            CircularProgressRing progressIndicator = new CircularProgressRing();
+                            activeDownloadProgressIndicators.put(fileID, progressIndicator);
+                            iconStack.getChildren().clear();
+                            iconStack.getChildren().add(progressIndicator);
+                        }
+                        Button downloadBtn = fileDownloadButtons.get(fileID);
+                        if (downloadBtn != null) {
+                            downloadBtn.setDisable(true);
+                        }
+                        Button openBtn = fileOpenButtons.get(fileID);
+                        if (openBtn != null) {
+                            openBtn.setDisable(true);
+                        }
+                    });
+
                     // File not cached, need to download
                     FileChunkSender chunkSender = new FileChunkSender(chatClient.getHost(),
                             FileChunkReceiver.CHUNK_PORT);
 
                     // Check if it's a video file to show progress
                     boolean isVideo = fileData.getMimeType() != null && fileData.getMimeType().startsWith("video/");
-                    ProgressCallback progressCallback = null;
+                    ProgressCallback progressCallback = new ProgressCallback() {
+                        @Override
+                        public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
+                                long totalBytes) {
+                            double progress = (double) bytesProcessed / totalBytes;
+                            Platform.runLater(() -> {
+                                CircularProgressRing pi = activeDownloadProgressIndicators.get(fileID);
+                                if (pi != null) {
+                                    pi.setProgress(progress);
+                                }
+                            });
+                        }
 
-                    if (isVideo) {
-                        // Create progress callback for video files
-                        progressCallback = new ProgressCallback() {
-                            @Override
-                            public void onProgressUpdate(int currentChunk, int totalChunks, long bytesProcessed,
-                                    long totalBytes) {
-                                double progress = (double) bytesProcessed / totalBytes;
-                                Platform.runLater(() -> {
-                                    // Use unified progress bar
-                                    showUnifiedProgress(progress,
-                                            "Preparing video... " + String.format("%d%%", (int) (progress * 100)));
-                                });
-                            }
+                        @Override
+                        public void onTransferComplete() {
+                            Platform.runLater(() -> {
+                                activeDownloadingFileIds.remove(fileID);
+                                activeDownloadProgressIndicators.remove(fileID);
+                                restoreFileIcon(fileID);
+                            });
+                        }
 
-                            @Override
-                            public void onTransferComplete() {
-                                Platform.runLater(() -> {
-                                    hideUnifiedProgress();
-                                });
-                            }
-
-                            @Override
-                            public void onTransferError(String error) {
-                                Platform.runLater(() -> {
-                                    hideUnifiedProgress();
-                                    showAlert("Download Error", "Failed to download video for opening: " + error);
-                                });
-                            }
-                        };
-                    }
+                        @Override
+                        public void onTransferError(String error) {
+                            Platform.runLater(() -> {
+                                activeDownloadingFileIds.remove(fileID);
+                                activeDownloadProgressIndicators.remove(fileID);
+                                restoreFileIcon(fileID);
+                                showAlert("Download Error", "Failed to download file for opening: " + error);
+                            });
+                        }
+                    };
 
                     CompletableFuture<File> downloadFuture = chunkSender.downloadFile(fileData.getUuidName(),
                             fileData.getOriginalName(), progressCallback);
@@ -5397,30 +5887,42 @@ public class ChatController implements Initializable {
                 }
 
                 // Open the file with system default application
+                final File finalFile = fileToOpen;
                 Platform.runLater(() -> {
                     try {
-                        if (Desktop.isDesktopSupported()) {
-                            Desktop desktop = Desktop.getDesktop();
-                            if (desktop.isSupported(Desktop.Action.OPEN)) {
-                                desktop.open(fileToOpen);
-                            } else {
-                                showAlert("Open Error", "Opening files is not supported on this system.");
-                            }
-                        } else {
-                            showAlert("Open Error", "Desktop operations are not supported on this system.");
-                        }
+                        openFileHelper(finalFile);
                     } catch (Exception e) {
                         showAlert("Open Error", "Failed to open file: " + e.getMessage());
                     }
                 });
 
             } catch (Exception e) {
+                String fileID = fileData.getUuidName();
                 Platform.runLater(() -> {
-                    hideUnifiedProgress();
+                    activeDownloadingFileIds.remove(fileID);
+                    activeDownloadProgressIndicators.remove(fileID);
+                    restoreFileIcon(fileID);
                     showAlert("Download Error", "Failed to download file for opening: " + e.getMessage());
                 });
             }
         }).start();
+    }
+
+    private void openFileHelper(File file) throws Exception {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            new ProcessBuilder("xdg-open", file.getAbsolutePath()).start();
+        } else if (os.contains("mac")) {
+            new ProcessBuilder("open", file.getAbsolutePath()).start();
+        } else if (os.contains("win")) {
+            new ProcessBuilder("cmd", "/c", "start", "", file.getAbsolutePath()).start();
+        } else {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(file);
+            } else {
+                throw new Exception("Desktop operations not supported");
+            }
+        }
     }
 
     // Progress bar methods for video file transfers
@@ -5478,6 +5980,9 @@ public class ChatController implements Initializable {
             scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
             if (darkModeToggle != null && darkModeToggle.isSelected()) {
                 scene.getRoot().getStyleClass().add("dark-mode");
+                scene.setFill(Color.web("#17212b"));
+            } else {
+                scene.setFill(Color.WHITE);
             }
             downloadProgressStage.setScene(scene);
             downloadProgressStage.show();
@@ -5567,6 +6072,8 @@ public class ChatController implements Initializable {
     private final Set<String> activeSendingFileIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final Map<String, Message> activeSendingMessages = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, CircularProgressRing> activeSendProgressIndicators = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Set<String> activeDownloadingFileIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Map<String, CircularProgressRing> activeDownloadProgressIndicators = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, StackPane> fileIconStacks = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, ImageView> fileIconImageViews = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, Button> fileDownloadButtons = new java.util.concurrent.ConcurrentHashMap<>();
@@ -5585,6 +6092,8 @@ public class ChatController implements Initializable {
     private boolean isRecording = false;
     private Stage voiceRecorderStage;
     private long recordingStartTime;
+    private Timeline inWindowTimerTimeline;
+    private Timeline inWindowPulseTimeline;
 
     @FXML
     private void handleVoiceMessage() {
@@ -5592,185 +6101,109 @@ public class ChatController implements Initializable {
             showAlert("Error", "Please select a chat to send a voice message.");
             return;
         }
-        showVoiceRecorderDialog();
-    }
-
-    private void showVoiceRecorderDialog() {
-        if (voiceRecorderStage != null && voiceRecorderStage.isShowing()) {
-            voiceRecorderStage.toFront();
-            return;
-        }
-
-        voiceRecorderStage = new Stage();
-        voiceRecorderStage.initModality(Modality.APPLICATION_MODAL);
-        voiceRecorderStage.setTitle("Voice Recorder");
-        voiceRecorderStage.setResizable(false);
-
-        // Create the main container
-        VBox mainContainer = new VBox();
-        mainContainer.setAlignment(Pos.CENTER);
-        mainContainer.setSpacing(20);
-        mainContainer.setPadding(new Insets(30));
-        mainContainer.getStyleClass().add("voice-recorder-dialog");
-
-        // Title
-        Label titleLabel = new Label("Voice Message");
-        titleLabel.getStyleClass().add("voice-recorder-title");
-
-        // Recording status container
-        VBox statusContainer = new VBox();
-        statusContainer.setAlignment(Pos.CENTER);
-        statusContainer.setSpacing(15);
-
-        // Recording indicator (animated circle)
-        Circle recordingIndicator = new Circle(8);
-        recordingIndicator.getStyleClass().add("recording-indicator");
-        recordingIndicator.setVisible(false);
-
-        // Timer label
-        Label timerLabel = new Label("00:00");
-        timerLabel.getStyleClass().add("voice-recorder-timer");
-
-        // Status text
-        Label statusLabel = new Label("Tap to start recording");
-        statusLabel.getStyleClass().add("voice-recorder-status");
-
-        statusContainer.getChildren().addAll(recordingIndicator, timerLabel, statusLabel);
-
-        // Main recording button
-        Button recordButton = new Button();
-        recordButton.setPrefSize(80, 80);
-        recordButton.getStyleClass().add("voice-record-button");
-
-        // Microphone icon for record button
-        ImageView micIcon = new ImageView();
-        try {
-            Image micImage = loadResourceImage("/com/bakbak/javafx_proj_1_2/icons/voice.png");
-            micIcon.setImage(micImage);
-            micIcon.setFitWidth(35);
-            micIcon.setFitHeight(35);
-            micIcon.setPreserveRatio(true);
-            if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled()) {
-                javafx.scene.effect.ColorAdjust ca = new javafx.scene.effect.ColorAdjust();
-                ca.setBrightness(0.9);
-                micIcon.setEffect(ca);
-            }
-        } catch (Exception e) {
-            // Fallback text if image not found
-            recordButton.setText("🎤");
-            recordButton.setStyle(recordButton.getStyle() + "-fx-font-size: 30px;");
-        }
-        recordButton.setGraphic(micIcon);
-
-        // Control buttons container
-        HBox controlsContainer = new HBox();
-        controlsContainer.setAlignment(Pos.CENTER);
-        controlsContainer.setSpacing(20);
-
-        // Cancel button
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefSize(100, 40);
-        cancelButton.getStyleClass().addAll("voice-control-button", "voice-cancel-button");
-
-        // Send button
-        Button sendButton = new Button("Send");
-        sendButton.setPrefSize(100, 40);
-        sendButton.getStyleClass().addAll("voice-control-button", "voice-send-button");
-        sendButton.setDisable(true);
-
-        controlsContainer.getChildren().addAll(cancelButton, sendButton);
-
-        // Add all components to main container
-        mainContainer.getChildren().addAll(titleLabel, statusContainer, recordButton, controlsContainer);
-
-        // Create timeline for timer update
-        Timeline timerTimeline = new Timeline();
-        timerTimeline.setCycleCount(Timeline.INDEFINITE);
-
-        // Create pulse animation for recording indicator
-        Timeline pulseTimeline = new Timeline(
-            new KeyFrame(Duration.ZERO, 
-                new KeyValue(recordingIndicator.scaleXProperty(), 1.0),
-                new KeyValue(recordingIndicator.scaleYProperty(), 1.0),
-                new KeyValue(recordingIndicator.opacityProperty(), 1.0)
-            ),
-            new KeyFrame(Duration.seconds(0.5), 
-                new KeyValue(recordingIndicator.scaleXProperty(), 1.3),
-                new KeyValue(recordingIndicator.scaleYProperty(), 1.3),
-                new KeyValue(recordingIndicator.opacityProperty(), 0.7)
-            ),
-            new KeyFrame(Duration.seconds(1.0), 
-                new KeyValue(recordingIndicator.scaleXProperty(), 1.0),
-                new KeyValue(recordingIndicator.scaleYProperty(), 1.0),
-                new KeyValue(recordingIndicator.opacityProperty(), 1.0)
-            )
-        );
-        pulseTimeline.setCycleCount(Timeline.INDEFINITE);
-
-        // Button event handlers
-        recordButton.setOnAction(e -> {
-            if (!isRecording) {
-                startRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
-                             sendButton, timerTimeline, pulseTimeline);
-            } else {
-                stopRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
-                            sendButton, timerTimeline, pulseTimeline);
-            }
-        });
-
-        cancelButton.setOnAction(e -> {
-            if (isRecording) {
-                stopRecording(recordButton, recordingIndicator, timerLabel, statusLabel, 
-                            sendButton, timerTimeline, pulseTimeline);
-            }
-            voiceRecorderStage.close();
-        });
-
-        sendButton.setOnAction(e -> {
-            sendVoiceMessage();
-            voiceRecorderStage.close();
-        });
-
-        // Add hover effects to buttons
-        addButtonHoverEffect(cancelButton, "#95a5a6", "#7f8c8d");
-        addButtonHoverEffect(sendButton, "#27ae60", "#219a52");
-        addButtonHoverEffect(recordButton, "#3498db", "#2980b9");
-
-        Scene scene = new Scene(mainContainer, 350, 400);
-        scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
-        if (darkModeToggle != null && darkModeToggle.isSelected()) {
-            scene.getRoot().getStyleClass().add("dark-mode");
+        
+        // Build recording bar UI
+        HBox recordingBar = createVoiceRecordingBar();
+        
+        // Get references to components from recording bar
+        VBox footerContainer = (VBox) recordingBar.getChildren().get(0);
+        HBox innerRow = (HBox) footerContainer.getChildren().get(0);
+        Circle indicator = (Circle) innerRow.getChildren().get(0);
+        Label timerLabel = (Label) innerRow.getChildren().get(1);
+        Label statusLabel = (Label) innerRow.getChildren().get(2);
+        
+        // Swap UI
+        if (mainChatArea != null) {
+            mainChatArea.setBottom(recordingBar);
         }
         
-        voiceRecorderStage.setScene(scene);
-        voiceRecorderStage.show();
-
-        // Center the stage on the main window
-        voiceRecorderStage.setX((voiceRecorderStage.getOwner().getX() + voiceRecorderStage.getOwner().getWidth() / 2) - 175);
-        voiceRecorderStage.setY((voiceRecorderStage.getOwner().getY() + voiceRecorderStage.getOwner().getHeight() / 2) - 200);
+        // Start recording
+        startInWindowRecording(indicator, timerLabel, statusLabel);
     }
 
-    private void addButtonHoverEffect(Button button, String normalColor, String hoverColor) {
-        String originalStyle = button.getStyle();
-        button.setOnMouseEntered(e -> 
-            button.setStyle(originalStyle.replace(normalColor, hoverColor))
+    private HBox createVoiceRecordingBar() {
+        HBox recordingBar = new HBox();
+        recordingBar.setAlignment(Pos.CENTER);
+        
+        VBox footerContainer = new VBox();
+        footerContainer.setStyle("-fx-padding: 15 20 20 20;");
+        footerContainer.getStyleClass().add("chatBoxFooter");
+        footerContainer.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        HBox.setHgrow(footerContainer, Priority.ALWAYS);
+        
+        HBox innerRow = new HBox(15);
+        innerRow.setAlignment(Pos.CENTER_LEFT);
+        
+        // Pulse red circle indicator
+        Circle indicator = new Circle(6, Color.RED);
+        indicator.getStyleClass().add("recording-indicator");
+        
+        // Timer label
+        Label timerLabel = new Label("00:00");
+        timerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e74c3c;");
+        
+        // Status text
+        Label statusLabel = new Label("Recording...");
+        statusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6b7c93; -fx-font-family: 'Outfit';");
+        if (com.bakbak.javafx_proj_1_2.ChatApplication.isDarkModeEnabled()) {
+            statusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #a0acba; -fx-font-family: 'Outfit';");
+        }
+        
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        // Cancel button
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("voice-control-button", "voice-cancel-button");
+        cancelButton.setStyle("-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 8 16; -fx-font-weight: bold; -fx-font-family: 'Outfit';");
+        cancelButton.setOnAction(e -> cancelRecording());
+        
+        // Send button
+        Button sendButton = new Button("Send");
+        sendButton.getStyleClass().addAll("voice-control-button", "voice-send-button");
+        sendButton.setStyle("-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 8 16; -fx-font-weight: bold; -fx-font-family: 'Outfit';");
+        sendButton.setOnAction(e -> stopAndSendRecording());
+        
+        innerRow.getChildren().addAll(indicator, timerLabel, statusLabel, spacer, cancelButton, sendButton);
+        footerContainer.getChildren().add(innerRow);
+        recordingBar.getChildren().add(footerContainer);
+        
+        // Timelines
+        inWindowTimerTimeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> updateRecordingTimer(timerLabel)));
+        inWindowTimerTimeline.setCycleCount(Timeline.INDEFINITE);
+        
+        inWindowPulseTimeline = new Timeline(
+            new KeyFrame(Duration.ZERO, 
+                new KeyValue(indicator.scaleXProperty(), 1.0),
+                new KeyValue(indicator.scaleYProperty(), 1.0),
+                new KeyValue(indicator.opacityProperty(), 1.0)
+            ),
+            new KeyFrame(Duration.seconds(0.5), 
+                new KeyValue(indicator.scaleXProperty(), 1.3),
+                new KeyValue(indicator.scaleYProperty(), 1.3),
+                new KeyValue(indicator.opacityProperty(), 0.5)
+            ),
+            new KeyFrame(Duration.seconds(1.0), 
+                new KeyValue(indicator.scaleXProperty(), 1.0),
+                new KeyValue(indicator.scaleYProperty(), 1.0),
+                new KeyValue(indicator.opacityProperty(), 1.0)
+            )
         );
-        button.setOnMouseExited(e -> 
-            button.setStyle(originalStyle)
-        );
+        inWindowPulseTimeline.setCycleCount(Timeline.INDEFINITE);
+        
+        return recordingBar;
     }
 
-    private void startRecording(Button recordButton, Circle indicator, Label timerLabel, 
-                              Label statusLabel, Button sendButton, Timeline timerTimeline, Timeline pulseTimeline) {
+    private void startInWindowRecording(Circle indicator, Label timerLabel, Label statusLabel) {
         try {
             // Audio format configuration
             AudioFormat format = new AudioFormat(
                 AudioFormat.Encoding.PCM_SIGNED,
-                44100.0f,  // Sample rate
+                16000.0f,  // Sample rate
                 16,        // Sample size in bits
-                2,         // Channels (stereo)
-                4,         // Frame size
-                44100.0f,  // Frame rate
+                1,         // Channels (mono)
+                2,         // Frame size
+                16000.0f,  // Frame rate
                 false      // Big endian
             );
 
@@ -5789,20 +6222,9 @@ public class ChatController implements Initializable {
             isRecording = true;
             recordingStartTime = System.currentTimeMillis();
 
-            // Update UI
-            recordButton.getStyleClass().remove("voice-record-button");
-            recordButton.getStyleClass().add("voice-record-button-recording");
-            
-            indicator.setVisible(true);
-            statusLabel.setText("Recording... Tap to stop");
-            pulseTimeline.play();
-
-            // Start timer update
-            timerTimeline.getKeyFrames().clear();
-            timerTimeline.getKeyFrames().add(
-                new KeyFrame(Duration.seconds(0.1), e -> updateRecordingTimer(timerLabel))
-            );
-            timerTimeline.play();
+            // Start animations
+            inWindowPulseTimeline.play();
+            inWindowTimerTimeline.play();
 
             // Start recording thread
             recordingThread = new Thread(() -> {
@@ -5816,7 +6238,7 @@ public class ChatController implements Initializable {
                     } catch (Exception e) {
                         Platform.runLater(() -> {
                             showAlert("Recording Error", "An error occurred while recording: " + e.getMessage());
-                            stopRecording(recordButton, indicator, timerLabel, statusLabel, sendButton, timerTimeline, pulseTimeline);
+                            cancelRecording();
                         });
                         break;
                     }
@@ -5831,30 +6253,66 @@ public class ChatController implements Initializable {
         }
     }
 
-    private void stopRecording(Button recordButton, Circle indicator, Label timerLabel,
-                             Label statusLabel, Button sendButton, Timeline timerTimeline, Timeline pulseTimeline) {
+    private void cancelRecording() {
         isRecording = false;
-        
         if (recordingThread != null) {
             recordingThread.interrupt();
         }
-        
         if (targetDataLine != null) {
-            targetDataLine.stop();
-            targetDataLine.close();
+            try {
+                targetDataLine.stop();
+                targetDataLine.close();
+            } catch (Exception e) {
+                // ignore
+            }
         }
-
-        // Stop animations
-        timerTimeline.stop();
-        pulseTimeline.stop();
-
-        // Update UI
-        recordButton.getStyleClass().remove("voice-record-button-recording");
-        recordButton.getStyleClass().add("voice-record-button");
+        if (inWindowTimerTimeline != null) {
+            inWindowTimerTimeline.stop();
+        }
+        if (inWindowPulseTimeline != null) {
+            inWindowPulseTimeline.stop();
+        }
         
-        indicator.setVisible(false);
-        statusLabel.setText("Recording completed");
-        sendButton.setDisable(false);
+        // Clean up audio output stream
+        audioOutputStream = null;
+        
+        // Restore input bar
+        Platform.runLater(() -> {
+            if (mainChatArea != null) {
+                mainChatArea.setBottom(messageInputArea);
+            }
+        });
+    }
+
+    private void stopAndSendRecording() {
+        isRecording = false;
+        if (recordingThread != null) {
+            recordingThread.interrupt();
+        }
+        if (targetDataLine != null) {
+            try {
+                targetDataLine.stop();
+                targetDataLine.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (inWindowTimerTimeline != null) {
+            inWindowTimerTimeline.stop();
+        }
+        if (inWindowPulseTimeline != null) {
+            inWindowPulseTimeline.stop();
+        }
+        
+        // Restore input bar
+        Platform.runLater(() -> {
+            if (mainChatArea != null) {
+                mainChatArea.setBottom(messageInputArea);
+            }
+        });
+
+        // Send
+        sendVoiceMessage();
     }
 
     private void updateRecordingTimer(Label timerLabel) {
@@ -5867,6 +6325,14 @@ public class ChatController implements Initializable {
                 timerLabel.setText(String.format("%02d:%02d", minutes, seconds));
             });
         }
+    }
+
+    private boolean isVoiceMessage(FileMessageData fileData) {
+        if (fileData == null || fileData.getOriginalName() == null) {
+            return false;
+        }
+        String name = fileData.getOriginalName();
+        return name.startsWith("voice_message_") && name.endsWith(".wav");
     }
 
     private void sendVoiceMessage() {
@@ -5882,7 +6348,7 @@ public class ChatController implements Initializable {
 
             // Write audio data to WAV file
             byte[] audioData = audioOutputStream.toByteArray();
-            AudioFormat format = new AudioFormat(44100.0f, 16, 2, true, false);
+            AudioFormat format = new AudioFormat(16000.0f, 16, 1, true, false);
             
             ByteArrayInputStream bais = new ByteArrayInputStream(audioData);
             AudioInputStream audioInputStream = new AudioInputStream(bais, format, audioData.length / format.getFrameSize());
@@ -5912,6 +6378,133 @@ public class ChatController implements Initializable {
             }
         }
         System.out.println("DEBUG: Loaded blocked users: " + blockedUsers);
+        Platform.runLater(() -> {
+            updateChatList();
+            if (selectedChat != null && selectedChat.getType() == ChatItem.Type.USER) {
+                selectChat(selectedChat);
+            }
+        });
+    }
+
+    private void handleBlockedByUsersMessage(Message message) {
+        String blocker = message.getSender();
+        if ("SERVER".equals(blocker)) {
+            blockedByUsers.clear();
+            String content = message.getContent();
+            if (content != null && !content.trim().isEmpty()) {
+                for (String u : content.split(",")) {
+                    blockedByUsers.add(u.trim());
+                }
+            }
+        } else {
+            if (blocker != null && !blocker.isEmpty()) {
+                // Remove existing entry case-insensitively first to avoid duplicates with different casing
+                blockedByUsers.removeIf(u -> u.equalsIgnoreCase(blocker));
+                blockedByUsers.add(blocker);
+            }
+        }
+        Platform.runLater(() -> {
+            updateChatList();
+            if (selectedChat != null && selectedChat.getType() == ChatItem.Type.USER && selectedChat.getName().equalsIgnoreCase(blocker)) {
+                selectChat(selectedChat);
+            }
+        });
+    }
+
+    private void handleUnblockedByUsersMessage(Message message) {
+        String unblocker = message.getSender();
+        if (unblocker != null) {
+            blockedByUsers.removeIf(u -> u.equalsIgnoreCase(unblocker));
+        }
+        Platform.runLater(() -> {
+            updateChatList();
+            if (selectedChat != null && selectedChat.getType() == ChatItem.Type.USER && selectedChat.getName().equalsIgnoreCase(unblocker)) {
+                selectChat(selectedChat);
+            }
+        });
+    }
+
+    private HBox createUnblockBar(String username) {
+        HBox bar = new HBox();
+        bar.setAlignment(Pos.CENTER);
+        bar.setSpacing(15);
+        bar.setStyle("-fx-padding: 15 20 20 20;");
+        bar.getStyleClass().add("unblock-button-bar");
+
+        Label label = new Label("You have blocked this user.");
+        label.setStyle("-fx-text-fill: #e06c75; -fx-font-size: 14px; -fx-font-family: 'Outfit'; -fx-font-weight: bold;");
+
+        Button unblockButton = new Button("Unblock");
+        unblockButton.getStyleClass().add("unblock-action-button");
+        unblockButton.setStyle("-fx-background-color: #e06c75; -fx-text-fill: white; -fx-font-family: 'Outfit'; -fx-font-weight: bold; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;");
+        unblockButton.setOnAction(e -> {
+            unblockUser(username);
+            blockedUsers.removeIf(u -> u.equalsIgnoreCase(username));
+            selectChat(selectedChat);
+        });
+
+        bar.getChildren().addAll(label, unblockButton);
+        return bar;
+    }
+
+    private HBox createBlockedBanner(String username) {
+        HBox banner = new HBox();
+        banner.setAlignment(Pos.CENTER);
+        banner.setStyle("-fx-padding: 20;");
+        banner.getStyleClass().add("blocked-banner");
+
+        Label label = new Label("You cannot send messages to this user because they have blocked you.");
+        label.setStyle("-fx-text-fill: #abb2bf; -fx-font-size: 14px; -fx-font-family: 'Outfit'; -fx-font-weight: bold;");
+
+        banner.getChildren().add(label);
+        return banner;
+    }
+
+    private HBox createOptionItem(String text, javafx.event.EventHandler<javafx.scene.input.MouseEvent> onHandler) {
+        HBox item = new HBox();
+        item.getStyleClass().add("chat-option-item");
+        item.setAlignment(Pos.CENTER_LEFT);
+
+        Label textLabel = new Label(text);
+        textLabel.getStyleClass().add("chat-option-text");
+
+        item.getChildren().add(textLabel);
+        item.setOnMouseClicked(onHandler);
+        return item;
+    }
+
+    private void closeOptionsPanel() {
+        if (activeOptionsPanel != null && chatAreaStack != null) {
+            chatAreaStack.getChildren().removeAll(activeDismissOverlay, activeOptionsPanel);
+            activeOptionsPanel = null;
+            activeDismissOverlay = null;
+        }
+    }
+
+    private void closeEmojiPanel() {
+        if (activeEmojiPanel != null && chatAreaStack != null) {
+            final VBox panelToClose = activeEmojiPanel;
+            final Region overlayToClose = activeEmojiDismissOverlay;
+            activeEmojiPanel = null;
+            activeEmojiDismissOverlay = null;
+
+            // Fade out overlay
+            FadeTransition fadeOverlay = new FadeTransition(Duration.millis(200), overlayToClose);
+            fadeOverlay.setToValue(0.0);
+
+            // Slide down and fade out panel
+            FadeTransition fadePanel = new FadeTransition(Duration.millis(200), panelToClose);
+            fadePanel.setToValue(0.0);
+
+            TranslateTransition slidePanel = new TranslateTransition(Duration.millis(200), panelToClose);
+            slidePanel.setToY(30);
+
+            ParallelTransition closeAnim = new ParallelTransition(fadeOverlay, fadePanel, slidePanel);
+            closeAnim.setOnFinished(e -> {
+                chatAreaStack.getChildren().removeAll(overlayToClose, panelToClose);
+            });
+            closeAnim.play();
+        }
     }
 
     private void blockUser(String usernameToBlock) {
@@ -5944,6 +6537,14 @@ public class ChatController implements Initializable {
         } catch (IOException e) {
             System.err.println("Failed to send delete group request: " + e.getMessage());
         }
+    }
+
+    private void showDeleteGroupConfirmationDialog(ChatItem groupItem) {
+        showInWindowConfirmationDialog(
+            "Delete Group",
+            "Are you sure you want to permanently delete this group? This action cannot be undone.",
+            () -> deleteGroup(groupItem.getGroupId())
+        );
     }
 
     // Custom circular progress ring showing hollow border spinner

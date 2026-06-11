@@ -30,6 +30,8 @@ public class Message implements Serializable {
         DELETE_GROUP,
         BLOCK_USER,
         UNBLOCK_USER,
+        BLOCKED_BY_USER,
+        UNBLOCKED_BY_USER
         /* ERROR */
     }
 
