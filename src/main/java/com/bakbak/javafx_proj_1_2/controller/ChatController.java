@@ -1523,18 +1523,9 @@ public class ChatController implements Initializable {
 
         lastChatSelectTime = System.currentTimeMillis();
 
-        // Animate messagesContainer loading transition
-        messagesContainer.setOpacity(0.0);
-        messagesContainer.setTranslateY(15.0);
-
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(250), messagesContainer);
-        fadeIn.setToValue(1.0);
-
-        TranslateTransition slideUp = new TranslateTransition(Duration.millis(250), messagesContainer);
-        slideUp.setToY(0.0);
-
-        ParallelTransition pt = new ParallelTransition(fadeIn, slideUp);
-        pt.play();
+        // Show messages immediately without animation
+        messagesContainer.setOpacity(1.0);
+        messagesContainer.setTranslateY(0.0);
 
         if (chatItem.getType() == ChatItem.Type.USER) {
             showPrivateChat(chatItem.getName());
@@ -3503,7 +3494,7 @@ public class ChatController implements Initializable {
         FileChooser.ExtensionFilter documentFiles = new FileChooser.ExtensionFilter("Document Files", "*.pdf", "*.doc",
                 "*.docx", "*.txt", "*.rtf");
 
-        fileChooser.getExtensionFilters().addAll(imageFiles, videoFiles, audioFiles, documentFiles, allFiles);
+        fileChooser.getExtensionFilters().addAll(allFiles, imageFiles, videoFiles, audioFiles, documentFiles);
 
         // Show the file chooser dialog
         File selectedFile = fileChooser.showOpenDialog(ChatApplication.getPrimaryStage());

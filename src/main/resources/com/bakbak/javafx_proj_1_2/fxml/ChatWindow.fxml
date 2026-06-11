@@ -46,7 +46,7 @@
       <VBox alignment="CENTER" stylesheets="@ChatWindowStyle.css" VBox.vgrow="ALWAYS">
          <TextField fx:id="messageInput1" prefHeight="40" prefWidth="279.0" promptText="Search" styleClass="search-field">
             <VBox.margin>
-               <Insets top="20.0" />
+               <Insets top="5.0" />
             </VBox.margin></TextField>
          <ListView fx:id="userListView" style="-fx-background-color: transparent; -fx-border-width: 0;" stylesheets="@ChatWindowStyle.css" VBox.vgrow="ALWAYS" />
          <VBox.margin>

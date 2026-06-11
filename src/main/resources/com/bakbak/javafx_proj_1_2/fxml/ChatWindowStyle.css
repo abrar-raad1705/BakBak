@@ -82,10 +82,10 @@
 
 /* ─── Chats Title ────────────────────────────────────────────── */
 .chatsTitle {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-family: 'Georgia', 'Palatino Linotype', serif;
     -fx-font-weight: bold;
     -fx-text-fill: #1a1a2e !important;
-    -fx-font-size: 20px !important;
+    -fx-font-size: 24px !important;
 }
 
 .dark-mode .chatsTitle {
@@ -213,10 +213,10 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 1, 0);
 }
 .chatNameLabel {
-    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-family: 'Georgia', 'Palatino Linotype', serif;
     -fx-font-weight: bold;
     -fx-text-fill: #1a1a2e !important;
-    -fx-font-size: 16px;
+    -fx-font-size: 18px;
 }
 .lastSeen {
     -fx-font-family: 'Segoe UI', system-ui, sans-serif;
