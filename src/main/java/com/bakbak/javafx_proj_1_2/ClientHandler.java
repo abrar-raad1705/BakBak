@@ -91,6 +91,15 @@ public class ClientHandler implements Runnable {
             case DELETE_HISTORY:
                 handleDeleteHistory(message, messageStore);
                 break;
+            case BLOCK_USER:
+                handleBlockUser(message, userManager);
+                break;
+            case UNBLOCK_USER:
+                handleUnblockUser(message, userManager);
+                break;
+            case DELETE_GROUP:
+                handleDeleteGroup(message, groupManager);
+                break;
             case USER_STATUS_UPDATE:
                 // This message type is only sent from server to clients
                 // No handling needed in server-side ClientHandler
@@ -131,6 +140,9 @@ public class ClientHandler implements Runnable {
 
             sendMessage(response);
 
+            // Send blocked users list immediately after login
+            sendBlockedUsersList(username);
+
             sendOfflineMessages(username, messageStore);
         } else {
             response.setContent("Login failed - invalid credentials or user already online");
@@ -163,6 +175,17 @@ public class ClientHandler implements Runnable {
 
     private void handlePrivateMessage(Message message, UserManager userManager, MessageStore messageStore) {
         String recipient = message.getRecipient();
+        
+        // Check if recipient has blocked sender
+        User recipientUser = userManager.getUser(recipient);
+        if (recipientUser != null && recipientUser.isUserBlocked(username)) {
+            Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+            ack.setSuccess(false);
+            ack.setContent("You are blocked by this user");
+            sendMessage(ack);
+            return;
+        }
+
         messageStore.storeMessage(message);
 
         if (userManager.isUserOnline(recipient)) {
@@ -272,9 +295,19 @@ public class ClientHandler implements Runnable {
             }
         } else {
             // Private file message
-            MessageStore.getInstance().storeMessage(message);
             String recipient = message.getRecipient();
             if (recipient != null && !recipient.isEmpty()) {
+                // Check if recipient has blocked sender
+                User recipientUser = UserManager.getInstance().getUser(recipient);
+                if (recipientUser != null && recipientUser.isUserBlocked(username)) {
+                    Message ack = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+                    ack.setSuccess(false);
+                    ack.setContent("You are blocked by this user");
+                    sendMessage(ack);
+                    return;
+                }
+
+                MessageStore.getInstance().storeMessage(message);
                 ClientHandler handler = UserManager.getInstance().getClientHandler(recipient);
                 if (handler != null) {
                     handler.sendMessage(message);
@@ -682,5 +715,86 @@ public class ClientHandler implements Runnable {
 
     public boolean isLoggedIn() {
         return isLoggedIn;
+    }
+
+    private void sendBlockedUsersList(String username) {
+        User user = UserManager.getInstance().getUser(username);
+        if (user != null) {
+            Message msg = new Message(Message.MessageType.BLOCK_USER, "SERVER");
+            msg.setContent(String.join(",", user.getBlockedUsers()));
+            sendMessage(msg);
+        }
+    }
+
+    private void handleBlockUser(Message message, UserManager userManager) {
+        String userToBlock = message.getRecipient();
+        User user = userManager.getUser(username);
+        if (user != null && userToBlock != null && !userToBlock.isEmpty()) {
+            user.blockUser(userToBlock);
+            userManager.saveUsers();
+            
+            // Send updated list back to the blocker client
+            sendBlockedUsersList(username);
+            System.out.println("User " + username + " blocked " + userToBlock);
+        }
+    }
+
+    private void handleUnblockUser(Message message, UserManager userManager) {
+        String userToUnblock = message.getRecipient();
+        User user = userManager.getUser(username);
+        if (user != null && userToUnblock != null && !userToUnblock.isEmpty()) {
+            user.unblockUser(userToUnblock);
+            userManager.saveUsers();
+            
+            // Send updated list back to the blocker client
+            sendBlockedUsersList(username);
+            System.out.println("User " + username + " unblocked " + userToUnblock);
+        }
+    }
+
+    private void handleDeleteGroup(Message message, GroupManager groupManager) {
+        String groupId = message.getGroupId();
+        Group group = groupManager.getGroup(groupId);
+        if (group == null) {
+            Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+            response.setSuccess(false);
+            response.setContent("Group not found");
+            sendMessage(response);
+            return;
+        }
+        
+        // Verify requesting user is the creator
+        if (!group.getCreator().equals(username)) {
+            Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+            response.setSuccess(false);
+            response.setContent("Only the creator can delete the group");
+            sendMessage(response);
+            return;
+        }
+
+        // Save group members first to notify them
+        Set<String> members = new java.util.HashSet<>(group.getMembers());
+        String groupName = group.getGroupName();
+
+        boolean success = groupManager.deleteGroup(groupId, username);
+        
+        Message response = new Message(Message.MessageType.ACKNOWLEDGMENT, "SERVER");
+        response.setSuccess(success);
+        response.setContent(success ? "Group deleted successfully" : "Failed to delete group");
+        sendMessage(response);
+
+        if (success) {
+            UserManager userManager = UserManager.getInstance();
+            for (String member : members) {
+                if (userManager.isUserOnline(member)) {
+                    ClientHandler memberHandler = userManager.getClientHandler(member);
+                    if (memberHandler != null) {
+                        Message groupNotification = new Message(Message.MessageType.GROUP_LIST, "SERVER");
+                        groupNotification.setContent("REMOVED_FROM_GROUP:" + groupName + "|" + groupId + "|deleted");
+                        memberHandler.sendMessage(groupNotification);
+                    }
+                }
+            }
+        }
     }
 }

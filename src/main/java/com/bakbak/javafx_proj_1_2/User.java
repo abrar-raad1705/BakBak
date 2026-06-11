@@ -16,6 +16,7 @@ public class User implements Serializable {
     private LocalDateTime lastSeenTimestamp;
     private Set<String> contacts;
     private Set<String> groups;
+    private Set<String> blockedUsers;
 
     public User(String username, String password) {
         this.username = username;
@@ -24,6 +25,7 @@ public class User implements Serializable {
         this.lastSeenTimestamp = LocalDateTime.now(); // Initialize with creation time
         this.contacts = new HashSet<>();
         this.groups = new HashSet<>();
+        this.blockedUsers = new HashSet<>();
     }
 
     public String getUsername() {
@@ -122,6 +124,38 @@ public class User implements Serializable {
 
     public void leaveGroup(String groupId) {
         this.groups.remove(groupId);
+    }
+
+    public Set<String> getBlockedUsers() {
+        if (blockedUsers == null) {
+            blockedUsers = new HashSet<>();
+        }
+        return blockedUsers;
+    }
+
+    public void setBlockedUsers(Set<String> blockedUsers) {
+        this.blockedUsers = blockedUsers;
+    }
+
+    public void blockUser(String userToBlock) {
+        if (blockedUsers == null) {
+            blockedUsers = new HashSet<>();
+        }
+        this.blockedUsers.add(userToBlock);
+    }
+
+    public void unblockUser(String userToUnblock) {
+        if (blockedUsers == null) {
+            blockedUsers = new HashSet<>();
+        }
+        this.blockedUsers.remove(userToUnblock);
+    }
+
+    public boolean isUserBlocked(String targetUser) {
+        if (blockedUsers == null) {
+            return false;
+        }
+        return this.blockedUsers.contains(targetUser);
     }
 
     @Override

@@ -60,7 +60,6 @@
          <!-- Help Text -->
          <VBox alignment="CENTER" spacing="5">
             <Label style="-fx-font-size: 11px; -fx-opacity: 0.6;" text="First time? Create an account to get started" />
-            <Label style="-fx-font-size: 10px; -fx-opacity: 0.5;" text="Your credentials will be saved on the server" />
          </VBox>
          
       </VBox>

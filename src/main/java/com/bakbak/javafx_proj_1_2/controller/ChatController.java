@@ -26,6 +26,10 @@ import javafx.scene.Scene;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.ScaleTransition;
+import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
+import javafx.animation.ParallelTransition;
 import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -165,10 +169,14 @@ public class ChatController implements Initializable {
     private CompletableFuture<Message> pendingResponse;
     private Timeline lastSeenUpdateTimer;
     private String lastMessageSender = null; // Track last sender for message grouping
-
+    private Set<String> blockedUsers = new HashSet<>();
+    private ListView<HBox> managementMemberListView;
+    private ChatItem managementGroupItem;
+    private final Map<String, String> unicodeToFilename = new HashMap<>();
     // Store the selection listener to enable/disable it
     private javafx.beans.value.ChangeListener<ChatItem> chatSelectionListener;
     private boolean isSelectingChat = false; // Prevent multiple rapid selections
+    private long lastChatSelectTime = 0;
 
     // Modern sprite-based emoji system
     private static final String EMOJI_SPRITES_PATH = "/com/bakbak/javafx_proj_1_2/emoji_sprites/";
@@ -264,18 +272,19 @@ public class ChatController implements Initializable {
         private int emojiSize = 32; // Size of each emoji button
         private int emojiImageSize = 24; // Actual emoji image size within button
         private int padding = 8;
+        private int marginLeft = 15; // Equal left/right margin to center grid in popup
         private Tooltip tooltip = new Tooltip();
 
         public EmojiCanvas() {
-            this.setWidth(columns * (emojiSize + padding)); // Remove padding subtraction to give more space
+            this.setWidth(columns * (emojiSize + padding) + marginLeft * 2); // Grid + equal margins
 
             // Handle hover events to highlight emojis
             this.setOnMouseMoved(e -> {
-                int col = (int) (e.getX() / (emojiSize + padding));
+                int col = (int) ((e.getX() - marginLeft) / (emojiSize + padding));
                 int row = (int) (e.getY() / (emojiSize + padding));
                 int index = row * columns + col;
 
-                if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
+                if (e.getX() >= marginLeft && emojis != null && index >= 0 && index < emojis.size() && col >= 0 && col < columns) {
                     EmojiData emoji = emojis.get(index);
                     if (hoveredEmoji != emoji) {
                         hoveredEmoji = emoji;
@@ -303,11 +312,11 @@ public class ChatController implements Initializable {
 
             // Handle click events to select emoji
             this.setOnMouseClicked(e -> {
-                int col = (int) (e.getX() / (emojiSize + padding));
+                int col = (int) ((e.getX() - marginLeft) / (emojiSize + padding));
                 int row = (int) (e.getY() / (emojiSize + padding));
                 int index = row * columns + col;
 
-                if (emojis != null && index >= 0 && index < emojis.size() && col < columns) {
+                if (e.getX() >= marginLeft && emojis != null && index >= 0 && index < emojis.size() && col >= 0 && col < columns) {
                     EmojiData emoji = emojis.get(index);
                     insertEmojiIntoMessage(emoji.getFilename());
                     // Keep popup open for multiple emoji selection
@@ -337,8 +346,8 @@ public class ChatController implements Initializable {
             int row = 0;
 
             for (EmojiData emoji : emojis) {
-                // Calculate position for this emoji
-                int x = col * (emojiSize + padding);
+                // Calculate position for this emoji (with left margin offset)
+                int x = marginLeft + col * (emojiSize + padding);
                 int y = row * (emojiSize + padding);
 
                 // Draw background/highlight if hovered
@@ -615,7 +624,7 @@ public class ChatController implements Initializable {
 
     private void setupIconButtonHoverEffects() {
         // Setup hover effects for settings button
-        setupButtonHoverEffect(settingsButton, "settings.png", "settings2.png");
+        setupButtonHoverEffect(settingsButton, "group.png", null);
 
         // Setup hover effects for more button
         setupButtonHoverEffect(chatMenuButton, "more.png", "more2.png");
@@ -675,21 +684,48 @@ public class ChatController implements Initializable {
             return;
 
         Image normalImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/" + normalImage));
-        Image hoverImg = hoverImage != null
-                ? new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/" + hoverImage))
-                : null;
+        imageView.setImage(normalImg);
+
+        // Add scale transition for premium hover effect
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), button);
+        scaleIn.setToX(1.08);
+        scaleIn.setToY(1.08);
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), button);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
 
         button.setOnMouseEntered(e -> {
-            if (hoverImg != null) {
-                imageView.setImage(hoverImg);
-            } else {
-                imageView.setOpacity(0.8);
-            }
+            scaleOut.stop();
+            scaleIn.playFromStart();
         });
 
         button.setOnMouseExited(e -> {
-            imageView.setImage(normalImg);
-            imageView.setOpacity(1.0);
+            scaleIn.stop();
+            scaleOut.playFromStart();
+        });
+    }
+
+    private void setupButtonHoverScaleOnly(Button button) {
+        if (button == null)
+            return;
+
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), button);
+        scaleIn.setToX(1.08);
+        scaleIn.setToY(1.08);
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), button);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
+
+        button.setOnMouseEntered(e -> {
+            scaleOut.stop();
+            scaleIn.playFromStart();
+        });
+
+        button.setOnMouseExited(e -> {
+            scaleIn.stop();
+            scaleOut.playFromStart();
         });
     }
 
@@ -697,34 +733,34 @@ public class ChatController implements Initializable {
         if (darkModeToggle == null || darkModeIcon == null)
             return;
 
-        // Load all the images
+        // Load sun and night images
         Image sunImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/sun.png"));
-        Image sun2Img = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/sun2.png"));
         Image nightImg = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/night.png"));
-        Image night2Img = new Image(getClass().getResourceAsStream("/com/bakbak/javafx_proj_1_2/icons/night2.png"));
 
-        // Set initial state (sun icon)
-        darkModeIcon.setImage(sunImg);
+        // Set initial state
+        if (darkModeToggle.isSelected()) {
+            darkModeIcon.setImage(nightImg);
+        } else {
+            darkModeIcon.setImage(sunImg);
+        }
 
-        // Setup hover effects
+        // Add scale transition for premium hover effect
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), darkModeToggle);
+        scaleIn.setToX(1.08);
+        scaleIn.setToY(1.08);
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), darkModeToggle);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
+
         darkModeToggle.setOnMouseEntered(e -> {
-            if (darkModeToggle.isSelected()) {
-                // Dark mode is on, show night2 on hover
-                darkModeIcon.setImage(night2Img);
-            } else {
-                // Light mode is on, show sun2 on hover
-                darkModeIcon.setImage(sun2Img);
-            }
+            scaleOut.stop();
+            scaleIn.playFromStart();
         });
 
         darkModeToggle.setOnMouseExited(e -> {
-            if (darkModeToggle.isSelected()) {
-                // Dark mode is on, show night
-                darkModeIcon.setImage(nightImg);
-            } else {
-                // Light mode is on, show sun
-                darkModeIcon.setImage(sunImg);
-            }
+            scaleIn.stop();
+            scaleOut.playFromStart();
         });
 
         // Update icon when toggle state changes
@@ -809,7 +845,14 @@ public class ChatController implements Initializable {
                     if (pendingResponse != null) {
                         pendingResponse.complete(message);
                         pendingResponse = null;
+                    } else {
+                        if (!message.isSuccess() && message.getContent() != null) {
+                            showAlert("Error", message.getContent());
+                        }
                     }
+                    break;
+                case BLOCK_USER:
+                    handleBlockedUsersList(message);
                     break;
                 case PRIVATE_MESSAGE:
                     handleIncomingPrivateMessage(message);
@@ -1189,11 +1232,12 @@ public class ChatController implements Initializable {
     }
 
     private void handleGroupRemovedNotification(String response) {
-        // Format: REMOVED_FROM_GROUP:groupName|groupId
+        // Format: REMOVED_FROM_GROUP:groupName|groupId|isDeleted
         String[] parts = response.substring("REMOVED_FROM_GROUP:".length()).split("\\|");
         if (parts.length >= 2) {
             String groupName = parts[0];
             String groupId = parts[1];
+            boolean isDeleted = parts.length > 2 && "deleted".equals(parts[2]);
 
             // Remove the group from the local list
             allChatItems.remove(groupName);
@@ -1212,7 +1256,11 @@ public class ChatController implements Initializable {
             }
 
             updateChatList();
-            showAlert("Removed from Group", "You have been removed from the group: " + groupName);
+            if (isDeleted) {
+                showAlert("Group Deleted", "The group '" + groupName + "' has been deleted by its creator.");
+            } else {
+                showAlert("Removed from Group", "You have been removed from the group: " + groupName);
+            }
         }
     }
 
@@ -1329,6 +1377,11 @@ public class ChatController implements Initializable {
                 // If this group is currently selected, update the display
                 if (selectedChat != null && selectedChat.getName().equals(groupName)) {
                     updateGroupChatDisplay();
+                }
+
+                // Live update the management window if open
+                if (isManagementWindowOpen() && managementMemberListView != null && managementGroupItem != null && managementGroupItem.getGroupId().equals(groupId)) {
+                    refreshManagementWindow(managementMemberListView, groupItem);
                 }
             }
         }
@@ -1467,6 +1520,21 @@ public class ChatController implements Initializable {
 
         // Clear current messages
         messagesContainer.getChildren().clear();
+
+        lastChatSelectTime = System.currentTimeMillis();
+
+        // Animate messagesContainer loading transition
+        messagesContainer.setOpacity(0.0);
+        messagesContainer.setTranslateY(15.0);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(250), messagesContainer);
+        fadeIn.setToValue(1.0);
+
+        TranslateTransition slideUp = new TranslateTransition(Duration.millis(250), messagesContainer);
+        slideUp.setToY(0.0);
+
+        ParallelTransition pt = new ParallelTransition(fadeIn, slideUp);
+        pt.play();
 
         if (chatItem.getType() == ChatItem.Type.USER) {
             showPrivateChat(chatItem.getName());
@@ -1948,6 +2016,8 @@ public class ChatController implements Initializable {
         // Add the complete message container to the messages container
         messagesContainer.getChildren().add(fullMessageContainer);
 
+        // No entrance animation for messages
+
         // Update last message sender for grouping
         lastMessageSender = message.getSender();
 
@@ -2198,18 +2268,7 @@ public class ChatController implements Initializable {
 
     @FXML
     private void handleSettings() {
-        // Create context menu for settings
-        ContextMenu settingsMenu = new ContextMenu();
-
-        MenuItem newGroup = new MenuItem("New Group");
-        newGroup.setOnAction(e -> showGroupCreationWorkflow());
-
-        settingsMenu.getItems().add(newGroup);
-
-        // Apply CSS class instead of inline styling
-        settingsMenu.getStyleClass().add("settings-context-menu");
-
-        settingsMenu.show(settingsButton, javafx.geometry.Side.BOTTOM, 0, 0);
+        showGroupCreationWorkflow();
     }
 
     private void showGroupCreationWorkflow() {
@@ -2223,10 +2282,6 @@ public class ChatController implements Initializable {
         mainContainer.setPadding(new Insets(25));
         mainContainer.setPrefSize(400, 200);
         mainContainer.getStyleClass().add("group-creation-dialog");
-
-        // Header
-        Label headerLabel = new Label("Create New Group");
-        headerLabel.getStyleClass().add("dialog-header");
 
         // Group name input
         Label nameLabel = new Label("Group Name:");
@@ -2246,8 +2301,8 @@ public class ChatController implements Initializable {
         cancelButton.getStyleClass().add("dialog-cancel-button");
         cancelButton.setOnAction(e -> dialogStage.close());
 
-        Button createButton = new Button("Create Group");
-        createButton.setPrefWidth(100);
+        Button createButton = new Button("Create");
+        createButton.setPrefWidth(80);
         createButton.getStyleClass().add("dialog-create-button");
         createButton.setOnAction(e -> {
             String groupName = nameField.getText().trim();
@@ -2259,9 +2314,13 @@ public class ChatController implements Initializable {
 
         buttonBox.getChildren().addAll(cancelButton, createButton);
 
-        mainContainer.getChildren().addAll(headerLabel, nameLabel, nameField, buttonBox);
+        mainContainer.getChildren().addAll(nameLabel, nameField, buttonBox);
 
         Scene dialogScene = new Scene(mainContainer);
+        dialogScene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        if (darkModeToggle != null && darkModeToggle.isSelected()) {
+            dialogScene.getRoot().getStyleClass().add("dark-mode");
+        }
         dialogStage.setScene(dialogScene);
         dialogStage.showAndWait();
     }
@@ -2277,9 +2336,11 @@ public class ChatController implements Initializable {
         mainContainer.setPrefSize(450, 550);
         mainContainer.getStyleClass().add("member-selection-dialog");
 
-        // Title
-        Label titleLabel = new Label(isAddingMembers ? "Add Members to Group" : "Select Group Members");
+        // Title (only shown when adding members to existing group)
+        Label titleLabel = new Label("Add Members to Group");
         titleLabel.getStyleClass().add("dialog-header");
+        titleLabel.setVisible(isAddingMembers);
+        titleLabel.setManaged(isAddingMembers);
 
         // Search field
         TextField searchField = new TextField();
@@ -2364,6 +2425,10 @@ public class ChatController implements Initializable {
         mainContainer.getChildren().addAll(titleLabel, searchField, contactListView, buttonBox);
 
         Scene scene = new Scene(mainContainer);
+        scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        if (darkModeToggle != null && darkModeToggle.isSelected()) {
+            scene.getRoot().getStyleClass().add("dark-mode");
+        }
         memberSelectionStage.setScene(scene);
         memberSelectionStage.show();
     }
@@ -2709,6 +2774,36 @@ public class ChatController implements Initializable {
                     content.getChildren().add(noMessageLabel);
                 }
 
+                // Add premium animations to name list cells
+                ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), content);
+                scaleIn.setToX(1.03);
+                scaleIn.setToY(1.03);
+
+                ScaleTransition scaleOut = new ScaleTransition(Duration.millis(120), content);
+                scaleOut.setToX(1.0);
+                scaleOut.setToY(1.0);
+
+                content.setOnMouseEntered(e -> {
+                    scaleOut.stop();
+                    scaleIn.playFromStart();
+                });
+
+                content.setOnMouseExited(e -> {
+                    scaleIn.stop();
+                    scaleOut.playFromStart();
+                });
+
+                content.setOnMouseClicked(e -> {
+                    ScaleTransition clickBounce = new ScaleTransition(Duration.millis(100), content);
+                    clickBounce.setFromX(1.0);
+                    clickBounce.setFromY(1.0);
+                    clickBounce.setToX(0.96);
+                    clickBounce.setToY(0.96);
+                    clickBounce.setAutoReverse(true);
+                    clickBounce.setCycleCount(2);
+                    clickBounce.play();
+                });
+
                 setGraphic(content);
 
                 // Add context menu for deleting chat
@@ -2756,22 +2851,11 @@ public class ChatController implements Initializable {
 
         // Main category tabs - will show the first few categories
         HBox categoryTabs = new HBox();
-        categoryTabs.setSpacing(4); // Slightly larger spacing for better readability
-        categoryTabs.setPadding(new Insets(8, 8, 8, 16)); // More padding on the left side
-        categoryTabs.setAlignment(Pos.CENTER_LEFT); // Left align buttons
-        categoryTabs.setPrefWidth(390); // Use full available width for better distribution
-
-        // More categories dropdown button with context menu
-        Button moreButton = new Button("More");
-        moreButton.getStyleClass().add("emoji-category-button");
-        // Style to match other buttons
-        moreButton.getStyleClass().add("emoji-more-button");
-        moreButton.setPrefHeight(30);
-        moreButton.setPrefWidth(55); // Width for "More" text
-        moreButton.setTooltip(new Tooltip("More categories"));
-
-        // Create context menu for dropdown functionality
-        ContextMenu moreMenu = new ContextMenu();
+        categoryTabs.setSpacing(2);
+        categoryTabs.setPadding(new Insets(6, 6, 6, 6));
+        categoryTabs.setAlignment(Pos.CENTER); // Center the tabs
+        categoryTabs.setFillHeight(false);
+        HBox.setHgrow(categoryTabs, javafx.scene.layout.Priority.ALWAYS);
 
         // Emoji canvas container
         ScrollPane emojiScrollPane = new ScrollPane();
@@ -2789,17 +2873,12 @@ public class ChatController implements Initializable {
         Map<String, Button> categoryButtons = new HashMap<>();
         String[] categories = { "Smileys", "People", "Animals & Nature", "Food", "Activities", "Places", "Objects",
                 "Symbols", "Flags" };
-        // Use abbreviated labels for display to save space
-        String[] shortLabels = { "Smileys", "People", "Animals", "Food", "Activities", "Places", "Objects", "Symbols",
-                "Flags" };
+        // Use emoji icons for category display labels
+        String[] shortLabels = { "\uD83D\uDE00", "\uD83D\uDC64", "\uD83D\uDC3B", "\uD83C\uDF55", "\u26BD", "\uD83C\uDF0D", "\uD83D\uDCE6", "\uD83D\uDD2E",
+                "\uD83C\uDFC1" };
 
-        // Show first 5 categories in the main tab bar and add a "More" button
-        int visibleCategories = 5;
-        // Add Places, Objects, Symbols, Flags to dropdown menu
-        String[] additionalCategories = { "Places", "Objects", "Symbols", "Flags" };
-
-        // Add the visible category buttons
-        for (int i = 0; i < visibleCategories; i++) {
+        // Add ALL category buttons to the tab bar (all fit in one row with emoji icons)
+        for (int i = 0; i < categories.length; i++) {
             String category = categories[i];
             String label = shortLabels[i];
             Button categoryBtn = createCategoryButton(label, category);
@@ -2813,37 +2892,6 @@ public class ChatController implements Initializable {
 
             categoryTabs.getChildren().add(categoryBtn);
         }
-
-        // Populate the More menu with the remaining categories
-        for (int i = 0; i < additionalCategories.length; i++) {
-            String additionalCategory = additionalCategories[i];
-            String additionalLabel = shortLabels[visibleCategories + i];
-
-            MenuItem menuItem = new MenuItem(additionalLabel);
-            menuItem.setUserData(additionalCategory);
-            menuItem.setOnAction(e -> {
-                String category = (String) menuItem.getUserData();
-                selectCategory(category, categoryButtons, emojiCanvas);
-            });
-            moreMenu.getItems().add(menuItem);
-        }
-
-        // Set the action to show the context menu
-        moreButton.setOnAction(e -> {
-            moreMenu.show(moreButton, Side.BOTTOM, 0, 0);
-        });
-
-        // Add the remaining categories to the buttons map
-        for (int i = visibleCategories; i < categories.length; i++) {
-            String category = categories[i];
-            String label = shortLabels[i];
-            Button categoryBtn = createCategoryButton(label, category);
-            categoryButtons.put(category, categoryBtn);
-            // These buttons won't be added to the UI, but will be used for styling
-        }
-
-        // Add the More button at the end
-        categoryTabs.getChildren().add(moreButton);
 
         // Load initial category (Smileys by default)
         selectCategory("Smileys", categoryButtons, emojiCanvas);
@@ -2918,19 +2966,18 @@ public class ChatController implements Initializable {
         // Store the actual category in the user data
         btn.setUserData(category);
 
-        // Configure button properties with text labels
-        btn.setPrefHeight(30);
-        btn.setMinHeight(30);
-        btn.setPrefWidth(55); // Fixed width for uniform appearance
-        btn.setMinWidth(55);
-        // Make buttons more visually appealing
-        btn.getStyleClass().add("emoji-button");
-        // Remove programmatic font setting to allow CSS to control font size
+        // Configure button as a square emoji icon tab
+        btn.setPrefHeight(34);
+        btn.setPrefWidth(38);
+        btn.setMinHeight(34);
+        btn.setMinWidth(38);
+        // Ensure the emoji character renders large
+        btn.setStyle("-fx-font-size: 16px;");
+        btn.getStyleClass().add("emoji-category-button");
+        setupButtonHoverScaleOnly(btn);
 
-        // Set tooltip to show full category name
-        if (!label.equals(category)) {
-            btn.setTooltip(new Tooltip(category));
-        }
+        // Always show full category name as tooltip
+        btn.setTooltip(new Tooltip(category));
 
         return btn;
     }
@@ -2939,15 +2986,15 @@ public class ChatController implements Initializable {
         System.out.println("DEBUG: Selecting category: " + category);
         activeCategory = category;
 
-        // Update button styles
+        // Update button styles using CSS classes instead of inline styles
         for (Map.Entry<String, Button> entry : categoryButtons.entrySet()) {
             Button btn = entry.getValue();
             if (entry.getKey().equals(category)) {
-                btn.setStyle("-fx-background-color: #e3f2fd; -fx-border-color: #2196f3; -fx-border-width: 1; " +
-                        "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 2 4; -fx-font-weight: bold;");
+                if (!btn.getStyleClass().contains("selected")) {
+                    btn.getStyleClass().add("selected");
+                }
             } else {
-                btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; " +
-                        "-fx-background-radius: 6; -fx-padding: 2 4; -fx-font-weight: normal;");
+                btn.getStyleClass().remove("selected");
             }
         }
 
@@ -3098,10 +3145,17 @@ public class ChatController implements Initializable {
 
         } else {
             // User-specific options
-            MenuItem blockUserItem = new MenuItem("Block user");
-            // MenuItem clearChatItem = new MenuItem("Clear chat"); // Removed as per new
-            // implementation
-            chatMenu.getItems().addAll(blockUserItem);
+            String targetUser = selectedChat.getName();
+            boolean isBlocked = blockedUsers.contains(targetUser);
+            MenuItem blockUserItem = new MenuItem(isBlocked ? "Unblock user" : "Block user");
+            blockUserItem.setOnAction(e -> {
+                if (isBlocked) {
+                    unblockUser(targetUser);
+                } else {
+                    blockUser(targetUser);
+                }
+            });
+            chatMenu.getItems().add(blockUserItem);
         }
 
         if (!chatMenu.getItems().isEmpty()) {
@@ -3309,25 +3363,63 @@ public class ChatController implements Initializable {
         managementStage.initOwner(chatStatusLabel.getScene().getWindow());
         managementStage.setTitle("Manage Group: " + groupItem.getName());
 
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(15));
+        managementGroupItem = groupItem;
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20));
         layout.setPrefSize(450, 600);
+        layout.getStyleClass().add("group-management-dialog");
 
         Label title = new Label("Members (" + groupItem.getMemberCount() + ")");
         title.getStyleClass().add("group-management-title");
 
-        ListView<HBox> memberListView = new ListView<>();
-        refreshManagementWindow(memberListView, groupItem);
+        managementMemberListView = new ListView<>();
+        managementMemberListView.getStyleClass().add("dialog-list-view");
+        refreshManagementWindow(managementMemberListView, groupItem);
 
         Button addMemberButton = new Button("Add Member");
+        addMemberButton.getStyleClass().add("dialog-create-button");
         addMemberButton.setOnAction(e -> showMemberSelectionPopup("", true, groupItem.getGroupId()));
 
-        HBox bottomBar = new HBox(addMemberButton);
+        HBox bottomBar = new HBox();
         bottomBar.setAlignment(Pos.CENTER_RIGHT);
+        bottomBar.setSpacing(10);
+        HBox.setHgrow(bottomBar, Priority.ALWAYS);
 
-        layout.getChildren().addAll(title, memberListView, bottomBar);
+        if (groupItem.isGroupCreator(currentUsername)) {
+            Button deleteGroupButton = new Button("Delete Group");
+            deleteGroupButton.getStyleClass().add("dialog-cancel-button");
+            deleteGroupButton.setOnAction(e -> {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Group");
+                confirm.setHeaderText("Delete Group: " + groupItem.getName());
+                confirm.setContentText("Are you sure you want to permanently delete this group? This action cannot be undone.");
+
+                // Style confirmation dialog
+                confirm.getDialogPane().getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+                if (darkModeToggle != null && darkModeToggle.isSelected()) {
+                    confirm.getDialogPane().getStyleClass().add("dark-mode");
+                }
+
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        deleteGroup(groupItem.getGroupId());
+                        managementStage.close();
+                    }
+                });
+            });
+            bottomBar.getChildren().addAll(deleteGroupButton, addMemberButton);
+        } else {
+            bottomBar.getChildren().add(addMemberButton);
+        }
+
+        layout.getChildren().addAll(title, managementMemberListView, bottomBar);
 
         Scene scene = new Scene(layout);
+        scene.getStylesheets().add(getClass().getResource("/com/bakbak/javafx_proj_1_2/fxml/ChatWindowStyle.css").toExternalForm());
+        if (darkModeToggle != null && darkModeToggle.isSelected()) {
+            scene.getRoot().getStyleClass().add("dark-mode");
+        }
         managementStage.setScene(scene);
         managementStage.show();
     }
@@ -3340,16 +3432,19 @@ public class ChatController implements Initializable {
         for (String member : groupItem.getGroupMembers()) {
             HBox memberRow = new HBox(10);
             memberRow.setAlignment(Pos.CENTER_LEFT);
-            memberRow.setPadding(new Insets(5));
+            memberRow.setPadding(new Insets(6, 8, 6, 8));
+            memberRow.getStyleClass().add("group-management-row");
 
             Label nameLabel = new Label(member);
+            nameLabel.getStyleClass().add("group-management-member-name");
+
             Label roleLabel = new Label();
             if (groupItem.isGroupCreator(member)) {
-                roleLabel.setText("(Owner)");
-                roleLabel.setStyle("-fx-text-fill: #d9534f;");
+                roleLabel.setText("Owner");
+                roleLabel.getStyleClass().add("group-member-owner");
             } else if (groupItem.isGroupAdmin(member)) {
-                roleLabel.setText("(Admin)");
-                roleLabel.setStyle("-fx-text-fill: #5cb85c;");
+                roleLabel.setText("Admin");
+                roleLabel.getStyleClass().add("group-member-admin");
             }
 
             Region spacer = new Region();
@@ -3362,10 +3457,12 @@ public class ChatController implements Initializable {
                 if (groupItem.isGroupCreator(currentUsername) && !groupItem.isGroupCreator(member)) {
                     if (groupItem.isGroupAdmin(member)) {
                         Button demoteButton = new Button("Demote");
+                        demoteButton.getStyleClass().addAll("dialog-btn-sm", "dialog-btn-danger");
                         demoteButton.setOnAction(e -> removeAdmin(groupItem.getGroupId(), member));
                         memberRow.getChildren().add(demoteButton);
                     } else {
                         Button promoteButton = new Button("Promote");
+                        promoteButton.getStyleClass().addAll("dialog-btn-sm", "dialog-btn-primary");
                         promoteButton.setOnAction(e -> promoteToAdmin(groupItem.getGroupId(), member));
                         memberRow.getChildren().add(promoteButton);
                     }
@@ -3373,6 +3470,7 @@ public class ChatController implements Initializable {
 
                 if (!groupItem.isGroupCreator(member)) {
                     Button removeButton = new Button("Remove");
+                    removeButton.getStyleClass().addAll("dialog-btn-sm", "dialog-btn-danger");
                     removeButton.setOnAction(e -> removeMemberFromGroup(groupItem.getGroupId(), member));
                     memberRow.getChildren().add(removeButton);
                 }
@@ -5350,6 +5448,52 @@ public class ChatController implements Initializable {
         } catch (Exception e) {
             showAlert("Error", "Failed to send voice message: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void handleBlockedUsersList(Message message) {
+        String content = message.getContent();
+        blockedUsers.clear();
+        if (content != null && !content.trim().isEmpty()) {
+            String[] users = content.split(",");
+            for (String u : users) {
+                if (!u.trim().isEmpty()) {
+                    blockedUsers.add(u.trim());
+                }
+            }
+        }
+        System.out.println("DEBUG: Loaded blocked users: " + blockedUsers);
+    }
+
+    private void blockUser(String usernameToBlock) {
+        try {
+            Message message = new Message(Message.MessageType.BLOCK_USER, currentUsername);
+            message.setRecipient(usernameToBlock);
+            chatClient.sendMessage(message);
+            showAlert("User Blocked", "You have blocked " + usernameToBlock);
+        } catch (IOException e) {
+            System.err.println("Failed to send block request: " + e.getMessage());
+        }
+    }
+
+    private void unblockUser(String usernameToUnblock) {
+        try {
+            Message message = new Message(Message.MessageType.UNBLOCK_USER, currentUsername);
+            message.setRecipient(usernameToUnblock);
+            chatClient.sendMessage(message);
+            showAlert("User Unblocked", "You have unblocked " + usernameToUnblock);
+        } catch (IOException e) {
+            System.err.println("Failed to send unblock request: " + e.getMessage());
+        }
+    }
+
+    private void deleteGroup(String groupId) {
+        try {
+            Message message = new Message(Message.MessageType.DELETE_GROUP, currentUsername);
+            message.setGroupId(groupId);
+            chatClient.sendMessage(message);
+        } catch (IOException e) {
+            System.err.println("Failed to send delete group request: " + e.getMessage());
         }
     }
 }

@@ -27,6 +27,9 @@ public class Message implements Serializable {
         USER_STATUS_UPDATE,
         DELETE_HISTORY,
         ACKNOWLEDGMENT,
+        DELETE_GROUP,
+        BLOCK_USER,
+        UNBLOCK_USER,
         /* ERROR */
     }
 

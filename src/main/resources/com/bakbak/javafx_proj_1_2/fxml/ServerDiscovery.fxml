@@ -72,7 +72,7 @@
          <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Manual Connection" />
          
          <HBox alignment="CENTER" spacing="10">
-            <Button fx:id="localhostButton" onAction="#handleLocalhost" prefHeight="35" prefWidth="100" text="Localhost" />
+            <Button fx:id="localhostButton" onAction="#handleLocalhost" prefHeight="35" prefWidth="110" text="Localhost" />
             
             <TextField fx:id="ipField" prefHeight="35" prefWidth="200" promptText="Enter server IP address" style="-fx-font-size: 13px;" styleClass="textBox" stylesheets="@ServerDiscovery.css" />
          </HBox>

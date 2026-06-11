@@ -24,7 +24,7 @@
       <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20 15 20;" stylesheets="@ChatWindowStyle.css">
          <Label styleClass="chatsTitle" text="Chats" />
          <Region HBox.hgrow="ALWAYS" />
-         <ToggleButton fx:id="darkModeToggle" minHeight="25" minWidth="30" style="-fx-background-color: transparent;" styleClass="navigation-button">
+         <ToggleButton fx:id="darkModeToggle" visible="false" managed="false" minHeight="25" minWidth="30" style="-fx-background-color: transparent;" styleClass="navigation-button">
             <graphic>
                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                   <image>
@@ -32,11 +32,11 @@
                   </image>
                </ImageView>
             </graphic></ToggleButton>
-         <Button fx:id="settingsButton" minHeight="30" minWidth="30" onAction="#handleSettings" style="-fx-background-color: transparent;" styleClass="button2 icon-button" stylesheets="@ChatWindowStyle.css">
+         <Button fx:id="settingsButton" minHeight="40" minWidth="40" onAction="#handleSettings" styleClass="navigation-button">
             <graphic>
-               <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true" styleClass="icon-image">
+               <ImageView fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true" styleClass="icon-image">
                   <image>
-                     <Image url="@../icons/settings.png" />
+                     <Image url="@../icons/group.png" />
                   </image>
                </ImageView>
             </graphic></Button>
@@ -74,7 +74,7 @@
                </VBox>
 
                <HBox spacing="5">
-                  <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                  <Button fx:id="chatMenuButton" minHeight="35" minWidth="35" onAction="#handleChatMenu" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -101,7 +101,7 @@
          <HBox fx:id="messageInputArea" alignment="CENTER">
             <VBox style="-fx-padding: 15 20 20 20;" styleClass="chatBoxFooter" stylesheets="@ChatWindowStyle.css" HBox.hgrow="ALWAYS">
                <HBox alignment="CENTER" spacing="12">
-                  <Button fx:id="fileButton" minHeight="40" minWidth="40" onAction="#handleSendFile" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                  <Button fx:id="fileButton" minHeight="40" minWidth="40" onAction="#handleSendFile" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -110,7 +110,7 @@
                         </ImageView>
                      </graphic></Button>
                   <TextField fx:id="messageInput" prefHeight="40" promptText="Type a message..." styleClass="message-input-field" HBox.hgrow="ALWAYS" />
-                  <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                  <Button fx:id="emojiButton" minHeight="40" minWidth="40" onAction="#handleEmojiPicker" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -118,7 +118,7 @@
                            </image>
                         </ImageView>
                      </graphic></Button>
-                  <Button fx:id="voiceButton" minHeight="40" minWidth="40.0" prefWidth="31.0" onAction="#handleVoiceMessage" style="-fx-background-color: transparent;" styleClass="navigation-button">
+                  <Button fx:id="voiceButton" minHeight="40" minWidth="40.0" prefWidth="31.0" onAction="#handleVoiceMessage" styleClass="navigation-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -126,7 +126,7 @@
                            </image>
                         </ImageView>
                      </graphic></Button>
-                  <Button fx:id="sendButton" minHeight="40" minWidth="40" onAction="#handleSendMessage" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-background-color: transparent;" styleClass="send-button">
+                  <Button fx:id="sendButton" minHeight="40" minWidth="40" onAction="#handleSendMessage" styleClass="send-button">
                      <graphic>
                         <ImageView fitHeight="23.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>

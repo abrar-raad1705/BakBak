@@ -74,7 +74,7 @@
 }
 .list-cell {
     -fx-background-color: transparent;
-    -fx-padding: 0;
+    -fx-padding: 3 0;
 }
 .list-cell:empty {
     -fx-background-color: transparent;
@@ -120,23 +120,26 @@
 /* ─── Contact / Chat Cell ────────────────────────────────────── */
 .contact-cell {
     -fx-background-color: transparent;
+    -fx-background-radius: 12;
     -fx-padding: 10 15;
-    -fx-border-color: transparent;
-    -fx-border-width: 0 0 1 0;
     -fx-cursor: hand;
 }
 .contact-cell:hover {
     -fx-background-color: #f0f4f9;
+    -fx-background-radius: 12;
 }
 .list-cell:filled:selected .contact-cell {
     -fx-background-color: #3390ec;
+    -fx-background-radius: 12;
 }
 
 .dark-mode .contact-cell:hover {
     -fx-background-color: #202b36;
+    -fx-background-radius: 12;
 }
 .dark-mode .list-cell:filled:selected .contact-cell {
     -fx-background-color: #2b5278;
+    -fx-background-radius: 12;
 }
 
 /* Contact names and metadata */
@@ -835,25 +838,53 @@
 }
 
 /* ─── Modern Emoji Picker ────────────────────────────────────── */
+/* ─── Modern Emoji Picker ────────────────────────────────────── */
 .modern-emoji-picker {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 12;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 14, 0, 0, 4);
+    -fx-background-radius: 16;
+    -fx-border-color: #e4ebf5;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 20, 0, 0, 6);
 }
 .modern-emoji-picker .text-field, .emoji-search-field {
-    -fx-background-color: #f0f4f9;
+    -fx-background-color: #f1f3f4;
     -fx-text-fill: #1a1a2e;
-    -fx-prompt-text-fill: #9baab8;
+    -fx-prompt-text-fill: #80868b;
+    -fx-background-radius: 20;
+    -fx-border-color: transparent;
+    -fx-border-radius: 20;
+    -fx-padding: 8 16;
+    -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+    -fx-font-size: 13px;
+}
+.modern-emoji-picker .text-field:focused, .emoji-search-field:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #3390ec;
+}
+.emoji-category-button {
+    -fx-background-color: transparent;
     -fx-background-radius: 8;
-    -fx-border-color: #d8e3ee;
-    -fx-border-radius: 8;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-padding: 4 6;
+    -fx-alignment: center;
+    -fx-min-width: 36;
+    -fx-pref-width: 38;
+    -fx-opacity: 0.75;
 }
 .emoji-category-button:hover {
-    -fx-background-color: #f0f4f9;
+    -fx-background-color: rgba(51, 144, 236, 0.12);
+    -fx-opacity: 1.0;
+    -fx-scale-x: 1.15;
+    -fx-scale-y: 1.15;
 }
 .emoji-category-button.selected {
-    -fx-background-color: #3390ec;
+    -fx-background-color: rgba(51, 144, 236, 0.18);
+    -fx-opacity: 1.0;
+    -fx-effect: dropshadow(gaussian, rgba(51, 144, 236, 0.4), 4, 0, 0, 0);
 }
+
 .emoji-scroll-pane {
     -fx-background: #ffffff !important;
     -fx-background-color: #ffffff !important;
@@ -864,19 +895,31 @@
 
 .dark-mode .modern-emoji-picker {
     -fx-background-color: #17212b;
+    -fx-border-color: #101921;
 }
 .dark-mode .modern-emoji-picker .text-field,
 .dark-mode .emoji-search-field {
     -fx-background-color: #24303f;
     -fx-text-fill: #ffffff;
     -fx-prompt-text-fill: #7f91a4;
-    -fx-border-color: #101921;
+    -fx-border-color: transparent;
+}
+.dark-mode .modern-emoji-picker .text-field:focused,
+.dark-mode .emoji-search-field:focused {
+    -fx-background-color: #1c2a38;
+    -fx-border-color: #2b5278;
+}
+.dark-mode .emoji-category-button {
+    -fx-opacity: 0.6;
 }
 .dark-mode .emoji-category-button:hover {
-    -fx-background-color: #202b36;
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-opacity: 1.0;
 }
 .dark-mode .emoji-category-button.selected {
-    -fx-background-color: #2b5278;
+    -fx-background-color: rgba(43, 82, 120, 0.55);
+    -fx-opacity: 1.0;
+    -fx-effect: dropshadow(gaussian, rgba(43, 82, 120, 0.6), 4, 0, 0, 0);
 }
 .dark-mode .emoji-scroll-pane {
     -fx-background: #17212b !important;
@@ -984,5 +1027,141 @@
 .dark-mode .group-member-admin {
     -fx-text-fill: #4fae4e !important;
     -fx-background-color: rgba(79, 174, 78, 0.15);
+}
+
+/* ─── Group Management Window & Dialog General Styling ──────────────── */
+.group-management-dialog {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dde5f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 16, 0, 0, 4);
+}
+.group-management-title {
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e !important;
+    -fx-padding: 0 0 5 0;
+}
+
+/* Dialog ListViews */
+.member-selection-dialog .list-view,
+.group-management-dialog .list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: #dde5f0;
+    -fx-border-width: 1px;
+    -fx-padding: 5px;
+}
+.member-selection-dialog .list-cell,
+.group-management-dialog .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6px 10px;
+}
+.member-selection-dialog .list-cell:filled:hover,
+.group-management-dialog .list-cell:filled:hover {
+    -fx-background-color: #f0f4f9;
+    -fx-background-radius: 6px;
+}
+
+/* Dialog Checkboxes */
+.member-selection-checkbox {
+    -fx-text-fill: #1a1a2e !important;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+.member-selection-checkbox .box {
+    -fx-background-color: #f0f4f9;
+    -fx-border-color: #d8e3ee;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+.member-selection-checkbox:selected .box {
+    -fx-background-color: #3390ec;
+    -fx-border-color: #3390ec;
+}
+.member-selection-checkbox:selected .mark {
+    -fx-background-color: white;
+}
+
+/* Small Row Control Buttons */
+.dialog-btn-sm {
+    -fx-background-radius: 6px;
+    -fx-padding: 4px 10px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-text-fill: white !important;
+}
+.dialog-btn-primary {
+    -fx-background-color: #3390ec;
+}
+.dialog-btn-primary:hover {
+    -fx-background-color: #2b7ccf;
+}
+.dialog-btn-danger {
+    -fx-background-color: #e8434e;
+}
+.dialog-btn-danger:hover {
+    -fx-background-color: #c73940;
+}
+
+/* Dark Mode Overrides for Dialogs */
+.dark-mode.group-management-dialog,
+.dark-mode .group-management-dialog {
+    -fx-background-color: #17212b;
+    -fx-border-color: #101921;
+}
+.dark-mode .group-management-title {
+    -fx-text-fill: #ffffff !important;
+}
+.dark-mode .member-selection-dialog .list-view,
+.dark-mode .group-management-dialog .list-view {
+    -fx-background-color: #17212b;
+    -fx-border-color: #101921;
+}
+.dark-mode .member-selection-dialog .list-cell:filled:hover,
+.dark-mode .group-management-dialog .list-cell:filled:hover {
+    -fx-background-color: #202b36;
+}
+.dark-mode .member-selection-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+.dark-mode .member-selection-checkbox .box {
+    -fx-background-color: #24303f;
+    -fx-border-color: #101921;
+}
+.dark-mode .member-selection-checkbox:selected .box {
+    -fx-background-color: #2b5278;
+    -fx-border-color: #2b5278;
+}
+.dark-mode .dialog-btn-primary {
+    -fx-background-color: #2b5278;
+}
+.dark-mode .dialog-btn-primary:hover {
+    -fx-background-color: #386e9e;
+}
+.dark-mode .dialog-btn-danger {
+    -fx-background-color: #d9534f;
+}
+.dark-mode .dialog-btn-danger:hover {
+    -fx-background-color: #c9302c;
+}
+
+/* Row wrapper */
+.group-management-row {
+    -fx-background-color: transparent;
+    -fx-padding: 2px 0;
+}
+.group-management-member-name {
+    -fx-text-fill: #1a1a2e !important;
+    -fx-font-size: 13.5px !important;
+    -fx-font-weight: bold !important;
+}
+.dark-mode .group-management-member-name {
+    -fx-text-fill: #ffffff !important;
 }
 

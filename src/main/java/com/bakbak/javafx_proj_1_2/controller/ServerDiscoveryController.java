@@ -31,6 +31,31 @@ public class ServerDiscoveryController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setupUI();
+        setupButtonHoverScale(scanButton);
+        setupButtonHoverScale(localhostButton);
+        setupButtonHoverScale(connectButton);
+    }
+
+    private void setupButtonHoverScale(Button button) {
+        if (button == null) return;
+
+        javafx.animation.ScaleTransition scaleIn = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
+        scaleIn.setToX(1.08);
+        scaleIn.setToY(1.08);
+
+        javafx.animation.ScaleTransition scaleOut = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(120), button);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
+
+        button.setOnMouseEntered(e -> {
+            scaleOut.stop();
+            scaleIn.playFromStart();
+        });
+
+        button.setOnMouseExited(e -> {
+            scaleIn.stop();
+            scaleOut.playFromStart();
+        });
     }
 
     private void setupUI() {

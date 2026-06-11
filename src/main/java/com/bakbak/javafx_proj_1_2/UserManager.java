@@ -95,6 +95,22 @@ public class UserManager {
                                 }
                             }
                         }
+
+                        // Load blocked users if available
+                        if (parts.length >= 6 && !parts[5].isEmpty() && !parts[5].equals("BLOCKED:")) {
+                            String blockedStr = parts[5];
+                            if (blockedStr.startsWith("BLOCKED:")) {
+                                blockedStr = blockedStr.substring(8); // Remove "BLOCKED:"
+                                if (!blockedStr.trim().isEmpty()) {
+                                    String[] blockedArray = blockedStr.split(",");
+                                    for (String blockedUser : blockedArray) {
+                                        if (!blockedUser.trim().isEmpty()) {
+                                            user.blockUser(blockedUser.trim());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         
                         users.put(username, user);
                     }
@@ -106,7 +122,7 @@ public class UserManager {
         }
     }
     
-    private void saveUsers() {
+    public void saveUsers() {
         try {
             Path usersPath = Paths.get(USERS_FILE);
             try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(usersPath))) {
@@ -131,6 +147,13 @@ public class UserManager {
                     userLine.append("CONTACTS:");
                     for (String contact : user.getContacts()) {
                         userLine.append(contact).append(",");
+                    }
+                    userLine.append("|");
+
+                    // Blocked users
+                    userLine.append("BLOCKED:");
+                    for (String blockedUser : user.getBlockedUsers()) {
+                        userLine.append(blockedUser).append(",");
                     }
                     
                     writer.println(userLine.toString());
